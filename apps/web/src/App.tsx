@@ -98,6 +98,7 @@ function RuntimeShell() {
   const snapshot = useFeedSnapshot();
   const { refresh, refreshing, error } = useFeedRefresh();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sourcePanelCollapsed, setSourcePanelCollapsed] = useState(false);
   const [feedQuery, setFeedQuery] = useState("");
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
@@ -140,6 +141,12 @@ function RuntimeShell() {
       setDrawerOpen(false);
     }
   }, [drawerOpen, useDrawerLayout]);
+
+  useEffect(() => {
+    if (useDrawerLayout && sourcePanelCollapsed) {
+      setSourcePanelCollapsed(false);
+    }
+  }, [sourcePanelCollapsed, useDrawerLayout]);
 
   const deferredFeedQuery = useDeferredValue(feedQuery.trim().toLowerCase());
   const deferredSourceQuery = useDeferredValue(sourceQuery.trim().toLowerCase());
@@ -254,6 +261,7 @@ function RuntimeShell() {
   const feedLabelId = useId();
   const sourceLabelId = useId();
   const searchDialogId = useId();
+  const sourcePanelCollapsedOnDesktop = !useDrawerLayout && sourcePanelCollapsed;
 
   return (
     <main className="app">
@@ -338,13 +346,26 @@ function RuntimeShell() {
         </div>
       </section>
 
-      <div className="layout">
-        <aside className={`source-panel ${useDrawerLayout && drawerOpen ? "is-open" : ""}`}>
+      <div className={`layout ${sourcePanelCollapsedOnDesktop ? "layout--collapsed" : ""}`}>
+        <aside
+          aria-hidden={useDrawerLayout ? !drawerOpen : undefined}
+          className={`source-panel ${useDrawerLayout && drawerOpen ? "is-open" : ""} ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}
+        >
           <div className="source-panel__header">
             <div>
               <span className="source-panel__eyebrow">信息源筛选</span>
               <h3>按站点和栏目勾选</h3>
             </div>
+            {!useDrawerLayout ? (
+              <button
+                aria-expanded={!sourcePanelCollapsedOnDesktop}
+                className="icon-button source-panel__toggle"
+                onClick={() => setSourcePanelCollapsed((current) => !current)}
+                type="button"
+              >
+                {sourcePanelCollapsedOnDesktop ? "展开" : "收起"}
+              </button>
+            ) : null}
             {useDrawerLayout ? (
               <button
                 className="icon-button source-panel__close"
@@ -356,6 +377,26 @@ function RuntimeShell() {
             ) : null}
           </div>
 
+          {sourcePanelCollapsedOnDesktop ? (
+            <div className="source-panel__collapsed">
+              <div className="source-panel__collapsed-stat">
+                <span>站点</span>
+                <strong>{selectedSourceIds.length}</strong>
+              </div>
+              <div className="source-panel__collapsed-stat">
+                <span>栏目</span>
+                <strong>{selectedChannelKeys.length}</strong>
+              </div>
+              <button
+                className="button button--text source-panel__collapsed-reset"
+                onClick={() => toggleAll(true)}
+                type="button"
+              >
+                默认
+              </button>
+            </div>
+          ) : (
+            <>
           <label
             aria-labelledby={sourceLabelId}
             className="field"
@@ -444,6 +485,8 @@ function RuntimeShell() {
               );
             })}
           </div>
+            </>
+          )}
         </aside>
 
         <section className="content">
@@ -481,6 +524,15 @@ function RuntimeShell() {
                     <article
                       className="feed-card"
                       key={item.id}
+                      onClick={() => window.open(item.url, "_blank", "noopener,noreferrer")}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          window.open(item.url, "_blank", "noopener,noreferrer");
+                        }
+                      }}
+                      role="link"
+                      tabIndex={0}
                     >
                       <div className="feed-card__meta">
                         <span className="feed-chip feed-chip--source">
@@ -500,6 +552,8 @@ function RuntimeShell() {
                         <a
                           className="button button--text"
                           href={item.url}
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
                           rel="noreferrer"
                           target="_blank"
                         >
