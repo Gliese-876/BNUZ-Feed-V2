@@ -108,7 +108,7 @@ export function OfficialSearchDialog({
       return;
     }
 
-    const handlePointerDown = (event: PointerEvent) => {
+    const handleDocumentClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) {
         return;
@@ -121,9 +121,9 @@ export function OfficialSearchDialog({
       onClose();
     };
 
-    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("click", handleDocumentClick);
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("click", handleDocumentClick);
     };
   }, [onClose, open, triggerRef]);
 
