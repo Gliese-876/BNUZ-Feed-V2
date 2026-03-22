@@ -52,11 +52,13 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: apps/web/dist
-          if-no-files-found: error
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: true
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
