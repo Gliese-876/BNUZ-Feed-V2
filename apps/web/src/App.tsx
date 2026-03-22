@@ -100,6 +100,7 @@ function RuntimeShell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [feedQuery, setFeedQuery] = useState("");
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const [sourceQuery, setSourceQuery] = useState("");
   const [useDrawerLayout, setUseDrawerLayout] = useState(() => {
     if (typeof window === "undefined") {
@@ -252,6 +253,7 @@ function RuntimeShell() {
 
   const feedLabelId = useId();
   const sourceLabelId = useId();
+  const searchDialogId = useId();
 
   return (
     <main className="app">
@@ -268,13 +270,27 @@ function RuntimeShell() {
           <p>把多个公开站点的通知、新闻与栏目内容整理到同一个阅读入口。</p>
         </div>
         <div className="topbar__actions">
-          <button
-            className="button button--tonal"
-            onClick={() => setSearchDialogOpen(true)}
-            type="button"
-          >
-            全文检索
-          </button>
+          <div className="topbar__search">
+            <button
+              aria-controls={searchDialogOpen ? searchDialogId : undefined}
+              aria-expanded={searchDialogOpen}
+              aria-haspopup="dialog"
+              className="button button--tonal"
+              onClick={() => setSearchDialogOpen((current) => !current)}
+              ref={searchButtonRef}
+              type="button"
+            >
+              全站检索
+            </button>
+            <OfficialSearchDialog
+              dialogId={searchDialogId}
+              initialQuery={feedQuery}
+              onClose={() => setSearchDialogOpen(false)}
+              open={searchDialogOpen}
+              scopeOptions={officialSearchScopeOptions}
+              triggerRef={searchButtonRef}
+            />
+          </div>
           {useDrawerLayout ? (
             <button
               className="button button--tonal topbar__drawer-toggle"
@@ -515,12 +531,6 @@ function RuntimeShell() {
         </section>
       </div>
 
-      <OfficialSearchDialog
-        initialQuery={feedQuery}
-        onClose={() => setSearchDialogOpen(false)}
-        open={searchDialogOpen}
-        scopeOptions={officialSearchScopeOptions}
-      />
     </main>
   );
 }

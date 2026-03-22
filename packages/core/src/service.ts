@@ -88,17 +88,38 @@ export function createLayeredAggregationService(
     }
   }
 
+  async function applySnapshot(snapshot: FeedSnapshot, persist = false): Promise<FeedSnapshot> {
+    currentSnapshot = cloneSnapshot(snapshot);
+    syncSourceItems(currentSnapshot);
+
+    if (persist) {
+      await options.repository.save(currentSnapshot);
+    }
+
+    emit();
+    return currentSnapshot;
+  }
+
+  async function loadPrimary(): Promise<FeedSnapshot | null> {
+    if (!options.primary.bootstrap) {
+      return null;
+    }
+
+    const snapshot = await options.primary.bootstrap();
+    if (!snapshot) {
+      return null;
+    }
+
+    return applySnapshot(snapshot, true);
+  }
+
   async function loadFallback(): Promise<FeedSnapshot | null> {
     if (!options.fallback) {
       return null;
     }
 
     const snapshot = (await options.fallback.bootstrap?.()) ?? (await options.fallback.refresh());
-
-    currentSnapshot = cloneSnapshot(snapshot);
-    syncSourceItems(currentSnapshot);
-    emit();
-    return currentSnapshot;
+    return applySnapshot(snapshot, true);
   }
 
   return {
@@ -116,7 +137,17 @@ export function createLayeredAggregationService(
         return cloneSnapshot(currentSnapshot);
       }
 
-      return loadFallback();
+      try {
+        const primarySnapshot = await loadPrimary();
+        if (primarySnapshot) {
+          return cloneSnapshot(primarySnapshot);
+        }
+      } catch {
+        // Fall through to the configured fallback source.
+      }
+
+      const fallbackSnapshot = await loadFallback();
+      return fallbackSnapshot ? cloneSnapshot(fallbackSnapshot) : null;
     },
 
     async refresh(sourceIds?: SourceId[]) {

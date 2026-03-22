@@ -46,6 +46,25 @@ describe("createLayeredAggregationService", () => {
     expect(snapshot?.items[0]?.freshness).toBe("cache");
   });
 
+  it("bootstraps from the primary source when cache is empty", async () => {
+    const snapshot = createSnapshot("snapshot");
+    const repository: Repository = {
+      load: vi.fn().mockResolvedValue(null),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    const primary: FeedSource = {
+      bootstrap: vi.fn().mockResolvedValue(snapshot),
+      refresh: vi.fn().mockResolvedValue(snapshot),
+    };
+
+    const service = createLayeredAggregationService({ primary, repository });
+    const bootstrappedSnapshot = await service.bootstrap();
+
+    expect(primary.bootstrap).toHaveBeenCalledTimes(1);
+    expect(repository.save).toHaveBeenCalledWith(snapshot);
+    expect(bootstrappedSnapshot?.origin).toBe("snapshot");
+  });
+
   it("falls back when no cache exists and primary refresh fails", async () => {
     const repository: Repository = {
       load: vi.fn().mockResolvedValue(null),

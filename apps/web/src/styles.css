@@ -176,6 +176,15 @@ a {
   flex-wrap: wrap;
 }
 
+.topbar__search {
+  position: relative;
+  display: flex;
+}
+
+.topbar__search > .button {
+  width: 100%;
+}
+
 .button,
 .icon-button {
   display: inline-flex;
@@ -434,28 +443,19 @@ a {
   text-align: right;
 }
 
-.search-dialog-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.32);
-  z-index: 30;
-  animation: fade-up var(--motion-fast) both;
-}
-
 .search-dialog {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  z-index: 31;
-  width: min(720px, calc(100vw - 24px));
-  max-height: calc(100vh - 32px);
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 30;
+  width: min(720px, calc(100vw - 40px));
+  max-height: min(760px, calc(100vh - 120px));
   padding: 22px;
   overflow: auto;
   background: var(--surface);
   border: 1px solid var(--outline);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-hover);
-  transform: translate(-50%, -50%);
   animation: soft-enter var(--motion-emphasis) both;
 }
 
@@ -714,18 +714,17 @@ a {
     width: 100%;
   }
 
-  .topbar__actions .button {
+  .topbar__actions .button,
+  .topbar__search {
     flex: 1 1 auto;
   }
 
   .search-dialog {
-    top: auto;
-    right: 12px;
-    bottom: 12px;
-    left: 12px;
+    top: calc(100% + 10px);
+    right: 0;
+    left: 0;
     width: auto;
-    max-height: calc(100vh - 24px);
-    transform: none;
+    max-height: min(72vh, calc(100vh - 140px));
   }
 
   .search-dialog__header,
