@@ -327,19 +327,31 @@ function RuntimeShell() {
           <p>默认已选中全部 43 个可用站点，你可以随时只保留自己真正关心的栏目。</p>
         </div>
         <div className="intro-metrics">
-          <article className="metric-card">
+          <article
+            className="metric-card"
+            style={{ animationDelay: "180ms" }}
+          >
             <span>信息源</span>
             <strong>{sourceCatalog.length}</strong>
           </article>
-          <article className="metric-card">
+          <article
+            className="metric-card"
+            style={{ animationDelay: "240ms" }}
+          >
             <span>栏目</span>
             <strong>{totalSourceChannelCount}</strong>
           </article>
-          <article className="metric-card">
+          <article
+            className="metric-card"
+            style={{ animationDelay: "300ms" }}
+          >
             <span>当前显示</span>
             <strong>{visibleItems.length}</strong>
           </article>
-          <article className="metric-card metric-card--wide">
+          <article
+            className="metric-card metric-card--wide"
+            style={{ animationDelay: "360ms" }}
+          >
             <span>最近更新</span>
             <strong>{formatDateTime(snapshot?.updatedAt)}</strong>
           </article>
@@ -436,13 +448,14 @@ function RuntimeShell() {
           </div>
 
           <div className="source-tree">
-            {filteredSources.map((source) => {
+            {filteredSources.map((source, index) => {
               const selectionState = getSourceSelectionState(source);
 
               return (
                 <section
                   className="source-tree__card"
                   key={source.id}
+                  style={{ animationDelay: `${180 + index * 28}ms` }}
                 >
                   <div className="source-tree__header">
                     <label className="source-toggle">
@@ -514,7 +527,7 @@ function RuntimeShell() {
           {visibleItems.length > 0 ? (
             <>
               <div className="feed-list">
-                {renderedItems.map((item) => {
+                {renderedItems.map((item, index) => {
                   const primarySource =
                     sourceCatalogById[item.sourceId] ??
                     item.sourceIds
@@ -533,6 +546,7 @@ function RuntimeShell() {
                         }
                       }}
                       role="link"
+                      style={{ animationDelay: `${200 + Math.min(index, 11) * 38}ms` }}
                       tabIndex={0}
                     >
                       <div className="feed-card__meta">
