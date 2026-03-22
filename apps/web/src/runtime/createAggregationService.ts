@@ -3,7 +3,7 @@ import { createIndexedDbRepository, createBrowserLiveSource } from "@bnuz-feed/r
 import { createSnapshotSource } from "@bnuz-feed/runtime-snapshot";
 import { createParserRegistry, publicBnuzhSources } from "@bnuz-feed/source-registry";
 
-import { resolveRuntimeConfig } from "./config";
+import { resolvePublicAssetUrl, resolveRuntimeConfig } from "./config";
 
 const repository = createIndexedDbRepository({
   dbName: "bnuz-feed",
@@ -12,8 +12,8 @@ const repository = createIndexedDbRepository({
 });
 
 const snapshotSource = createSnapshotSource({
-  feedSnapshotUrl: "/data/feed-snapshot.json",
-  sourceHealthUrl: "/data/source-health.json",
+  feedSnapshotUrl: resolvePublicAssetUrl("data/feed-snapshot.json"),
+  sourceHealthUrl: resolvePublicAssetUrl("data/source-health.json"),
 });
 
 const browserSource = createBrowserLiveSource({

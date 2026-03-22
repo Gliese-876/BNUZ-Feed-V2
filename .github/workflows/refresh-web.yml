@@ -1,32 +1,48 @@
-name: Build BNUZ Feed V2 Snapshot
+name: Deploy BNUZ Feed V2 to GitHub Pages
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 * * * *"
   push:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 concurrency:
-  group: refresh-web
+  group: pages
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Resolve Vite base path
+        shell: bash
+        run: |
+          repo_name="${GITHUB_REPOSITORY#*/}"
+          if [ "$repo_name" = "${GITHUB_REPOSITORY_OWNER}.github.io" ]; then
+            echo "VITE_BASE_PATH=/" >> "$GITHUB_ENV"
+          else
+            echo "VITE_BASE_PATH=/${repo_name}/" >> "$GITHUB_ENV"
+          fi
 
       - name: Install dependencies
         run: npm ci
@@ -37,9 +53,20 @@ jobs:
       - name: Build web app
         run: npm run build
 
-      - name: Upload web artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          name: bnuz-feed-v2-web
           path: apps/web/dist
           if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
