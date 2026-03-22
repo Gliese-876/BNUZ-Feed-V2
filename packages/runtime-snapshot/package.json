@@ -1,0 +1,12 @@
+{
+  "name": "@bnuz-feed/runtime-snapshot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@bnuz-feed/contracts": "0.1.0"
+  }
+}

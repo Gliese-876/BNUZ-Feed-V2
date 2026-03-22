@@ -1,0 +1,21 @@
+{
+  "name": "@bnuz-feed/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@bnuz-feed/contracts": "0.1.0",
+    "@bnuz-feed/core": "0.1.0",
+    "@bnuz-feed/react-bindings": "0.1.0",
+    "@bnuz-feed/runtime-browser": "0.1.0",
+    "@bnuz-feed/runtime-snapshot": "0.1.0",
+    "@bnuz-feed/source-registry": "0.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

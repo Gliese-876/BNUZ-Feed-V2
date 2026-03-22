@@ -1,0 +1,1264 @@
+﻿
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <title>&#x5317;&#x4eac;&#x5e08;&#x8303;&#x5927;&#x5b66;&#x73e0;&#x6d77;&#x6821;&#x533a;&#x5168;&#x6587;&#x68c0;&#x7d22;</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta http-equiv="X-UA-Compatible" content="IE=9"/>
+    <!-- VENDOR CSS -->
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/vendor/font-awesome/css/font-awesome-ie7.min.css">
+    <!-- MAIN CSS -->
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/css/main.css">
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/css/datepicker3.css">
+
+
+    
+    <link rel="icon" type="image/png" sizes="96x96" href="/cms/resource/web/search/assets/img/favicon.png">
+
+    
+    <link rel="apple-touch-icon" sizes="76x76" href="/cms/resource/web/search/assets/img/apple-icon.png">
+    
+    <!--[if lt IE 9]>
+    <script src="/cms/resource/web/search/assets/scripts/html5.js" type="text/javascript"></script>
+    <script language="javascript" type="text/javascript">
+        self.location = 'brower.html';
+    </script>
+    <![endif]-->
+    <!--[if IE 9]>
+    <div id="ie9tips" style="position:fixed;top:120px;left:0;width:100%;text-align:center;color:#ccc;z-index:999999">
+        您的浏览器版本过低，请升级到ie10以上或更换Chrome浏览器获得流畅的浏览效果！
+    </div>
+    <![endif]-->
+    <style>
+        .searchColumns {}
+        .searchColumns.currents {
+            box-shadow: 0 0 5px #888;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #fff;
+            z-index: 9800;
+            width: 100%;
+            padding: 10px 0;
+        }
+        .searchColumns.currents .advance-title{display: none!important;}
+        .searchColumns.currents>div {
+            margin: 0 auto;
+        }
+
+        #resultDiv.currents {
+            /*margin-top: 52px;*/
+        }
+        /* 站点样式调整*/
+        .custom {
+            padding: 0px 7px !important;
+        }
+        .box-border1{
+            border-right: 1px solid #ccc;
+        }
+        .custom button{
+            border:none;
+        }
+        .caret{
+            color: #0c0c0c;
+        }
+        .search-box{
+            display: flex;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .08), 0 0 8px rgba(0, 0, 0, .3);
+            border-radius: 10px;
+            background-color: #FFFFFF;
+        }
+        .content .input-group input{
+            padding: 6px 14px;
+            border-radius: 4px;
+        }
+        .content .dropdown-toggle span{
+            padding-left: 0px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            text-align: left;
+            width: 90%;
+        }
+        .glyphicon {
+            color: black;
+            top: 5%;
+            left: 85%;
+            z-index: 10;
+            position: absolute;
+        }
+        .content .dropdown {
+            width:100%;
+            border: none;
+            margin-top: 0px;
+            height: 52px;
+            line-height: 52px;
+            background-color: unset;
+
+        }
+        .content .input-group input.dropdown-toggle {
+            background-color: unset;
+        }
+        .searchInfoList ul li{
+            padding-bottom: 0px;
+        }
+        .content .input-group-btn {
+            background-color: transparent;
+            /*margin-left: -15px;*/
+            max-width: 100px;
+            float: right;
+            margin-right: 5px;
+            z-index: 3;
+        }
+        .content .col-sm-1 {
+            width: 90px;
+            margin: 0px 10px;
+        }
+        .content .dropdown-menu{
+            height: 230px;
+            overflow-y: hidden;
+            overflow-x: hidden;
+        }
+        /*精确模糊下拉*/
+        .content .query-border{
+            width: 15%;
+            border-left: 1px solid #ccc;
+        }
+        .content .query-border .caret{
+            top: 10px;
+            position: relative;
+            display: unset;
+        }
+        .content .querySelection{
+            width: unset;
+            height: 80px;
+            min-width: 75px;
+            right: 0;
+            left:unset;
+            text-align: center;
+        }
+        .content .querySelection .menulist {
+            max-height: 80px;
+        }
+        .content .querySelection .menulist li {
+            line-height: 40px;
+            color: black;
+        }
+        .content .querySelection li:hover {
+            background: #eee;
+            cursor: pointer;
+        }
+        /*高级检索下拉*/
+        .row .senior-search{
+            width: 25%;
+            border: 1px solid #ccc;
+            border-left:unset;
+        }
+        .row .senior-search .custom{
+            padding:0px !important;
+        }
+        .row .senior-search .dropdown{
+            height: 32px;
+        }
+        .row .senior-search .caret{
+            top:0px !important;
+            right: 3px;
+        }
+        .row .senior-search .dropdownValue {
+            font-size: 15px;
+            text-align: right;
+            padding-right: 10px;
+            line-height: 32px;
+            width:80%
+        }
+        .menulist {
+            max-height: 200px;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+        .menulist::-webkit-scrollbar{
+            width: 3px;
+            height: 3px;
+            background-color: #fff;
+        }
+        .menulist::-webkit-scrollbar-thumb{
+            background-color: #eee;
+        }
+        .menulist li{
+            line-height: 20px;
+        }
+        .menuImg{
+            display: flex;
+            flex-direction: column;
+        }
+        .model-button{
+            border: none;
+            background-color: #fff;
+            width: 100%;
+            position: relative;
+            padding: 0px;
+        }
+        .content .input-group-btn button {
+            padding: 8px 0;
+        }
+        .content .dropdown-menu li a{
+            display: block;
+            color: #333333;
+        }
+        .NoSearchCon{
+            padding: 20px 0px;
+        }
+        .resultbox{
+            display: flex;
+        }
+        .content .dropdown-menu li a:hover {
+            background: #eee;
+            color: #676a6d;
+        }
+        .dropdown-menu .form-control {
+            height: auto;
+        }
+        .input-group-btn:last-child>.btn {
+            border-radius: 10px;
+            padding: 0;
+            line-height: 40px;
+            height: 52px;
+            font-size: 16px;
+            background: rgba(24, 144, 255, 1);
+        }
+        .small-search{
+            display: none;
+        }
+        .content a:hover{
+            cursor: pointer;
+        }
+        .content .icon-search {
+            margin-left: 20px;
+            line-height: 100%;
+            margin-top: 12%;
+            font-size: 16px;
+            width: 14px;
+            background-size: contain;
+        }
+        .search-select{
+            float: left;
+        }
+        .content .dropdown .split {
+            margin-right: 40px;
+        }
+
+        .content .dropdown .split::after {
+            content: "";
+            width: 1px;
+            height: 30px;
+            display: block;
+            background: rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 50%;
+            right: -20px;
+            margin-top: -15px;
+        }
+
+        .input-group .form-control:focus {
+            z-index: unset;
+            box-shadow: unset;
+        }
+
+        .searchRow {
+            /*background-color: #FFFFFF;*/
+            position: relative;
+        }
+        .seniorSearch {
+            position: absolute;
+            right: -100px;
+            top: 50%;
+            color: #1890ff;
+            width: 90px;
+            border: 1px solid;
+            line-height: 30px;
+            padding: 8px 15px;
+            transform: translate(0, -50%);
+            cursor: pointer;
+            border-radius: 2px;
+            font-size: 14px;
+            line-height: 1;
+            font-weight: 500;
+        }
+        .text-direction{
+            transform: rotate(90deg);
+            display: none;
+        }
+        .navbar-nav > li > a {
+            padding: 20px 20px 20px 40px;
+        }
+        .seniorSearch:hover {
+            background-color: #1890ff;
+            color: white;
+        }
+
+        .advance-title {
+            font-size: 25px;
+            font-weight: 600;
+            color: #666666;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .flexitem {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+
+        .flexitem .label {
+            width: 25%;
+            text-align: right;
+        }
+
+        .flexitem .label:after {
+            content: ':'
+        }
+
+        .flexitem input {
+            padding: 0 5px !important;
+            box-shadow: 0 0 2px #ccc;
+            font-size: 16px !important;
+        }
+
+        #searchHistoryDiv #showOrHideBtn{
+            padding-right: 0px;
+        }
+
+        .black-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #5c5c5c;
+        }
+
+        .submit {
+            background-color: #1890ff;
+        }
+
+        .cancel {
+            color: #595959;
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+
+        .advance-dropdown {
+            border: 0px;
+            margin-top: 1px !important;
+            height: 34px !important;
+            line-height: 34px !important;
+            width: auto !important;
+            background-color: unset;
+            position: relative;
+        }
+
+        .advance-dropdown .icon-angle-down {
+            margin-top: 10px !important;
+        }
+
+        .searchCriteria {
+            padding: 30px 0;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .searchCriteria .content {
+            margin: 0 auto;
+        }
+
+        .searchResult {
+            overflow: hidden;
+            background: #f8f8f8;
+        }
+
+        .searchResult .content {
+            margin: 0 auto;
+        }
+        .content .container{
+            margin-bottom: 0;
+        }
+        .searchResult .content .container {
+            margin-bottom: 0;
+            padding: 0 24px !important;
+            background: #fff;
+            margin: 30px auto;
+            min-height:500px;
+        }
+
+        .searchResult .content .container .searchInfoList {
+            padding-left: 0;
+        }
+        /*.Listheight{*/
+        /*    height: 400px;*/
+        /*    overflow-y: scroll;*/
+        /*}*/
+        /*.Listheight::-webkit-scrollbar{*/
+        /*    width: 3px;*/
+        /*    height: 3px;*/
+        /*    background-color: #fff;*/
+        /*}*/
+        /*.Listheight::-webkit-scrollbar-thumb{*/
+        /*    background-color: #eee;*/
+        /*}*/
+        .searchResult .Criteria .search-number {
+            margin: 0;
+            float: right;
+        }
+
+        .searchResult .Criteria .search-number p {
+            margin: 0;
+            color: rgba(153, 153, 153, 1);
+            font-size: 16px;
+        }
+
+        .searchResult .Criteria .dropdown {
+            line-height: 1.2 !important;
+            height: auto !important;
+            display: inline-block;
+            width: auto;
+            margin-right: 25px;
+            font-size: 16px;
+        }
+        .searchResult .Criteria .dropdown .icon-angle-down{display: inline-block;position: relative;right: 0;top: initial;margin: 0;margin-left: 10px;width: 12px;transition: all 0.2s ease-in-out;background-position: center center;}
+        .searchResult .Criteria .dropdown.open .icon-angle-down{transform: rotate(180deg);}
+
+        .searchResult .Criteria .dropdown-menu {
+            height: auto;
+            width: auto;
+            min-width: 120px;
+            margin-top: 5px;
+        }
+
+        .searchResult .Criteria .dropdown-menu p {
+            color: #333;
+            margin: 0;
+            padding: 5px;
+            cursor: pointer;
+            width: auto;
+        }
+
+        .searchResult .Criteria .dropdown-menu p:hover {
+            background: #f5f5f5;
+            /* color: #f5f5f5; */
+        }
+
+        .searchResult .Criteria .select select {
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            border: none;
+            outline: none;
+            background: none;
+            border: 0;
+            /*隐藏select的下拉图标*/
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            padding-right: 20px;
+            box-shadow: none;
+            padding: 0 20px 0 0 !important;
+            height: auto;
+        }
+
+        .searchResult .Criteria .select::after {
+            content: "";
+            display: block;
+            width: 11px;
+            height: 6px;
+            background: url(images/123.png) no-repeat;
+            transform: rotate(90deg);
+            background-size: cover;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            margin-top: -3px;
+            /*给自定义的图标实现点击下来功能*/
+            pointer-events: none;
+        }
+
+        .searchResult .Criteria .select select:focus {
+            background: red;
+        }
+        /*    文件悬浮 加下划线 字体颜色改变*/
+        .fileCss{
+            display: flex;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .fileCss > span {
+            display: block;
+            min-width: 123px;
+            border-left: 1px solid #ccc;
+            padding-left: 5px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .fileCss > span:first-child {
+            border: none;
+        }
+        .fileCss > span > a {
+            color: #0c0c0c;
+        }
+        .fileCss > span > a:hover{
+            text-decoration: underline;
+            color: #007fcc;
+        }
+        #seniorSearch a{
+            color:rgba(159, 193, 224, 1);
+        }
+        /* loading*/
+        #loading-spinner {
+            border: 10px solid #f3f3f3; /* Light grey */
+            border-top: 10px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading {
+            width: 100%;
+            z-index: 100;
+            height: 100%;
+            position: absolute;
+            background-color: rgb(0 0 0 / 20%);
+        }
+        .loading-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #seniorSearch a{
+            color: null;
+        }
+        .submit {
+            background-color: null;
+        }
+        .submit:hover {
+            color: #fff;
+        }
+        .navbar-default{
+            background: null;
+        }
+        .footer  {
+            border-top:4px solid null;
+        }
+        .content .btn-primary{
+            background-color: null;
+        }
+        #searchHistoryDiv #showOrHideBtn {
+            color: null;
+        }
+        #showOrHideBtn:before {
+            border-top: 6px solid null;
+        }
+        .pages a.on_pages {
+            background-color: null;
+        }
+        .pages a:hover {
+            color: null;
+        }
+        .searchInfoList ul li .search01 h2{
+            color:null;
+        }
+        .input-group-btn:last-child>.btn {
+            background: null;
+        }
+    </style>
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/icon/iconfont.css">
+    <link rel="stylesheet" href="/cms/resource/web/search/assets/css/mediaSearch.css">
+</head>
+
+<body>
+<!-- WRAPPER -->
+<div id="wrapper" style="overflow-x: clip">
+    
+    <div class="loading" id="loading" style="display:block;">
+        <div id="loading-spinner"></div>
+        <div class="loading-text">加载中....</div>
+    </div>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="row" style="display: flex;">
+                <div class="col-sm-6">
+                    <div class="brand" style="padding: 18px 0;">
+                        <a href="https&#x3a;&#x2f;&#x2f;notice.bnuzh.edu.cn">
+                            <img src="/publish/gPublic/systemLogo/49f7cc62dba54ab09e806ea3d642f02c.png" alt="Gpowersoft Logo" class="img-responsive logo"
+                                 style="max-width: 90%;"></a>
+                    </div>
+                </div>
+                <div class="col-sm-6" style="width: 100%;">
+                    <div class="brand menuImg" style="padding: 18px 0;float: right;">
+                        <a href="https&#x3a;&#x2f;&#x2f;notice.bnuzh.edu.cn" style="text-align: center;"><i>
+                            <img src="/cms/resource/web/search/assets/img/collect.png" style="max-width: 80%;"></i><div style="margin-top: 10px">返回首页</div></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- END NAVBAR -->
+    <!-- content start-->
+    <div class="searchCriteria">
+        <div class="content" >
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="searchColumns">
+                            <div class="container">
+                                <div class="input-group" style="display: block">
+                                    <form name="searchForm" id="searchForm" action="index.jsp" method="post"
+                                          onsubmit="return verifyForm()">
+                                        <script type="text/javascript" src="token.jsp"></script>
+                                        <input type="hidden" name="siteID" id="siteID"
+                                               value="87fb9d8daa5d4b4ab7c9f5efe8dfd5cc"/>
+                                        <input type="hidden" name="channelID" id="channelID"
+                                               value=""/>
+                                        <input type="hidden" name="searchScope" value="0"/>
+                                        <div class="advance-title" id="advance-title" style="display: none;color: #666666;">复合检索</div>
+                                        <input type="hidden" name="matchType" id="matchType" value='1'/>
+                                        <div class="advance-title" id="advance-title" style="display: none;color: #666666;">复合检索</div>
+                                        <div class='row searchRow' id="default-search" style="display: flex">
+                                            <div class="search-box col-sm-10" style="padding-left: unset; margin-right: 10px">
+                                                <div class="col-sm-3 col-xs-7 box-border1">
+                                                    
+                                                    <div class="dropdown custom " id="dropdown" >
+                                                        <button id="selectText" type="button" class="dropdown-toggle" data-toggle="dropdown" onclick="siteMenu('dropdown','selectMenu')">
+                                                            <span>全部站点</span>
+                                                            <i class="caret"></i></button>
+                                                        <ul class="dropdown-menu" >
+                                                            <div style="height: 33px;">
+                                                                <input class="form-control seach_name" style="font-size: 15px" placeholder="请输入搜索内容" id="selectMenuInput" />
+                                                                <i class="glyphicon glyphicon-search"></i>
+                                                            </div>
+                                                            <div id="selectMenu" class="menulist"></div>
+                                                        </ul>
+
+                                                    </div>
+                                                    
+                                                </div>
+                                                <div class="col-sm-8 col-xs-12 box-border2">
+                                                    <input type="text" name="query" id="queryInput" style="padding-right: 5px;height: 52px;border: 0px;" value="&#x901a;&#x77e5;" class="form-control" placeholder="请输入搜索内容">
+                                                </div>
+                                                <div class="query-border">
+                                                    <div class="dropdown custom ">
+                                                        <button type="button" class="dropdown-toggle" data-toggle="dropdown" id="querySelect">
+                                                            <span style="text-align: right;padding-right: 10px;width:80%">模糊</span>
+                                                            <i class="caret" style="display: inline"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu querySelection">
+                                                            <div class="menulist">
+                                                                <li onclick="checkType('querySelect',0)">精确</li>
+                                                                <li onclick="checkType('querySelect',1)">模糊</li>
+                                                            </div>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-1 search-box-btn">
+                                                <span class="input-group-btn">
+                                                    <button type="submit" class="btn btn-primary" id="submitBtn" onclick="btnClick()">
+                                                        <i class="icon-search"></i>
+                                                        <span class="searchText">搜索</span>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                            <div style="align-self: center;" class="col-sm-1" id="seniorSearch">
+                                                <a >复合检索 ></a>
+                                            </div>
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                        </div>
+                                        
+                                        <div class="row searchRow" id="advance-search" style="display: none">
+                                            <input type="hidden" name="combinedSearch" id="adv" value="0"/>
+                                            <div class="row">
+                                                <div class="col-sm-4 col-xs-10 flexitem">
+                                                    <div class="label black-text" >站点</div>
+                                                    <div class="input" style="width: 100%; padding: 0 5px; box-shadow: 0 0 2px #ccc; border: 1px solid #ccc;" id="dropdown1">
+                                                        <button id="selectText1" type="button" class="form-control model-button" data-toggle="dropdown" onclick="siteMenu('dropdown1','selectMenu1')">
+                                                            <span style="float: left;color: #999;font-size: 17px;padding-left: 0px; overflow: hidden; height:25px">所有站点</span>
+                                                            <i class="caret" style="color: #0c0c0c;position: absolute;right: 0px;top:40%;"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu" style="width: 80%;margin-left: 20%;" >
+                                                            <div style="height: 33px;">
+                                                                <input class="form-control seach_name" style="font-size: 15px" placeholder="请输入搜索内容" id="selectMenu1Input" />
+                                                                <i class="glyphicon glyphicon-search" style="left: 95%;top: 3%"></i>
+                                                            </div>
+                                                            <div id="selectMenu1" class="menulist"></div>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4 col-xs-10 flexitem">
+                                                    <div class="label black-text">关键词</div>
+                                                    <div class="input" style="width: 80%;">
+                                                        <input type="hidden" name="keyword_matchType" id="keyword_matchType" value="0"/>
+                                                        <input type="text" class="form-control" placeholder="请输入关键词" name="keyword" value="" />
+                                                    </div>
+                                                    <div class="query-border senior-search">
+                                                        <div class="dropdown custom ">
+                                                            <button type="button" class="dropdown-toggle" data-toggle="dropdown" id="keyWord">
+                                                                <span class="dropdownValue">精确</span>
+                                                                <i class="caret" style="display: inline"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu querySelection">
+                                                                <div class="menulist">
+                                                                    <li onclick="checkType('keyWord',0)">精确</li>
+                                                                    <li onclick="checkType('keyWord',1)">模糊</li>
+                                                                </div>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4 col-xs-10 flexitem">
+                                                    <div class="label black-text">时间</div>
+                                                    <div class="col-sm-6">
+                                                        <input type="text" class="form-control date-picker" id="startTime" autocomplete="off" name="startDate" placeholder="请输入开始时间" value="null">
+                                                    </div>
+                                                    <div style="color: black">——</div>
+                                                    <div class="col-sm-6">
+                                                        <input type="text" class="form-control date-picker" id="endTime" autocomplete="off" name="endDate" placeholder="请输入结束时间" value="null">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-4 col-xs-10 flexitem">
+                                                    <div class="label black-text">标题</div>
+                                                    <div class="input" style="width: 80%;">
+                                                        <input type="hidden" name="title_matchType" id="title_matchType" value="0"/>
+                                                        <input type="text" class="form-control" placeholder="请输入标题" name="title" value=""/>
+                                                    </div>
+                                                    <div class="query-border senior-search">
+                                                        <div class="dropdown custom ">
+                                                            <button type="button" class="dropdown-toggle" data-toggle="dropdown" id="title">
+                                                                <span class="dropdownValue">精确</span>
+                                                                <i class="caret" style="display: inline"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu querySelection">
+                                                                <div class="menulist">
+                                                                    <li onclick="checkType('title',0)">精确</li>
+                                                                    <li onclick="checkType('title',1)">模糊</li>
+                                                                </div>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4 col-xs-10 flexitem">
+                                                    <div class="label black-text">正文</div>
+                                                    <div class="input " style="width: 80%;">
+                                                        <input type="hidden" name="content_matchType" id="content_matchType" value="0"/>
+                                                        <input type="text" class="form-control" placeholder="请输入正文" name="content" value=""/>
+                                                    </div>
+                                                    <div class="query-border senior-search">
+                                                        <div class="dropdown custom ">
+                                                            <button type="button" class="dropdown-toggle" data-toggle="dropdown" id="content">
+                                                                <span class="dropdownValue">精确</span>
+                                                                <i class="caret" style="display: inline"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu querySelection">
+                                                                <div class="menulist">
+                                                                    <li onclick="checkType('content',0)">精确</li>
+                                                                    <li onclick="checkType('content',1)">模糊</li>
+                                                                </div>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-2 col-xs-5 flexitem">
+                                                    <div class="label black-text" style="width: 50%;">每页条数:<i
+                                                            class="fa fa-fw fa-question-circle" data-toggle="tooltip"
+                                                                                                                  data-placement="top" title="为优化页面加载速率，该参数限制最大值为：500"></i></div>
+                                                    <div class="input " style="width: 50%;">
+                                                        <input type="number" class="form-control" name="rows" value="10"/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-2 col-xs-5 flexitem">
+                                                    <div class="btns">
+                                                        <button class="btn submit" id="submit">检索</button>
+                                                        <button class="btn cancel" type='button' id="cancel">返回</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="searchResult">
+        <div class="content">
+            <div class="container">
+                <div style="display: none;" id="resultDiv"><!-- begin -->
+                    <div class="row Criteria" style="padding: 24px 0!important;">
+                        <div class="search-select">
+                            <div class="dropdown active">
+                                <a href="javascript:;" id="myTabDrop1" class="dropdown-toggle"
+                                   data-toggle="dropdown" aria-expanded="false" style="color: #333;"> 时间不限
+                                    <i class="icon-angle-down"></i>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val:''},{param:'date', val:''},{param:'page', val: 1}])">时间不限</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val:''},{param:'date', val:'3'},{param:'page', val: 1}])">最近3个月</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val:''},{param:'date', val:'6'},{param:'page', val: 1}])">最近6个月</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val:''},{param:'date', val:'12'},{param:'page', val: 1}])">最近一年</p>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown active">
+                                <a href="javascript:;" id="myTabDrop1" class="dropdown-toggle"
+                                   data-toggle="dropdown" aria-expanded="false" style="color: #333;"> 任何地方
+                                    <i class="icon-angle-down"></i>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val:''},{param:'date', val:''},{param:'page', val: 1}])">任何地方</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val: 'title'},{param:'date', val:''},{param:'page', val: 1}])">仅标题</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val: 'content'},{param:'date', val:''},{param:'page', val: 1}])">仅正文</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'relate'},{param:'order',val:'1'},{param:'position', val: 'keyword'},{param:'date', val:''},{param:'page', val: 1}])">仅关键词</p>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="dropdown active">
+                                <a href="javascript:;" id="myTabDrop1" class="dropdown-toggle"
+                                   data-toggle="dropdown" aria-expanded="false" style="color: #333;"> 相关度
+                                    <i class="icon-angle-down"></i>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
+                                    
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param:'sortField', val: 'relate'},{param:'position', val: ''},{param:'date', val:''},{param:'page', val: 1}])">按相关度</p>
+                                    </li>
+                                    
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'publishDate'},{param:'order',val:'1'},{param:'position', val: ''},{param:'date', val:''},{param:'page', val: 1}])">按发布时间倒序</p>
+                                    </li>
+                                    <li class="">
+                                        <p tabindex="-1" data-toggle="tab" aria-expanded="false" onclick="changePage([{param: 'sortField', val: 'publishDate'},{param:'order',val:'2'},{param:'position', val: ''},{param:'date', val:''},{param:'page', val: 1}])">按发布时间顺序</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="search-number">
+                            <div class="search-number"><p>【共有约0条查询结果
+                                搜索用时0.12秒】</p></div>
+                        </div>
+                    </div>
+
+
+                    <div class="row resultbox" style="background-color: #fff;border-top: 1px solid rgba(0,0,0,0.1);">
+
+                        <div id="searchResultList" class="col-md-9">
+
+                            <div class="row">
+                                <div class="col-sm-12" id="betelgeuse">
+
+                                    
+                                    <div class="searchInfoList">
+                                        <div class="NoSearchCon">对不起！没有发现你要找的内容。
+
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3" id="searchHistoryDiv">
+                            <div class="row" style="font-size: 16px;display: flex;">
+                                <div class="col-md-8" >
+                                    <p style="margin-right: 10px;">搜索历史</p>
+                                </div>
+                                <div class="col-md-3" ><a onclick="showOrHideAllSearchHistory()" id="showOrHideBtn">展开&nbsp;&nbsp;&nbsp;&nbsp;</a></div><!--fa-caret-up-->
+                            </div>
+                            <div>
+                                <ul id="searchHistoryList"></ul>
+                                <div><button class="btn" onclick="clearSearchHistory()">清空搜索历史</button></div>
+                            </div>
+                            
+                            <div class="row" style="font-size: 16px;display: flex;">
+                                <div class="col-md-8" >
+                                    <p style="margin-right: 10px;">检索热词TOP5</p>
+                                </div>
+                            </div>
+                            <div>
+                                <ul>
+                                    
+                                    <li>1.&nbsp;<a>search</a >&nbsp;2534&#x6b21;</li>
+                                    
+                                    <li>2.&nbsp;<a>&amp;amp&#x3b;&#x23;x5728&#x3b;&amp;amp&#x3b;&#x23;x6b64&#x3b;&amp;amp&#x3b;&#x23;x8f93&#x3b;&amp;amp&#x3b;&#x23;x5165&#x3b;&amp;amp&#x3b;&#x23;x4f60&#x3b;&amp;amp&#x3b;&#x23;x7684&#x3b;&amp;amp&#x3b;&#x23;x68c0&#x3b;&amp;amp&#x3b;&#x23;x7d22&#x3b;&amp;amp</a >&nbsp;1060&#x6b21;</li>
+                                    
+                                    <li>3.&nbsp;<a>&amp;amp&#x3b;&#x23;x641c&#x3b;&amp;amp&#x3b;&#x23;x7d22&#x3b;</a >&nbsp;1019&#x6b21;</li>
+                                    
+                                    <li>4.&nbsp;<a>Search</a >&nbsp;613&#x6b21;</li>
+                                    
+                                    <li>5.&nbsp;<a>&#x5956;&#x5b66;&#x91d1;</a >&nbsp;491&#x6b21;</li>
+                                    
+
+                                </ul>
+                            </div>
+                            
+
+                        </div>
+
+                    </div>
+                </div><!-- end -->
+
+            </div>
+        </div>
+    </div>
+    <!-- content end -->
+    <div class="footer">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="copyRight">
+                    
+                    北京通元动力软件技术有限责任公司 版权所有<br>京ICP备05032429号 Gpower Software Copyright 2026 (c) All Rights Reserved
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END MAIN -->
+    <div class="clearfix"></div>
+</div>
+<!-- END WRAPPER -->
+<!-- Javascript -->
+
+<script src="/cms/resource/web/search/assets/vendor/jquery/jquery.min.js"></script>
+<script src="/cms/resource/web/search/assets/vendor/jquery/jquery.cookie.js" ></script>
+<script src="/cms/resource/web/search/assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="/cms/resource/web/search/utils/advancedSearch.js"></script>
+<script src="/cms/resource/web/search/assets/vendor/datepicker/bootstrap-datepicker.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $('#startTime').datepicker({
+            format: 'yyyy-mm-dd', //格式
+            autoclose: true, //选中之后自动隐藏日期选择框
+            todayHighlight: true, //当日  高亮  自动定位到当日
+            orientation: 'button',
+            language:'cn'
+        }).on("click",function(){
+            if($("#endTime").val()==""){
+                return;
+            }
+            $("#startTime").datepicker("setEndDate",$("#endTime").val())
+        });
+        $('#endTime').datepicker({
+            format: 'yyyy-mm-dd', //格式
+            autoclose: true, //选中之后自动隐藏日期选择框
+            todayHighlight: true, //当日  高亮  自动定位到当日
+            orientation: 'button',
+            language:'cn'
+        }).on("click",function(){
+            $("#endTime").datepicker("setStartDate",$("#startTime").val())
+        });
+    });
+
+
+    function verifyForm() {
+        $("#submitBtn").attr("disabled", "disabled");
+        var queryValue = $("#queryInput").val();
+        if (queryValue == null || queryValue == "") {
+            //alert("请输入搜索内容");
+            $("#submitBtn").removeAttr("disabled");
+            //return false;
+        }
+        return true;
+
+    }
+    function showOrHideAllSearchHistory() {
+        searchHistoryOpen = !searchHistoryOpen;
+        var size = 0;
+        var html = "";
+        if (searchHistoryOpen) {
+            size = Math.min(maxStoreSize, SearchHistoryArray.length);
+            $("#showOrHideBtn").html("收起").addClass("on");
+            $('#searchHistoryList').css('display','none')
+        } else {
+            size = Math.min(showSize, SearchHistoryArray.length)
+            $("#showOrHideBtn").html("展开").removeClass("on");
+            $('#searchHistoryList').css('display','block')
+        }
+
+        listSearchHistory(size);
+    }
+    function clearSearchHistory() {
+        var r = confirm("您确定清空搜索历史吗？");
+        if (r == true) {
+            Cookies.set(cookieKey, "", {path:"/cms/web/search"});
+            $("#searchHistoryList").html("");
+            $("#searchHistoryDiv").remove();
+            $("#searchResultList").removeClass("col-md-10").addClass("col-md-12");
+        }
+
+    }
+    function escapeOutput(toOutput) {
+        return toOutput.replace(/\&/g, '')
+            .replace(/\</g, '')
+            .replace(/\>/g, '')
+            .replace(/\"/g, '')
+            .replace(/\'/g, '')
+            .replace(/\//g, '');
+    }
+    function listSearchHistory(size) {
+        var html = "";
+        var tmpArray = $.extend(true, [], SearchHistoryArray);
+        tmpArray.reverse();
+        for (var i = 0; i < size; i++) {
+            if(tmpArray[i]){
+                html += "<li><a href='index.jsp?query=" + escapeOutput(tmpArray[i]) + "'>" + escapeOutput(tmpArray[i]) + "</a></li>";
+            }
+        }
+        $("#searchHistoryList").html(html);
+    }
+    var searchValue = '';
+    var cookieKey = "Gpower_Search_History";
+    var maxStoreSize = 10;
+    var showSize = 5;
+    var searchHistoryOpen = false;
+    var SearchHistoryArray = [];
+    function doHistory(queryValue) {
+        var SearchHistoryInCookie = Cookies.get(cookieKey);
+        if (SearchHistoryInCookie != null && SearchHistoryInCookie != "") {
+            var tmpArray = SearchHistoryInCookie.split("@_@");
+            for (var i = 0; i < tmpArray.length; i++) {
+                if (tmpArray[i] != queryValue) {
+                    SearchHistoryArray.push(tmpArray[i]);
+                }
+            }
+            if (SearchHistoryArray.length >= maxStoreSize) {
+                SearchHistoryArray.splice(0, (SearchHistoryArray.length - maxStoreSize - 1));
+            }
+        }
+
+        SearchHistoryArray.push(queryValue);
+        Cookies.set(cookieKey, SearchHistoryArray.join("@_@"), { path:"/cms/web/search"})
+        listSearchHistory(Math.min(showSize, SearchHistoryArray.length));
+    }
+    function btnClick(){
+        sessionStorage.setItem('siteName',$("#selectText1").val())
+    }
+    $(document).ready(function (){
+        var queryValue = '通知';
+        $("#resultDiv").show();
+        document.getElementById("loading").style.cssText = "display: none"
+        doHistory(queryValue);
+        var siteId = "87fb9d8daa5d4b4ab7c9f5efe8dfd5cc";
+        var searchSiteName = $("#" + siteId).text();
+        if(sessionStorage.getItem('siteName') !== null && sessionStorage.getItem('siteName') !== '' && sessionStorage.getItem('siteName') !== 'undefined' ){
+            $('#selectText').find("span").html(siteName);
+        }
+        chooseSite(siteId,searchSiteName,'selectText');
+
+        searchFix();
+        $("#selectMenu1Input").on("input", function(e){
+            dropdownSearch("selectMenu1",this.value);
+        });
+        $("#selectMenuInput").on("input", function(e){
+            dropdownSearch("selectMenu",this.value);
+        });
+    });
+    // 修改后---搜索站点
+    function dropdownSearch(menuId,searchValue) {
+        if (searchValue!=null) {
+            // 去除掉' "
+            searchValue=searchValue.replace(/'/g, "").replace(/"/g, "");
+        }
+        if(searchValue==''){
+            $('#'+menuId+' li').show();
+        }else{
+            $('#'+menuId+' li').hide();
+            $('#'+menuId).find("li[data*='"+searchValue+"']").show();
+        }
+    };
+    // 修改后---站点数据在这里
+    var siteList = [{"online_":false,"multiDomain":false,"level":0,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"dirType":0,"defaultContentType":"1","secondaryDomain":0,"sortID":0,"name":"所有站点","isMobile":0,"id":"0","videoAutoSaveAssets":1,"smartGet":0,"ifUse":0,"siteType":0,"status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://dwbw.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"dwbwgzbgs","logo":"","indexExt":"htm","isMobile":0,"id":"9f333a97019248b0bf8f48b232397257","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1763514161000,"owner":"admin","lastModifiedDate":1773218110000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1763514161183,"name":"党委保卫工作办公室","indexFile":"index","shortName":"dwbwgzbgs","smartGet":1,"rootChannelID":"bfd0be20217047ba88983dd7699ddaef","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://ssb.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"bjsfdxzhxqsysaqysbglbgs","logo":"","indexExt":"htm","isMobile":0,"id":"0eb7d5617b434e70baf90c78007fbe01","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1760576556000,"owner":"admin","lastModifiedDate":1768984205000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1760576556134,"name":"北京师范大学珠海校区实验室安全与设备管理办公室","indexFile":"index","shortName":"bjsfdxzhxqsysaqysbglbgs","smartGet":1,"rootChannelID":"c8c2fa5b1e884ed3931087e132dacf2c","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"http://childrensmuseum.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"bjsfdxetbwg","logo":"","indexExt":"htm","isMobile":0,"id":"1f38a8b49b964025b9b187440ba345d0","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1758187711000,"owner":"admin","lastModifiedDate":1773977340000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1758187710591,"name":"北京师范大学儿童博物馆线上馆","indexFile":"index","shortName":"bjsfdxetbwgxsg","smartGet":1,"rootChannelID":"0b438b8871954fecbcae4e24450e98ea","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://sczx.bnuzh.edu.cn/dlsyjxzx","defaultContentType":"1","secondaryDomain":0,"path":"dlsyjxzx","logo":"","indexExt":"htm","isMobile":0,"id":"f1dfc3dc45e84156b470f7b860ea9956","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1752479205000,"owner":"admin","lastModifiedDate":1763951416000,"level":1,"fullName":"北京师范大学珠海校区地理实验教学中心","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1752479204781,"name":"地理实验教学中心","indexFile":"index","shortName":"dlsyjxzx","smartGet":0,"rootChannelID":"46b13438cc6f4ac48bd2e3d22766343a","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://notice.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"tzgg","logo":"","indexExt":"htm","isMobile":0,"id":"87fb9d8daa5d4b4ab7c9f5efe8dfd5cc","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1749541724000,"owner":"admin","lastModifiedDate":1766129401000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1749541724379,"name":"通知公告","indexFile":"index","shortName":"tzgg","smartGet":1,"rootChannelID":"079dc4bb1b2d48bd8d0a5c72006d9b3e","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://sfd-degreeshow.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"bsdwlsjxyssyjsbyz","logo":"","indexExt":"htm","isMobile":0,"id":"d0cbeecb90a14a169dfe9cdb2c97c270","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1746753068000,"owner":"admin","lastModifiedDate":1748255440000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1746753067697,"name":"北师大未来设计学院硕士研究生毕业展","indexFile":"index","shortName":"bsdwlsjxyssyjsbyz","smartGet":1,"rootChannelID":"649ce0284aa14e1d894caa413cc9839f","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://library.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"tsg","logo":"","indexExt":"htm","isMobile":0,"id":"55cf70db9df5483eb0a88ff3cf3eab54","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1746585208000,"owner":"admin","lastModifiedDate":1773988715000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1746585207742,"name":"图书馆","indexFile":"index","shortName":"tsg","smartGet":1,"rootChannelID":"09fdd3632e71440eb4fdb8dba842e7f2","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://hqb.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"hqbwz","logo":"","indexExt":"htm","isMobile":0,"id":"86753130ceb542929a38b9d9319e9372","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1733971112000,"owner":"admin","lastModifiedDate":1773796536000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1733971112329,"name":"后勤办公室","indexFile":"index","shortName":"hqbgs","smartGet":1,"rootChannelID":"0a58804b29a7430b8aecad6d13cd73ba","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://xiaoshi.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"xsgwz","logo":"","indexExt":"htm","isMobile":0,"id":"d524eba4e8d744d58ce18fabec140359","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"createDate":1726023838000,"owner":"admin","lastModifiedDate":1773998859000,"level":1,"fullName":"北京师范大学珠海校区校史馆","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1726023838129,"name":"校史馆网站","indexFile":"index","shortName":"xsgwz","smartGet":1,"rootChannelID":"1ed503d21e124500ab43620f091dffc2","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://lixing.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"lxsy","logo":"","indexExt":"htm","isMobile":0,"id":"def14df8e70e46fbb1bc9e78159aa9fb","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773992440000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1722587286623,"name":"砺行书院","indexFile":"index","shortName":"lxsy","smartGet":1,"rootChannelID":"f4b8986d39994785af53e0147533c2d0","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://wx.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"wxmh","logo":"","indexExt":"htm","isMobile":0,"id":"c9f778e52e5f43808a1a89b836c6be4f","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1753446490000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1719454821379,"name":"微信门户","indexFile":"index","shortName":"wxmh","smartGet":1,"rootChannelID":"aa3a32542c644051b590dd680a6bcc99","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://zhbjzx.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"bjzx","logo":"","indexExt":"htm","isMobile":0,"id":"eb20cbad5a894fc9aee0de698ef38038","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1765180830000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1714100978625,"name":"北京中心","indexFile":"index","shortName":"bjzx","smartGet":1,"rootChannelID":"3cafe11f80ac47128db52a4d9281bdf0","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://zhixing.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"bjsfdxzxxy","logo":"","indexExt":"htm","isMobile":0,"id":"d0e8c9b742a9498ebeb52f76523f9771","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773303673000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1711356247024,"name":"北京师范大学知行书院","indexFile":"index","shortName":"bjsfdxzxsy","smartGet":1,"rootChannelID":"24d3829a93204f43bc4f815e2c01beb9","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://sczx.bnuzh.edu.cn/wlsyjxzx","defaultContentType":"1","secondaryDomain":0,"path":"wlsyjxzx","logo":"","indexExt":"htm","isMobile":0,"id":"09acfd3aeff34c479786499b7d8b0b7a","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1763605349000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1710315834032,"name":"物理实验教学中心","indexFile":"index","shortName":"wlsyjxzx","smartGet":0,"rootChannelID":"4b34b27d5a424db79acb4ec6323f32e2","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://dwzgb.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"dwzzgzbgs","logo":"","indexExt":"htm","isMobile":0,"id":"01e60809114c446dad43a679c9573fe7","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1769763983000,"level":1,"fullName":"","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1701307204009,"name":"党委组织工作办公室","indexFile":"index","shortName":"dwzzgzbgs","smartGet":1,"rootChannelID":"5fccf16ff7364d458233fff7bce21da2","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://oam.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"zcglbgs","logo":"","indexExt":"htm","isMobile":0,"id":"70981c669ee748c4ba5dcd4022a42f58","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773737164000,"level":1,"fullName":"资产管理办公室","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1695259392075,"name":"资产管理办公室","indexFile":"index","shortName":"zcglbgs","smartGet":1,"rootChannelID":"adf40b1076bd44e885e4aacd613b0d85","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://edf.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"xqfzjjhwz","logo":"","indexExt":"htm","isMobile":0,"id":"71c3567220ec405ab75c90983f9822af","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773622901000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1688373914889,"name":"校区发展基金会网站","indexFile":"index","shortName":"xqfzjjhwz","smartGet":1,"rootChannelID":"98851fc03c11422aadf9f707d3dea26c","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://djjd.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"xddjjdgjztw","logo":"","indexExt":"htm","isMobile":0,"id":"8f2630501d2b497b93b895da12d0903a","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1772094135000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1683537263269,"name":"校地党建结对共建专题网","indexFile":"index","shortName":"xddjjdgjztw","smartGet":1,"rootChannelID":"f26d1211fb824e068ee09da469467ab1","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://geo.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"wlxydlxwz","logo":"","indexExt":"htm","isMobile":0,"id":"947b53536cf848cb93793fed0af208dc","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1769760811000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1680588586832,"name":"文理学院地理系网站","indexFile":"index","shortName":"wlxydlxwz","smartGet":1,"rootChannelID":"8fb140bbe2d24e18a28623f2cb80ee03","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://dwjgb.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"dwjsgzbgs","logo":"","indexExt":"htm","isMobile":0,"id":"a100866175714d5782818c210cec8060","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1767147231000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1676856895694,"name":"党委教师工作办公室","indexFile":"index","shortName":"dwjsgzbgs","smartGet":1,"rootChannelID":"d5b671b036f54c4c9708caa748970c6f","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":1,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://jwb.bnuzh.edu.cn/jsjysjw","defaultContentType":"1","secondaryDomain":0,"path":"jsjysjw","logo":"","indexExt":"htm","isMobile":0,"id":"a26211ac66e84356ae7726f5ceb8deb3","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1762248521000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1669109958199,"name":"教师教育实践网","indexFile":"index","shortName":"jsjysjw","smartGet":0,"rootChannelID":"3e49145323e14add97cb789e077d60b4","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://ihap.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"dzwtjlrwz","logo":"","indexExt":"htm","isMobile":0,"id":"31631a3717734412baa24e2d6706961f","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1666947619423,"name":"动植物图鉴录入网站","indexFile":"index","shortName":"dzwtjlrwz","smartGet":1,"rootChannelID":"c04a1967e2784881a5bdbcedb3c62499","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://dangan.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"dagwz","logo":"","indexExt":"htm","isMobile":0,"id":"c00aa4c1b0f64acb9a70432cec15c71c","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1769562928000,"level":1,"fullName":"","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1666661944564,"name":"档案馆网站","indexFile":"index","shortName":"dagwz","smartGet":1,"rootChannelID":"fa45204928074f8f99974056a2f653ae","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://hongwen.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"hwsywz","logo":"","indexExt":"htm","isMobile":0,"id":"15f56dbc97ec445e95f40ceed144be2a","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773994272000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1660477528159,"name":"弘文书院网站","indexFile":"index","shortName":"hwsywz","smartGet":1,"rootChannelID":"ef5374e27b764a62b98eb38e55796b67","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://sczx.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"jwbsyysjcxjyzxwz","logo":"","indexExt":"htm","isMobile":0,"id":"c252f4c7e0324913b6defd418af12cbd","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1769737394000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1656558070061,"name":"珠海校区实验教学平台","indexFile":"index","shortName":"zhxqsyjxpt","smartGet":1,"rootChannelID":"b777df87dd1b4915a8cec94e16ef603a","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://iscst.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"lgsyptwz","logo":"","indexExt":"htm","isMobile":0,"id":"16e7de8fdc4a47cfbbcfd69bad3087b8","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773801239000,"level":1,"fullName":"https://iscst.bnuzh.edu.cn","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1655715547191,"name":"理工实验平台网站","indexFile":"index","shortName":"lgsyptwz","smartGet":1,"rootChannelID":"ff642aa0b93e43fc96b2af8c69667ac6","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://ht.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"htsywz","logo":"","indexExt":"htm","isMobile":0,"id":"7b06ff51eebb4ac9973b2bd4821d25cb","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773989505000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1655694829570,"name":"会同书院网站","indexFile":"index","shortName":"htsywz","smartGet":1,"rootChannelID":"0e68653a3bf64347a2d8c71c212312ba","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://espre.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"dbgcyzystgjzdsyszhjd","logo":"","indexExt":"htm","isMobile":0,"id":"b1b34f8f364948dd870d0b08f0c7b0a2","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1652780130060,"name":"地表过程与资源生态国家重点实验室珠海基地","indexFile":"index","shortName":"dbgcyzystgjzdsyszhjd","smartGet":1,"rootChannelID":"d8c9a72d82c448b286d6a804757b1f9a","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://kyb.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"kybgswz","logo":"","indexExt":"htm","isMobile":0,"id":"9193b9297fc840aaaac832f8a8a2c6c3","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773995897000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1652780036466,"name":"科研办公室网站","indexFile":"index","shortName":"kybgswz","smartGet":1,"rootChannelID":"014334af31ef444facf5cf849c610253","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://youth.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"xqtwwz","logo":"","indexExt":"htm","isMobile":0,"id":"5624a6f0b836401d8e9b6459da95b24e","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773737573000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1648713061635,"name":"校区团委网站","indexFile":"index","shortName":"xqtwwz","smartGet":1,"rootChannelID":"02276846354f4666b92719f267e2e972","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://leyu.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"lysywz","logo":"","indexExt":"htm","isMobile":0,"id":"cc95de40844b45e8b14870dbf3d358cd","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1774021314000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1648701770504,"name":"乐育书院网站","indexFile":"index","shortName":"lysywz","smartGet":1,"rootChannelID":"3c5302e2eb4f4553b13a53032a5a61e1","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://career.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"xszyfzyjyzdzxwz","logo":"","indexExt":"htm","isMobile":0,"id":"9e442f682ee94c92a56260b87daadd3d","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1647502790141,"name":"学生职业发展与就业指导中心网站","indexFile":"index","shortName":"xszyfzyjyzdzxwz","smartGet":1,"rootChannelID":"666d51e8919740aba018efc644c520ec","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"http://nic.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"wlxxzx","logo":"","indexExt":"htm","isMobile":0,"id":"9e48dbe870a04ac5aefbefff5aeb68e1","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1768526649000,"level":1,"fullName":"北京师范大学珠海校区信息化办公室","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1646915127149,"name":"网络信息中心","indexFile":"index","shortName":"wlxxzx","smartGet":1,"rootChannelID":"50e2f8ae73db4bdb95357ca2e0a9ee4e","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://easc.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"zgjykjxhhy","logo":"","indexExt":"htm","isMobile":0,"id":"20a9c6f38cf246239bc912fec4be08b6","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1646376599020,"name":"中国教育会计学会会议","indexFile":"index","shortName":"zgjykjxhhy","smartGet":1,"rootChannelID":"707d7776a31c42a5aa2f2bbf0dc0aac2","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://dwxgb.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"dwxsgzbgs","logo":"","indexExt":"htm","isMobile":0,"id":"e0c5a11a3fec4476b4c24202ff6820ab","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773917664000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1646292918252,"name":"党委学生工作办公室","indexFile":"index","shortName":"dwxsgzbgs","smartGet":1,"rootChannelID":"6461785752a041dfbe4bd214ba7385b2","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://io.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"gjjlyhzbgs","logo":"","indexExt":"htm","isMobile":0,"id":"f8b68f1c9a724254a4feb6285bb8cef3","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773886773000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1630316856117,"name":"国际交流与合作办公室","indexFile":"index","shortName":"gjjlyhzbgs","smartGet":1,"rootChannelID":"75e0d5afe9f541c8820ecd539ff4710a","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://tcc.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"xcxy","logo":"","indexExt":"htm","isMobile":0,"id":"944f1df5c6ed4ef8a94db5d8f6f72aa9","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1629171320918,"name":"乡长学院","indexFile":"index","shortName":"xcxy","smartGet":1,"rootChannelID":"4087c72302f2408ca27caf2ffb1c5c55","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://welcome.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"yxw","logo":"","indexExt":"htm","isMobile":0,"id":"c5ba1fc8bc32462d9299d79a8d0d0ee1","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1757039633000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1628761623010,"name":"迎新网","indexFile":"index","shortName":"yxw","smartGet":1,"rootChannelID":"57e28edc78774bac8fd58bde9939fc0f","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://jwb.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"jwb","logo":"","indexExt":"htm","isMobile":0,"id":"75e9fe7e62fb4d13a04c54339b880077","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773991739000,"level":1,"fullName":"教务部","encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1626074533855,"name":"教务部","indexFile":"index","shortName":"jwb","smartGet":1,"rootChannelID":"d20de603f5114c74a03a42686cfee0d7","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://phs.bnuzh.edu.cn/English/","defaultContentType":"1","secondaryDomain":0,"path":"fhsyyww","logo":"","indexExt":"htm","isMobile":0,"id":"57c21fb282a442bc936ce7188d98ed82","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1745285604000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1623738425745,"name":"凤凰书院英文网","indexFile":"index","shortName":"fhsyyww","smartGet":1,"rootChannelID":"d9cb79e3ed8949008224a0c6b5e4b15d","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://phs.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"fhsy","logo":"","indexExt":"htm","isMobile":0,"id":"7de05bfb07b44620b482d189a2d7cc44","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1764123320000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1623736618101,"name":"凤凰书院","indexFile":"index","shortName":"fhsy","smartGet":1,"rootChannelID":"a5d47dc651074eee9e1f189adc26347f","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"https://zhnews.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"zhxqxww","logo":"","indexExt":"htm","isMobile":0,"id":"b3e7c5f24a434f788257a698f79c37ff","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773966800000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1610416969724,"name":"新闻网","indexFile":"index","shortName":"xww","smartGet":1,"rootChannelID":"d5eeb7bf79554f8b944d39849b789577","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"http://hr.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"rcb","logo":"","indexExt":"htm","isMobile":0,"id":"bfa3769881d248c5a8c379f84ba47149","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1772524576000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1605599686898,"name":"人才办","indexFile":"index","shortName":"rcb","smartGet":1,"rootChannelID":"b3ceecfc2376422cbd2284615fd5ebc1","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"http://english.bnuzh.edu.cn/","defaultContentType":"1","secondaryDomain":0,"path":"ebnuz","logo":"","indexExt":"htm","isMobile":0,"id":"1bd3af39c2cf4c2bbe07a1c2bc12e76b","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773966923000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1601453415990,"name":"珠海校区英文网","indexFile":"index","shortName":"zhxqyww","smartGet":1,"rootChannelID":"386366f4fb4144269b6e2a4a002bd055","status":1},{"online_":false,"multiDomain":false,"galleryAutoSaveAssets":0,"publishArticleCount":0,"articleCount":0,"pubUrl":"http://www.bnuzh.edu.cn","defaultContentType":"1","secondaryDomain":0,"path":"bnuz","logo":"","indexExt":"htm","isMobile":0,"id":"f018e769b2bd4733a968e902befe7e17","videoAutoSaveAssets":1,"ifUse":1,"siteType":0,"lastModifiedDate":1773988892000,"level":1,"encoding":"utf-8","itemExt":"htm","dirType":0,"sortID":1601209662196,"name":"北京师范大学珠海校区主站","indexFile":"index","shortName":"bjsfdxzhxqzz","smartGet":1,"rootChannelID":"3ac1603c91334fb1b5666f5a16d6de95","status":1}]
+    // 初始化两个列表
+    for(var i=0;i<siteList.length;i++){
+        var siteData = siteList[i];
+        var name=(siteData.fullName==null || siteData.fullName==undefined || siteData.fullName=='')?siteData.name: siteData.fullName;
+        $("#selectMenu").append('<li id="' + siteData.id +'" data="' + name
+            +'" onclick="chooseSite(\'' + siteData.id + '\',\'' + name + '\',\'' + 'selectText' +
+            '\')"><a>' + name +'</a></li>');
+        $("#selectMenu1").append('<li id="' + siteData.id +'" data="' + name +'" onclick="chooseSite(\'' + siteData.id + '\',\'' + name + '\',\'' + 'selectText1' + '\')"><a>' + name +'</a></li>');
+    }
+    function siteMenu(textId,menuId){
+        $("#"+ textId).find("input").val('');
+        $('#'+menuId+' li').show();
+    }
+    function chooseSite(itemId,itemName,textId){
+        // 选中之后赋值到元素上
+        var siteName = itemName
+        var siteId = itemId.toString()
+        $("#"+ textId).find("span").html(siteName);
+        $("#"+ textId).find("span").attr("title",siteName);
+        $("#"+ textId).children("span").css('color','#333');
+        $("#siteID").val(siteId);
+    }
+    // 精确，模糊查询
+    function checkType(el,type){
+        $('#'+ el).find("span").html(type==0? '精确' : '模糊');
+        if(el=="querySelect"){
+            $("#matchType").val(type);
+        }else if(el=="content"){
+            $("#content_matchType").val(type);
+        }else if(el=="title"){
+            $("#title_matchType").val(type);
+        }else if(el=="keyWord"){
+            $("#keyword_matchType").val(type);
+        }
+    }
+
+</script>
+<script>
+    searchFix();
+    function searchFix() {
+        var $windowHeight = $(window).height();
+        var bodyHeight = $(document.body).height()
+        var $headerHeight = $('.navbar').eq(0).height() * 2;
+    }
+    $(window).resize(function () {
+        searchFix()
+    });
+    function changePage(list) {
+        const target = $('#searchForm');
+        for (var i = 0; i < list.length; i++) {
+            var node = list[i];
+            target.append($('<input type="hidden" name="' + node.param + '" value="' + node.val + '"/>'));
+        }
+        $('#submitBtn').click()
+    }
+    function gotoPage(list) {
+        let pageValue = $('#gotoPageValue').val()
+        let params = { param:'page', val: pageValue }
+        list.unshift(params)
+        changePage(list)
+    }
+    function makeForm(url, sitename) {
+        // 创建一个 form
+        const tempForm = document.createElement("form");
+        tempForm.id = "tempForm";
+        tempForm.name = "tempForm";
+        // 添加到 body 中
+        document.body.appendChild(tempForm);
+        // 创建一个用户名输入
+        const nameinput = document.createElement("input");
+        // 设置相应参数
+        nameinput.type = "text";
+        nameinput.name = "name";
+        nameinput.value = sitename;
+        tempForm.appendChild(nameinput);
+        // form 的提交方式
+        tempForm.method = "POST";
+        // form 提交路径
+        tempForm.action = url;
+        // 对该 form 执行提交
+        tempForm.submit();
+        // 删除该 form
+        document.body.removeChild(tempForm);
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,98 @@
+:root {
+  color-scheme: light;
+  font-family: "Noto Sans SC", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  background: #f5f7fb;
+  color: #13233a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.app-shell h1 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+}
+
+.app-shell p {
+  margin: 0 0 16px;
+}
+
+.app-shell__controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.app-shell__button {
+  border: 0;
+  border-radius: 10px;
+  background: #005bbb;
+  color: white;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.app-shell__button[disabled] {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.app-shell__card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(19, 35, 58, 0.08);
+}
+
+.app-shell__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.app-shell__metric {
+  background: #f5f7fb;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.app-shell__metric dt {
+  font-size: 0.875rem;
+  color: #60738c;
+}
+
+.app-shell__metric dd {
+  margin: 6px 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.app-shell pre {
+  margin: 0;
+  overflow: auto;
+  border-radius: 12px;
+  background: #0f1724;
+  color: #e8efff;
+  padding: 16px;
+}

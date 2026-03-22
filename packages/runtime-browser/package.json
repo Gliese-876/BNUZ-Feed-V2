@@ -1,0 +1,14 @@
+{
+  "name": "@bnuz-feed/runtime-browser",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@bnuz-feed/contracts": "0.1.0",
+    "@bnuz-feed/core": "0.1.0",
+    "@bnuz-feed/source-registry": "0.1.0"
+  }
+}

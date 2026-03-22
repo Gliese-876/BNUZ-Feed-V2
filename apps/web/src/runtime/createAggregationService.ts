@@ -1,0 +1,41 @@
+import { createLayeredAggregationService, createDefaultNormalizer } from "@bnuz-feed/core";
+import { createIndexedDbRepository, createBrowserLiveSource } from "@bnuz-feed/runtime-browser";
+import { createSnapshotSource } from "@bnuz-feed/runtime-snapshot";
+import { createParserRegistry, bnuzhSources } from "@bnuz-feed/source-registry";
+
+import { resolveRuntimeConfig } from "./config";
+
+const repository = createIndexedDbRepository({
+  dbName: "bnuz-feed",
+  storeName: "snapshots",
+  snapshotKey: "latest",
+});
+
+const snapshotSource = createSnapshotSource({
+  feedSnapshotUrl: "/data/feed-snapshot.json",
+  sourceHealthUrl: "/data/source-health.json",
+});
+
+const browserSource = createBrowserLiveSource({
+  sources: bnuzhSources,
+  parserRegistry: createParserRegistry(),
+  normalizer: createDefaultNormalizer(),
+  requestOptions: {
+    concurrency: 4,
+    timeoutMs: 8000,
+  },
+});
+
+export const appRuntimeConfig = resolveRuntimeConfig();
+
+export const aggregationService =
+  appRuntimeConfig.sourceMode === "snapshot"
+    ? createLayeredAggregationService({
+        primary: snapshotSource,
+        repository,
+      })
+    : createLayeredAggregationService({
+        primary: browserSource,
+        fallback: snapshotSource,
+        repository,
+      });

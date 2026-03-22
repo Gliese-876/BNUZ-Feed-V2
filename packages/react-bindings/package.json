@@ -1,0 +1,13 @@
+{
+  "name": "@bnuz-feed/react-bindings",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@bnuz-feed/contracts": "0.1.0",
+    "react": "^19.1.0"
+  }
+}
