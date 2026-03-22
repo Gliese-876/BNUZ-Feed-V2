@@ -351,7 +351,8 @@ function RuntimeShell() {
           aria-hidden={useDrawerLayout ? !drawerOpen : undefined}
           className={`source-panel ${useDrawerLayout && drawerOpen ? "is-open" : ""} ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}
         >
-          <div className="source-panel__header">
+          <div className={`source-panel__header ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}>
+            <span className="source-panel__rail-label">筛选</span>
             <div>
               <span className="source-panel__eyebrow">信息源筛选</span>
               <h3>按站点和栏目勾选</h3>
@@ -359,7 +360,7 @@ function RuntimeShell() {
             {!useDrawerLayout ? (
               <button
                 aria-expanded={!sourcePanelCollapsedOnDesktop}
-                className="icon-button source-panel__toggle"
+                className={`icon-button source-panel__toggle ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}
                 onClick={() => setSourcePanelCollapsed((current) => !current)}
                 type="button"
               >
@@ -549,16 +550,6 @@ function RuntimeShell() {
                       {item.summary ? <p>{item.summary}</p> : null}
                       <div className="feed-card__footer">
                         <span>更新于 {formatDateTime(item.fetchedAt)}</span>
-                        <a
-                          className="button button--text"
-                          href={item.url}
-                          onClick={(event) => event.stopPropagation()}
-                          onKeyDown={(event) => event.stopPropagation()}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          查看原文
-                        </a>
                       </div>
                     </article>
                   );
