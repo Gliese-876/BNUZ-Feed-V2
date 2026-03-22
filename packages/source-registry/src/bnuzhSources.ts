@@ -64,3 +64,7 @@ export const bnuzhSources: SourceDescriptor[] = [
     },
   };
 });
+
+export const publicBnuzhSources = bnuzhSources.filter(
+  (source) => (source.fetchTargets?.length ?? 0) > 0,
+);

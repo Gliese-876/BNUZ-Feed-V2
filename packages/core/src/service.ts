@@ -1,5 +1,13 @@
-import type { AggregationService, FeedSnapshot, FeedSource, Repository, SourceId } from "@bnuz-feed/contracts";
+import type {
+  AggregationService,
+  FeedItem,
+  FeedSnapshot,
+  FeedSource,
+  Repository,
+  SourceId,
+} from "@bnuz-feed/contracts";
 
+import { dedupeFeedItems } from "./dedupe";
 import { cloneSnapshot, withFreshness } from "./snapshot";
 
 export interface LayeredAggregationServiceOptions {
@@ -13,6 +21,66 @@ export function createLayeredAggregationService(
 ): AggregationService {
   const listeners = new Set<() => void>();
   let currentSnapshot: FeedSnapshot | null = null;
+  let itemsBySource = new Map<SourceId, FeedItem[]>();
+
+  function explodeSnapshotItems(snapshot: FeedSnapshot): Map<SourceId, FeedItem[]> {
+    const nextItemsBySource = new Map<SourceId, FeedItem[]>();
+
+    for (const item of snapshot.items) {
+      const sourceIds = item.sourceIds.length > 0 ? item.sourceIds : [item.sourceId];
+
+      for (const sourceId of sourceIds) {
+        const nextItem: FeedItem = {
+          ...item,
+          sourceId,
+          sourceIds: [sourceId],
+        };
+        const sourceItems = nextItemsBySource.get(sourceId) ?? [];
+        sourceItems.push(nextItem);
+        nextItemsBySource.set(sourceId, sourceItems);
+      }
+    }
+
+    return nextItemsBySource;
+  }
+
+  function syncSourceItems(snapshot: FeedSnapshot) {
+    itemsBySource = explodeSnapshotItems(snapshot);
+  }
+
+  function buildMergedSnapshot(
+    baseSnapshot: FeedSnapshot | null,
+    nextSnapshot: FeedSnapshot,
+    sourceIds?: SourceId[],
+  ): FeedSnapshot {
+    if (!baseSnapshot || !sourceIds || sourceIds.length === 0) {
+      syncSourceItems(nextSnapshot);
+      return cloneSnapshot(nextSnapshot);
+    }
+
+    const mergedItemsBySource = new Map(itemsBySource);
+    for (const sourceId of sourceIds) {
+      mergedItemsBySource.delete(sourceId);
+    }
+
+    const partialItemsBySource = explodeSnapshotItems(nextSnapshot);
+    for (const [sourceId, sourceItems] of partialItemsBySource) {
+      mergedItemsBySource.set(sourceId, sourceItems);
+    }
+
+    itemsBySource = mergedItemsBySource;
+
+    return {
+      version: Math.max(baseSnapshot.version, nextSnapshot.version),
+      updatedAt: nextSnapshot.updatedAt,
+      origin: nextSnapshot.origin,
+      items: dedupeFeedItems([...mergedItemsBySource.values()].flat()),
+      sourceHealth: {
+        ...baseSnapshot.sourceHealth,
+        ...nextSnapshot.sourceHealth,
+      },
+    };
+  }
 
   function emit() {
     for (const listener of listeners) {
@@ -28,6 +96,7 @@ export function createLayeredAggregationService(
     const snapshot = (await options.fallback.bootstrap?.()) ?? (await options.fallback.refresh());
 
     currentSnapshot = cloneSnapshot(snapshot);
+    syncSourceItems(currentSnapshot);
     emit();
     return currentSnapshot;
   }
@@ -42,6 +111,7 @@ export function createLayeredAggregationService(
 
       if (cached) {
         currentSnapshot = withFreshness(cached, "cache");
+        syncSourceItems(currentSnapshot);
         emit();
         return cloneSnapshot(currentSnapshot);
       }
@@ -52,7 +122,7 @@ export function createLayeredAggregationService(
     async refresh(sourceIds?: SourceId[]) {
       try {
         const liveSnapshot = await options.primary.refresh(sourceIds);
-        currentSnapshot = cloneSnapshot(liveSnapshot);
+        currentSnapshot = buildMergedSnapshot(currentSnapshot, liveSnapshot, sourceIds);
         await options.repository.save(currentSnapshot);
         emit();
         return cloneSnapshot(currentSnapshot);

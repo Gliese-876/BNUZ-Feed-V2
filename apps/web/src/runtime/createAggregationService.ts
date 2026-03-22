@@ -1,7 +1,7 @@
 import { createLayeredAggregationService, createDefaultNormalizer } from "@bnuz-feed/core";
 import { createIndexedDbRepository, createBrowserLiveSource } from "@bnuz-feed/runtime-browser";
 import { createSnapshotSource } from "@bnuz-feed/runtime-snapshot";
-import { createParserRegistry, bnuzhSources } from "@bnuz-feed/source-registry";
+import { createParserRegistry, publicBnuzhSources } from "@bnuz-feed/source-registry";
 
 import { resolveRuntimeConfig } from "./config";
 
@@ -17,11 +17,12 @@ const snapshotSource = createSnapshotSource({
 });
 
 const browserSource = createBrowserLiveSource({
-  sources: bnuzhSources,
+  sources: publicBnuzhSources,
   parserRegistry: createParserRegistry(),
   normalizer: createDefaultNormalizer(),
   requestOptions: {
     concurrency: 4,
+    targetConcurrency: 2,
     timeoutMs: 8000,
   },
 });

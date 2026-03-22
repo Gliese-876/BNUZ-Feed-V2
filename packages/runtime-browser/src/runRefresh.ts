@@ -21,9 +21,25 @@ export interface ExecuteBrowserRefreshOptions {
   fetchFn?: typeof fetch;
 }
 
+function resolveConcurrency(value: number | undefined, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return Math.max(1, fallback);
+  }
+
+  return Math.max(1, Math.floor(value));
+}
+
+function getTargetConcurrency(requestOptions: BrowserWorkerRefreshOptions): number {
+  return resolveConcurrency(requestOptions.targetConcurrency, requestOptions.concurrency);
+}
+
+async function yieldToEventLoop(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 function isCrossOrigin(url: string): boolean {
   if (typeof location === "undefined") {
-    return true;
+    return false;
   }
 
   try {
@@ -99,10 +115,17 @@ function getFetchTargets(source: SourceDescriptor): FetchTarget[] {
 
 async function fetchSourcePages(
   source: SourceDescriptor,
-  timeoutMs: number,
+  requestOptions: BrowserWorkerRefreshOptions,
   fetchFn: typeof fetch,
 ): Promise<RawPage[]> {
-  return Promise.all(getFetchTargets(source).map((target) => fetchPage(source, target, timeoutMs, fetchFn)));
+  const pages = await mapWithConcurrency(
+    getFetchTargets(source),
+    getTargetConcurrency(requestOptions),
+    async (target) => fetchPage(source, target, requestOptions.timeoutMs, fetchFn),
+  );
+
+  await yieldToEventLoop();
+  return pages;
 }
 
 async function mapWithConcurrency<T, R>(
@@ -131,6 +154,7 @@ export async function executeBrowserRefresh(
 ): Promise<FeedSnapshot> {
   const fetchFn = options.fetchFn ?? fetch;
   const healthEntries: SourceHealth[] = [];
+  const targetConcurrency = getTargetConcurrency(options.requestOptions);
   const itemGroups = await mapWithConcurrency(
     options.sources.filter((source) => source.enabled),
     options.requestOptions.concurrency,
@@ -147,7 +171,7 @@ export async function executeBrowserRefresh(
       }
 
       try {
-        const pages = await fetchSourcePages(source, options.requestOptions.timeoutMs, fetchFn);
+        const pages = await fetchSourcePages(source, options.requestOptions, fetchFn);
         const parser = options.parserRegistry.get(source.parserKey);
 
         if (!parser) {
@@ -157,7 +181,9 @@ export async function executeBrowserRefresh(
           );
         }
 
-        const records = (await Promise.all(pages.map((page) => parser.parse(page)))).flat();
+        const records = (
+          await mapWithConcurrency(pages, targetConcurrency, async (page) => parser.parse(page))
+        ).flat();
 
         if (records.length === 0) {
           throw new AggregationError(
@@ -167,6 +193,7 @@ export async function executeBrowserRefresh(
         }
 
         const items = records.map((record) => options.normalizer.normalize(record));
+        await yieldToEventLoop();
 
         healthEntries.push({
           sourceId: source.id,

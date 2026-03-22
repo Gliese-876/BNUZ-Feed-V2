@@ -134,6 +134,7 @@ export interface FeedSource {
 export interface BrowserWorkerRefreshOptions {
   timeoutMs: number;
   concurrency: number;
+  targetConcurrency?: number;
 }
 
 export interface BrowserWorkerRefreshRequest {

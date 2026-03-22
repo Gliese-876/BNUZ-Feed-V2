@@ -15,10 +15,10 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
 
 export function resolveRuntimeConfig(): AppRuntimeConfig {
   const sourceMode =
-    import.meta.env.VITE_FEED_SOURCE_MODE === "snapshot" ? "snapshot" : "browser";
+    import.meta.env.VITE_FEED_SOURCE_MODE === "browser" ? "browser" : "snapshot";
 
   return {
     sourceMode,
-    autoRefresh: parseBoolean(import.meta.env.VITE_AUTO_REFRESH, false),
+    autoRefresh: parseBoolean(import.meta.env.VITE_AUTO_REFRESH, true),
   };
 }

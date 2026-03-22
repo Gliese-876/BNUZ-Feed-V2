@@ -1,5 +1,5 @@
 {
-  "name": "bnuz-feed",
+  "name": "bnuz-feed-v2",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -10,17 +10,21 @@
   "scripts": {
     "dev": "npm run dev --workspace @bnuz-feed/web",
     "build": "npm run build --workspace @bnuz-feed/web",
+    "build:snapshot": "npm run snapshot && npm run build",
     "check": "tsc -p tsconfig.json --noEmit",
+    "snapshot": "tsx scripts/generate-snapshot.ts",
     "test": "vitest run"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/node": "^24.0.14",
+    "@types/jsdom": "^21.1.7",
     "@types/react": "^19.1.3",
     "@types/react-dom": "^19.1.3",
     "@vitejs/plugin-react": "^4.4.1",
     "jsdom": "^26.1.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.8.2",
     "vite": "^6.2.2",
     "vitest": "^3.0.8"

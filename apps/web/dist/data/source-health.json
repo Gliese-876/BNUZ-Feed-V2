@@ -1,1 +1,352 @@
-{}
+{
+  "87fb9d8daa5d4b4ab7c9f5efe8dfd5cc": {
+    "sourceId": "87fb9d8daa5d4b4ab7c9f5efe8dfd5cc",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:05.496Z",
+    "itemCount": 1,
+    "lastSuccessAt": "2026-03-22T06:53:05.496Z",
+    "requestUrl": "https://notice.bnuzh.edu.cn/sdyp/index.htm"
+  },
+  "f1dfc3dc45e84156b470f7b860ea9956": {
+    "sourceId": "f1dfc3dc45e84156b470f7b860ea9956",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:05.652Z",
+    "itemCount": 11,
+    "lastSuccessAt": "2026-03-22T06:53:05.652Z",
+    "requestUrl": "https://sczx.bnuzh.edu.cn/dlsyjxzx/xwzx/index.htm"
+  },
+  "d0cbeecb90a14a169dfe9cdb2c97c270": {
+    "sourceId": "d0cbeecb90a14a169dfe9cdb2c97c270",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:05.715Z",
+    "itemCount": 38,
+    "lastSuccessAt": "2026-03-22T06:53:05.715Z",
+    "requestUrl": "https://sfd-degreeshow.bnuzh.edu.cn/gszj/index.htm"
+  },
+  "55cf70db9df5483eb0a88ff3cf3eab54": {
+    "sourceId": "55cf70db9df5483eb0a88ff3cf3eab54",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:05.829Z",
+    "itemCount": 90,
+    "lastSuccessAt": "2026-03-22T06:53:05.829Z",
+    "requestUrl": "https://library.bnuzh.edu.cn/zxxx/index.htm"
+  },
+  "86753130ceb542929a38b9d9319e9372": {
+    "sourceId": "86753130ceb542929a38b9d9319e9372",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:05.989Z",
+    "itemCount": 55,
+    "lastSuccessAt": "2026-03-22T06:53:05.989Z",
+    "requestUrl": "https://hqb.bnuzh.edu.cn/xwgg/xwdt/index.htm"
+  },
+  "1f38a8b49b964025b9b187440ba345d0": {
+    "sourceId": "1f38a8b49b964025b9b187440ba345d0",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:06.066Z",
+    "itemCount": 19,
+    "lastSuccessAt": "2026-03-22T06:53:06.066Z",
+    "requestUrl": "https://childrensmuseum.bnuzh.edu.cn/zxdt/index.htm"
+  },
+  "c9f778e52e5f43808a1a89b836c6be4f": {
+    "sourceId": "c9f778e52e5f43808a1a89b836c6be4f",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:06.143Z",
+    "itemCount": 3,
+    "lastSuccessAt": "2026-03-22T06:53:06.143Z",
+    "requestUrl": "https://wx.bnuzh.edu.cn/"
+  },
+  "d524eba4e8d744d58ce18fabec140359": {
+    "sourceId": "d524eba4e8d744d58ce18fabec140359",
+    "status": "empty",
+    "checkedAt": "2026-03-22T06:53:06.288Z",
+    "itemCount": 0,
+    "errorCode": "EMPTY_RESULT",
+    "message": "Parser \"bnuzh/xsgwz\" returned no records.",
+    "requestUrl": "https://xiaoshi.bnuzh.edu.cn"
+  },
+  "eb20cbad5a894fc9aee0de698ef38038": {
+    "sourceId": "eb20cbad5a894fc9aee0de698ef38038",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:06.320Z",
+    "itemCount": 6,
+    "lastSuccessAt": "2026-03-22T06:53:06.320Z",
+    "requestUrl": "https://zhbjzx.bnuzh.edu.cn/"
+  },
+  "def14df8e70e46fbb1bc9e78159aa9fb": {
+    "sourceId": "def14df8e70e46fbb1bc9e78159aa9fb",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:06.586Z",
+    "itemCount": 244,
+    "lastSuccessAt": "2026-03-22T06:53:06.586Z",
+    "requestUrl": "https://lixing.bnuzh.edu.cn/xwdt/index1.htm"
+  },
+  "09acfd3aeff34c479786499b7d8b0b7a": {
+    "sourceId": "09acfd3aeff34c479786499b7d8b0b7a",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:06.843Z",
+    "itemCount": 121,
+    "lastSuccessAt": "2026-03-22T06:53:06.843Z",
+    "requestUrl": "https://sczx.bnuzh.edu.cn/wlsyjxzx/xwgg/index.htm"
+  },
+  "d0e8c9b742a9498ebeb52f76523f9771": {
+    "sourceId": "d0e8c9b742a9498ebeb52f76523f9771",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:06.971Z",
+    "itemCount": 258,
+    "lastSuccessAt": "2026-03-22T06:53:06.971Z",
+    "requestUrl": "https://zhixing.bnuzh.edu.cn/xwkx/index.htm"
+  },
+  "01e60809114c446dad43a679c9573fe7": {
+    "sourceId": "01e60809114c446dad43a679c9573fe7",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.126Z",
+    "itemCount": 73,
+    "lastSuccessAt": "2026-03-22T06:53:07.126Z",
+    "requestUrl": "https://dwzgb.bnuzh.edu.cn/sygzdt/index.htm"
+  },
+  "8f2630501d2b497b93b895da12d0903a": {
+    "sourceId": "8f2630501d2b497b93b895da12d0903a",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.156Z",
+    "itemCount": 65,
+    "lastSuccessAt": "2026-03-22T06:53:07.156Z",
+    "requestUrl": "https://djjd.bnuzh.edu.cn/zydt/index.htm"
+  },
+  "70981c669ee748c4ba5dcd4022a42f58": {
+    "sourceId": "70981c669ee748c4ba5dcd4022a42f58",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.251Z",
+    "itemCount": 55,
+    "lastSuccessAt": "2026-03-22T06:53:07.251Z",
+    "requestUrl": "https://oam.bnuzh.edu.cn/xwgg/xwdt/index.htm"
+  },
+  "71c3567220ec405ab75c90983f9822af": {
+    "sourceId": "71c3567220ec405ab75c90983f9822af",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.391Z",
+    "itemCount": 115,
+    "lastSuccessAt": "2026-03-22T06:53:07.391Z",
+    "requestUrl": "https://edf.bnuzh.edu.cn/sylb/index.htm"
+  },
+  "a100866175714d5782818c210cec8060": {
+    "sourceId": "a100866175714d5782818c210cec8060",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.547Z",
+    "itemCount": 167,
+    "lastSuccessAt": "2026-03-22T06:53:07.547Z",
+    "requestUrl": "https://dwjgb.bnuzh.edu.cn/gzdt/xwdt/index.htm"
+  },
+  "947b53536cf848cb93793fed0af208dc": {
+    "sourceId": "947b53536cf848cb93793fed0af208dc",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.696Z",
+    "itemCount": 92,
+    "lastSuccessAt": "2026-03-22T06:53:07.696Z",
+    "requestUrl": "https://geo.bnuzh.edu.cn/xwzx/index.htm"
+  },
+  "c252f4c7e0324913b6defd418af12cbd": {
+    "sourceId": "c252f4c7e0324913b6defd418af12cbd",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:07.867Z",
+    "itemCount": 153,
+    "lastSuccessAt": "2026-03-22T06:53:07.867Z",
+    "requestUrl": "https://sczx.bnuzh.edu.cn/tzgg/index.htm"
+  },
+  "a26211ac66e84356ae7726f5ceb8deb3": {
+    "sourceId": "a26211ac66e84356ae7726f5ceb8deb3",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:08.026Z",
+    "itemCount": 120,
+    "lastSuccessAt": "2026-03-22T06:53:08.026Z",
+    "requestUrl": "https://jwb.bnuzh.edu.cn/jsjysjw/sxfc/index.htm"
+  },
+  "31631a3717734412baa24e2d6706961f": {
+    "sourceId": "31631a3717734412baa24e2d6706961f",
+    "status": "empty",
+    "checkedAt": "2026-03-22T06:53:08.080Z",
+    "itemCount": 0,
+    "errorCode": "EMPTY_RESULT",
+    "message": "Parser \"bnuzh/dzwtjlrwz\" returned no records.",
+    "requestUrl": "https://ihap.bnuzh.edu.cn"
+  },
+  "c00aa4c1b0f64acb9a70432cec15c71c": {
+    "sourceId": "c00aa4c1b0f64acb9a70432cec15c71c",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:08.200Z",
+    "itemCount": 99,
+    "lastSuccessAt": "2026-03-22T06:53:08.200Z",
+    "requestUrl": "https://dangan.bnuzh.edu.cn/gzdt/xwdt/index.htm"
+  },
+  "15f56dbc97ec445e95f40ceed144be2a": {
+    "sourceId": "15f56dbc97ec445e95f40ceed144be2a",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:08.437Z",
+    "itemCount": 210,
+    "lastSuccessAt": "2026-03-22T06:53:08.437Z",
+    "requestUrl": "https://hongwen.bnuzh.edu.cn/hwyw/index.htm"
+  },
+  "16e7de8fdc4a47cfbbcfd69bad3087b8": {
+    "sourceId": "16e7de8fdc4a47cfbbcfd69bad3087b8",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:09.026Z",
+    "itemCount": 343,
+    "lastSuccessAt": "2026-03-22T06:53:09.026Z",
+    "requestUrl": "https://iscst.bnuzh.edu.cn/ptxw/index.htm"
+  },
+  "b1b34f8f364948dd870d0b08f0c7b0a2": {
+    "sourceId": "b1b34f8f364948dd870d0b08f0c7b0a2",
+    "status": "network_error",
+    "checkedAt": "2026-03-22T06:53:09.035Z",
+    "itemCount": 0,
+    "errorCode": "FETCH_FAILED",
+    "message": "Request to https://espre.bnuzh.edu.cn/hzjl/hybg/index1.htm failed with 404.",
+    "requestUrl": "https://espre.bnuzh.edu.cn/"
+  },
+  "9193b9297fc840aaaac832f8a8a2c6c3": {
+    "sourceId": "9193b9297fc840aaaac832f8a8a2c6c3",
+    "status": "network_error",
+    "checkedAt": "2026-03-22T06:53:09.049Z",
+    "itemCount": 0,
+    "errorCode": "FETCH_FAILED",
+    "message": "Request to https://kyb.bnuzh.edu.cn/tzgg/kyhd/index8.htm failed with 404.",
+    "requestUrl": "https://kyb.bnuzh.edu.cn/"
+  },
+  "5624a6f0b836401d8e9b6459da95b24e": {
+    "sourceId": "5624a6f0b836401d8e9b6459da95b24e",
+    "status": "network_error",
+    "checkedAt": "2026-03-22T06:53:09.079Z",
+    "itemCount": 0,
+    "errorCode": "FETCH_FAILED",
+    "message": "Request to https://youth.bnuzh.edu.cn/jchd/index3.htm failed with 404.",
+    "requestUrl": "https://youth.bnuzh.edu.cn/"
+  },
+  "7b06ff51eebb4ac9973b2bd4821d25cb": {
+    "sourceId": "7b06ff51eebb4ac9973b2bd4821d25cb",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:10.151Z",
+    "itemCount": 1304,
+    "lastSuccessAt": "2026-03-22T06:53:10.151Z",
+    "requestUrl": "https://ht.bnuzh.edu.cn/sdyw/index.htm"
+  },
+  "cc95de40844b45e8b14870dbf3d358cd": {
+    "sourceId": "cc95de40844b45e8b14870dbf3d358cd",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:10.361Z",
+    "itemCount": 83,
+    "lastSuccessAt": "2026-03-22T06:53:10.361Z",
+    "requestUrl": "https://leyu.bnuzh.edu.cn/zhyw/index.htm"
+  },
+  "20a9c6f38cf246239bc912fec4be08b6": {
+    "sourceId": "20a9c6f38cf246239bc912fec4be08b6",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:10.541Z",
+    "itemCount": 5,
+    "lastSuccessAt": "2026-03-22T06:53:10.541Z",
+    "requestUrl": "https://easc.bnuzh.edu.cn/"
+  },
+  "9e48dbe870a04ac5aefbefff5aeb68e1": {
+    "sourceId": "9e48dbe870a04ac5aefbefff5aeb68e1",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:10.625Z",
+    "itemCount": 121,
+    "lastSuccessAt": "2026-03-22T06:53:10.625Z",
+    "requestUrl": "https://nic.bnuzh.edu.cn/tzgg/index.htm"
+  },
+  "e0c5a11a3fec4476b4c24202ff6820ab": {
+    "sourceId": "e0c5a11a3fec4476b4c24202ff6820ab",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:11.352Z",
+    "itemCount": 497,
+    "lastSuccessAt": "2026-03-22T06:53:11.352Z",
+    "requestUrl": "https://dwxgb.bnuzh.edu.cn/xwdt/index.htm"
+  },
+  "f8b68f1c9a724254a4feb6285bb8cef3": {
+    "sourceId": "f8b68f1c9a724254a4feb6285bb8cef3",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:11.569Z",
+    "itemCount": 169,
+    "lastSuccessAt": "2026-03-22T06:53:11.569Z",
+    "requestUrl": "https://io.bnuzh.edu.cn/xwsd/index.htm"
+  },
+  "944f1df5c6ed4ef8a94db5d8f6f72aa9": {
+    "sourceId": "944f1df5c6ed4ef8a94db5d8f6f72aa9",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:11.648Z",
+    "itemCount": 13,
+    "lastSuccessAt": "2026-03-22T06:53:11.648Z",
+    "requestUrl": "https://tcc.bnuzh.edu.cn/xwdt/index.htm"
+  },
+  "c5ba1fc8bc32462d9299d79a8d0d0ee1": {
+    "sourceId": "c5ba1fc8bc32462d9299d79a8d0d0ee1",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:11.954Z",
+    "itemCount": 39,
+    "lastSuccessAt": "2026-03-22T06:53:11.954Z",
+    "requestUrl": "https://welcome.bnuzh.edu.cn/yxkx/index.htm"
+  },
+  "9e442f682ee94c92a56260b87daadd3d": {
+    "sourceId": "9e442f682ee94c92a56260b87daadd3d",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:12.248Z",
+    "itemCount": 144,
+    "lastSuccessAt": "2026-03-22T06:53:12.248Z",
+    "requestUrl": "https://career.bnuzh.edu.cn/index.php/web/Index/news-list"
+  },
+  "7de05bfb07b44620b482d189a2d7cc44": {
+    "sourceId": "7de05bfb07b44620b482d189a2d7cc44",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:12.554Z",
+    "itemCount": 129,
+    "lastSuccessAt": "2026-03-22T06:53:12.554Z",
+    "requestUrl": "https://phs.bnuzh.edu.cn/xwdt/syxw/index.htm"
+  },
+  "75e9fe7e62fb4d13a04c54339b880077": {
+    "sourceId": "75e9fe7e62fb4d13a04c54339b880077",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:13.950Z",
+    "itemCount": 1431,
+    "lastSuccessAt": "2026-03-22T06:53:13.950Z",
+    "requestUrl": "https://jwb.bnuzh.edu.cn/tzgg/index.htm"
+  },
+  "57c21fb282a442bc936ce7188d98ed82": {
+    "sourceId": "57c21fb282a442bc936ce7188d98ed82",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:14.053Z",
+    "itemCount": 68,
+    "lastSuccessAt": "2026-03-22T06:53:14.053Z",
+    "requestUrl": "https://phs.bnuzh.edu.cn/English/News/Notice/index.htm"
+  },
+  "b3e7c5f24a434f788257a698f79c37ff": {
+    "sourceId": "b3e7c5f24a434f788257a698f79c37ff",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:14.722Z",
+    "itemCount": 2717,
+    "lastSuccessAt": "2026-03-22T06:53:14.722Z",
+    "requestUrl": "https://zhnews.bnuzh.edu.cn/ttgz/index.htm"
+  },
+  "bfa3769881d248c5a8c379f84ba47149": {
+    "sourceId": "bfa3769881d248c5a8c379f84ba47149",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:14.802Z",
+    "itemCount": 11,
+    "lastSuccessAt": "2026-03-22T06:53:14.802Z",
+    "requestUrl": "https://hr.bnuzh.edu.cn/tzgg/index.htm"
+  },
+  "1bd3af39c2cf4c2bbe07a1c2bc12e76b": {
+    "sourceId": "1bd3af39c2cf4c2bbe07a1c2bc12e76b",
+    "status": "live",
+    "checkedAt": "2026-03-22T06:53:14.870Z",
+    "itemCount": 161,
+    "lastSuccessAt": "2026-03-22T06:53:14.870Z",
+    "requestUrl": "https://english.bnuzh.edu.cn/News/index.htm"
+  },
+  "f018e769b2bd4733a968e902befe7e17": {
+    "sourceId": "f018e769b2bd4733a968e902befe7e17",
+    "status": "parser_error",
+    "checkedAt": "2026-03-22T06:53:14.993Z",
+    "itemCount": 0,
+    "errorCode": "PARSER_FAILED",
+    "message": "No configured target matched request \"xqtt/index1\".",
+    "requestUrl": "http://www.bnuzh.edu.cn"
+  }
+}

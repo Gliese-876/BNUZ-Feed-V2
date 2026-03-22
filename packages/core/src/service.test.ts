@@ -4,22 +4,27 @@ import type { FeedSnapshot, FeedSource, Repository } from "@bnuz-feed/contracts"
 
 import { createLayeredAggregationService } from "./service";
 
-function createSnapshot(origin: FeedSnapshot["origin"]): FeedSnapshot {
+function createItem(sourceId: string, id: string, freshness: FeedSnapshot["origin"]) {
+  return {
+    id,
+    sourceId,
+    sourceIds: [sourceId],
+    title: id,
+    url: `https://${sourceId}/${id}`,
+    fetchedAt: "2026-03-15T10:00:00.000Z",
+    freshness,
+  };
+}
+
+function createSnapshot(
+  origin: FeedSnapshot["origin"],
+  items = [createItem("notice", "item-1", origin)],
+): FeedSnapshot {
   return {
     version: 1,
     updatedAt: "2026-03-15T10:00:00.000Z",
     origin,
-    items: [
-      {
-        id: "item-1",
-        sourceId: "notice",
-        sourceIds: ["notice"],
-        title: "A",
-        url: "https://notice/item-1",
-        fetchedAt: "2026-03-15T10:00:00.000Z",
-        freshness: origin,
-      },
-    ],
+    items,
     sourceHealth: {},
   };
 }
@@ -58,5 +63,40 @@ describe("createLayeredAggregationService", () => {
     const snapshot = await service.refresh();
 
     expect(snapshot.origin).toBe("snapshot");
+  });
+
+  it("merges partial refreshes without dropping untouched sources", async () => {
+    const cachedSnapshot = createSnapshot("live", [
+      createItem("notice", "notice-old", "live"),
+      createItem("news", "news-stable", "live"),
+    ]);
+    const partialSnapshot = {
+      ...createSnapshot("live", [createItem("notice", "notice-new", "live")]),
+      sourceHealth: {
+        notice: {
+          sourceId: "notice",
+          status: "live",
+          checkedAt: "2026-03-16T10:00:00.000Z",
+          itemCount: 1,
+        },
+      },
+    } satisfies FeedSnapshot;
+
+    const repository: Repository = {
+      load: vi.fn().mockResolvedValue(cachedSnapshot),
+      save: vi.fn().mockResolvedValue(undefined),
+    };
+    const primary: FeedSource = {
+      refresh: vi.fn().mockResolvedValue(partialSnapshot),
+    };
+
+    const service = createLayeredAggregationService({ primary, repository });
+
+    await service.bootstrap();
+    const snapshot = await service.refresh(["notice"]);
+
+    expect(snapshot.items.map((item) => item.id).sort()).toEqual(["news-stable", "notice-new"]);
+    expect(snapshot.items.find((item) => item.id === "news-stable")?.freshness).toBe("cache");
+    expect(snapshot.sourceHealth.notice?.status).toBe("live");
   });
 });
