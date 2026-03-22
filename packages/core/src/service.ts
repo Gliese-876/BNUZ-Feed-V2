@@ -88,6 +88,10 @@ export function createLayeredAggregationService(
     }
   }
 
+  function isEffectivelyEmpty(snapshot: FeedSnapshot): boolean {
+    return snapshot.items.length === 0;
+  }
+
   async function applySnapshot(snapshot: FeedSnapshot, persist = false): Promise<FeedSnapshot> {
     currentSnapshot = cloneSnapshot(snapshot);
     syncSourceItems(currentSnapshot);
@@ -131,7 +135,25 @@ export function createLayeredAggregationService(
       const cached = await options.repository.load();
 
       if (cached) {
-        currentSnapshot = withFreshness(cached, "cache");
+        const cachedSnapshot = withFreshness(cached, "cache");
+
+        if (!isEffectivelyEmpty(cachedSnapshot)) {
+          currentSnapshot = cachedSnapshot;
+          syncSourceItems(currentSnapshot);
+          emit();
+          return cloneSnapshot(currentSnapshot);
+        }
+
+        try {
+          const primarySnapshot = await loadPrimary();
+          if (primarySnapshot) {
+            return cloneSnapshot(primarySnapshot);
+          }
+        } catch {
+          // Fall back to the cached snapshot when the primary source is unavailable.
+        }
+
+        currentSnapshot = cachedSnapshot;
         syncSourceItems(currentSnapshot);
         emit();
         return cloneSnapshot(currentSnapshot);
