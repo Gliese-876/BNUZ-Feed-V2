@@ -1,11 +1,7 @@
-name: Deploy BNUZ Feed V2 to GitHub Pages
+name: Manual Refresh BNUZ Feed V2
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
