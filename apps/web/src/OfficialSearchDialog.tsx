@@ -3,9 +3,11 @@ import {
   useId,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
   type RefObject,
 } from "react";
+import { createPortal } from "react-dom";
 
 import {
   allSiteSearchId,
@@ -13,6 +15,11 @@ import {
   submitOfficialSiteSearch,
   type OfficialSiteSearchMatchMode,
 } from "./siteSearch";
+
+const dialogGap = 20;
+const dialogOffset = 12;
+const dialogMaxWidth = 720;
+const dialogMinHeight = 320;
 
 export interface OfficialSearchScopeOption {
   id: string;
@@ -60,6 +67,45 @@ function createInitialFormState(initialQuery: string): SearchFormState {
   };
 }
 
+function buildDialogStyle(triggerRef: RefObject<HTMLButtonElement | null>): CSSProperties {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const horizontalGap = viewportWidth <= 640 ? 14 : dialogGap;
+  const verticalGap = viewportWidth <= 640 ? 14 : dialogGap;
+  const dialogWidth = Math.min(dialogMaxWidth, viewportWidth - horizontalGap * 2);
+  const triggerRect = triggerRef.current?.getBoundingClientRect();
+  const top = Math.round(
+    Math.max(
+      verticalGap,
+      Math.min(
+        (triggerRect?.bottom ?? verticalGap) + dialogOffset,
+        viewportHeight - verticalGap - dialogMinHeight,
+      ),
+    ),
+  );
+  const left = Math.round(
+    Math.max(
+      horizontalGap,
+      Math.min(
+        (triggerRect?.right ?? viewportWidth - horizontalGap) - dialogWidth,
+        viewportWidth - horizontalGap - dialogWidth,
+      ),
+    ),
+  );
+  const maxHeight = Math.max(0, viewportHeight - top - verticalGap);
+
+  return {
+    left: `${left}px`,
+    maxHeight: `${Math.round(maxHeight)}px`,
+    top: `${top}px`,
+    width: `${Math.round(dialogWidth)}px`,
+  };
+}
+
 export function OfficialSearchDialog({
   dialogId,
   initialQuery,
@@ -70,6 +116,7 @@ export function OfficialSearchDialog({
 }: OfficialSearchDialogProps) {
   const [form, setForm] = useState(() => createInitialFormState(initialQuery));
   const [error, setError] = useState("");
+  const [dialogStyle, setDialogStyle] = useState<CSSProperties>({});
   const dialogRef = useRef<HTMLElement>(null);
   const queryInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
@@ -108,6 +155,24 @@ export function OfficialSearchDialog({
       return;
     }
 
+    const syncDialogStyle = () => {
+      setDialogStyle(buildDialogStyle(triggerRef));
+    };
+
+    syncDialogStyle();
+    window.addEventListener("resize", syncDialogStyle);
+    window.addEventListener("scroll", syncDialogStyle, true);
+    return () => {
+      window.removeEventListener("resize", syncDialogStyle);
+      window.removeEventListener("scroll", syncDialogStyle, true);
+    };
+  }, [open, triggerRef]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
     const handleDocumentClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) {
@@ -127,7 +192,7 @@ export function OfficialSearchDialog({
     };
   }, [onClose, open, triggerRef]);
 
-  if (!open) {
+  if (!open || typeof document === "undefined") {
     return null;
   }
 
@@ -167,7 +232,7 @@ export function OfficialSearchDialog({
     onClose();
   };
 
-  return (
+  return createPortal(
     <section
       aria-describedby={descriptionId}
       aria-labelledby={titleId}
@@ -175,6 +240,7 @@ export function OfficialSearchDialog({
       id={dialogId}
       ref={dialogRef}
       role="dialog"
+      style={dialogStyle}
     >
       <div className="search-dialog__header">
         <div>
@@ -392,6 +458,7 @@ export function OfficialSearchDialog({
           </div>
         </div>
       </form>
-    </section>
+    </section>,
+    document.body,
   );
 }
