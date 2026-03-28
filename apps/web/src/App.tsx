@@ -23,6 +23,7 @@ import {
 } from "./runtime/createAggregationService";
 import {
   buildItemStats,
+  countVisibleRawItems,
   defaultChannelLabel,
   sourceCatalog,
   sourceCatalogById,
@@ -65,6 +66,10 @@ function formatPublishedAt(value: string | undefined): string {
   return new Intl.DateTimeFormat("zh-CN", {
     dateStyle: "medium",
   }).format(date);
+}
+
+function formatVisibleCount(dedupedCount: number, rawCount: number): string {
+  return `${dedupedCount}（${rawCount}）`;
 }
 
 function matchesSourceQuery(source: SourceCatalogNode, query: string): boolean {
@@ -220,6 +225,15 @@ function RuntimeShell() {
     () => visibleItems.slice(0, renderedCount),
     [renderedCount, visibleItems],
   );
+  const visibleRawItemCount = useMemo(
+    () =>
+      countVisibleRawItems(
+        visibleItems,
+        deferredSelectedSourceSet,
+        deferredSelectedChannelSet,
+      ),
+    [deferredSelectedChannelSet, deferredSelectedSourceSet, visibleItems],
+  );
 
   const feedLabelId = useId();
   const sourceLabelId = useId();
@@ -307,11 +321,12 @@ function RuntimeShell() {
             <strong>{totalSourceChannelCount}</strong>
           </article>
           <article
-            className="metric-card"
+            className="metric-card metric-card--counts"
             style={{ animationDelay: "300ms" }}
           >
             <span>当前显示</span>
-            <strong>{visibleItems.length}</strong>
+            <span>去重后条数（原始条数）</span>
+            <strong>{formatVisibleCount(visibleItems.length, visibleRawItemCount)}</strong>
           </article>
           <article
             className="metric-card metric-card--wide"

@@ -406,6 +406,10 @@ a {
   color: var(--text-muted);
 }
 
+.metric-card--counts span:first-of-type {
+  display: none;
+}
+
 .metric-card strong {
   font-size: 1.4rem;
   transition: transform var(--motion-fast);

@@ -61,7 +61,8 @@ describe("createLayeredAggregationService", () => {
     const bootstrappedSnapshot = await service.bootstrap();
 
     expect(primary.bootstrap).toHaveBeenCalledTimes(1);
-    expect(repository.save).toHaveBeenCalledWith(snapshot);
+    expect(repository.save).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(repository.save).mock.calls[0]?.[0]).toMatchObject(snapshot);
     expect(bootstrappedSnapshot?.origin).toBe("snapshot");
   });
 
@@ -80,7 +81,8 @@ describe("createLayeredAggregationService", () => {
     const bootstrappedSnapshot = await service.bootstrap();
 
     expect(primary.bootstrap).toHaveBeenCalledTimes(1);
-    expect(repository.save).toHaveBeenCalledWith(snapshot);
+    expect(repository.save).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(repository.save).mock.calls[0]?.[0]).toMatchObject(snapshot);
     expect(bootstrappedSnapshot?.items).toHaveLength(snapshot.items.length);
     expect(bootstrappedSnapshot?.origin).toBe("snapshot");
   });

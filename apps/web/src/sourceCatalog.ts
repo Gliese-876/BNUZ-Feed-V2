@@ -1,4 +1,5 @@
 import type { FeedItem, SourceDescriptor } from "@bnuz-feed/contracts";
+import { getRawOccurrences } from "@bnuz-feed/core";
 import { publicBnuzhSources } from "@bnuz-feed/source-registry";
 
 export const defaultChannelLabel = "全部内容";
@@ -51,7 +52,7 @@ function buildSourceChannels(source: SourceDescriptor): SourceChannelNode[] {
 }
 
 export function buildChannelKey(sourceId: string, channelLabel: string): string {
-  return `${sourceId}::${channelLabel}`;
+  return `${sourceId}::${normalizeChannelLabel(channelLabel)}`;
 }
 
 export function buildItemStats(items: FeedItem[]): FeedItemStats {
@@ -59,17 +60,46 @@ export function buildItemStats(items: FeedItem[]): FeedItemStats {
   const channelCounts: Record<string, number> = {};
 
   for (const item of items) {
-    const sourceIds = item.sourceIds.length > 0 ? item.sourceIds : [item.sourceId];
-    const channelLabel = normalizeChannelLabel(item.channel);
-
-    for (const sourceId of sourceIds) {
-      sourceCounts[sourceId] = (sourceCounts[sourceId] ?? 0) + 1;
-      const channelKey = buildChannelKey(sourceId, channelLabel);
-      channelCounts[channelKey] = (channelCounts[channelKey] ?? 0) + 1;
+    for (const occurrence of getRawOccurrences(item)) {
+      sourceCounts[occurrence.sourceId] = (sourceCounts[occurrence.sourceId] ?? 0) + occurrence.count;
+      const channelKey = buildChannelKey(
+        occurrence.sourceId,
+        occurrence.channel ?? defaultChannelLabel,
+      );
+      channelCounts[channelKey] = (channelCounts[channelKey] ?? 0) + occurrence.count;
     }
   }
 
   return { sourceCounts, channelCounts };
+}
+
+export function countVisibleRawItems(
+  items: FeedItem[],
+  selectedSourceSet: ReadonlySet<string>,
+  selectedChannelSet: ReadonlySet<string>,
+): number {
+  let total = 0;
+
+  for (const item of items) {
+    for (const occurrence of getRawOccurrences(item)) {
+      if (!selectedSourceSet.has(occurrence.sourceId)) {
+        continue;
+      }
+
+      const channelKey = buildChannelKey(
+        occurrence.sourceId,
+        occurrence.channel ?? defaultChannelLabel,
+      );
+
+      if (!selectedChannelSet.has(channelKey)) {
+        continue;
+      }
+
+      total += occurrence.count;
+    }
+  }
+
+  return total;
 }
 
 export const sourceCatalog: SourceCatalogNode[] = publicBnuzhSources.map((source) => {

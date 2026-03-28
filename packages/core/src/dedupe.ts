@@ -1,5 +1,7 @@
 import type { FeedFreshness, FeedItem } from "@bnuz-feed/contracts";
 
+import { getRawOccurrences, mergeRawOccurrences } from "./rawOccurrences";
+
 const freshnessRank: Record<FeedFreshness, number> = {
   snapshot: 0,
   cache: 1,
@@ -60,10 +62,26 @@ function createAliasKey(item: FeedItem): string | null {
 function mergeItems(left: FeedItem, right: FeedItem): FeedItem {
   const preferred = pickPreferredItem(left, right);
   const mergedSourceIds = [...new Set([...left.sourceIds, ...right.sourceIds])];
+  const rawOccurrences = mergeRawOccurrences(getRawOccurrences(left), getRawOccurrences(right));
+  const rawCount = rawOccurrences.reduce((total, occurrence) => total + occurrence.count, 0);
 
   return {
     ...preferred,
     sourceIds: mergedSourceIds,
+    rawCount,
+    rawOccurrences,
+  };
+}
+
+function cloneItem(item: FeedItem): FeedItem {
+  const rawOccurrences = getRawOccurrences(item);
+  const rawCount = rawOccurrences.reduce((total, occurrence) => total + occurrence.count, 0);
+
+  return {
+    ...item,
+    sourceIds: [...item.sourceIds],
+    rawCount,
+    rawOccurrences,
   };
 }
 
@@ -87,10 +105,7 @@ export function dedupeFeedItems(items: FeedItem[]): FeedItem[] {
     const existing = byId.get(item.id);
 
     if (!existing) {
-      byId.set(item.id, {
-        ...item,
-        sourceIds: [...item.sourceIds],
-      });
+      byId.set(item.id, cloneItem(item));
       continue;
     }
 
@@ -104,10 +119,7 @@ export function dedupeFeedItems(items: FeedItem[]): FeedItem[] {
     const existing = byAlias.get(aliasKey);
 
     if (!existing) {
-      byAlias.set(aliasKey, {
-        ...item,
-        sourceIds: [...item.sourceIds],
-      });
+      byAlias.set(aliasKey, cloneItem(item));
       continue;
     }
 

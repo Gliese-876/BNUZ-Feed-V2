@@ -12,7 +12,7 @@ import {
   type SourceHealthStatus,
   type SourceId,
 } from "@bnuz-feed/contracts";
-import { dedupeFeedItems } from "@bnuz-feed/core";
+import { createSourceScopedItem, dedupeFeedItems, sumRawItemCounts } from "@bnuz-feed/core";
 
 import { classifySourceError } from "./classifySourceError";
 
@@ -236,11 +236,7 @@ function explodeSnapshotItems(snapshot: FeedSnapshot): Map<SourceId, FeedItem[]>
 
     for (const sourceId of sourceIds) {
       const sourceItems = itemsBySource.get(sourceId) ?? [];
-      sourceItems.push({
-        ...item,
-        sourceId,
-        sourceIds: [sourceId],
-      });
+      sourceItems.push(createSourceScopedItem(item, sourceId));
       itemsBySource.set(sourceId, sourceItems);
     }
   }
@@ -270,7 +266,7 @@ function buildSnapshotFromAccumulator(accumulator: RefreshAccumulator): FeedSnap
         sourceId,
         {
           ...entry,
-          itemCount: accumulator.sourceItems.get(sourceId)?.length ?? entry.itemCount,
+          itemCount: sumRawItemCounts(accumulator.sourceItems.get(sourceId) ?? []),
         },
       ]),
     ),
@@ -315,7 +311,7 @@ function mergeRefreshAttempt(
       accumulator.sourceItems.set(sourceId, mergedItems);
       accumulator.sourceHealth.set(sourceId, {
         ...nextHealth,
-        itemCount: mergedItems.length,
+        itemCount: sumRawItemCounts(mergedItems),
       });
 
       if (!hadSuccessfulItems && mergedItems.length > 0) {

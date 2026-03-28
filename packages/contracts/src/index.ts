@@ -67,6 +67,12 @@ export interface SourceRecord {
   extras?: Record<string, unknown>;
 }
 
+export interface FeedItemOccurrence {
+  sourceId: SourceId;
+  channel?: string;
+  count: number;
+}
+
 export interface FeedItem {
   id: string;
   sourceId: SourceId;
@@ -78,6 +84,8 @@ export interface FeedItem {
   summary?: string;
   fetchedAt: string;
   freshness: FeedFreshness;
+  rawCount?: number;
+  rawOccurrences?: FeedItemOccurrence[];
 }
 
 export interface SourceHealth {

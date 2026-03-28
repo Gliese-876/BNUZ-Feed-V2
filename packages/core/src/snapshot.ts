@@ -1,5 +1,7 @@
 import type { FeedFreshness, FeedSnapshot, SourceHealth } from "@bnuz-feed/contracts";
 
+import { getRawCount, getRawOccurrences } from "./rawOccurrences";
+
 export function createEmptySnapshot(origin: FeedFreshness): FeedSnapshot {
   return {
     version: 1,
@@ -16,6 +18,8 @@ export function cloneSnapshot(snapshot: FeedSnapshot): FeedSnapshot {
     items: snapshot.items.map((item) => ({
       ...item,
       sourceIds: [...item.sourceIds],
+      rawCount: getRawCount(item),
+      rawOccurrences: getRawOccurrences(item),
     })),
     sourceHealth: Object.fromEntries(
       Object.entries(snapshot.sourceHealth).map(([sourceId, value]) => [sourceId, { ...value }]),
@@ -31,6 +35,8 @@ export function withFreshness(snapshot: FeedSnapshot, freshness: FeedFreshness):
       ...item,
       freshness,
       sourceIds: [...item.sourceIds],
+      rawCount: getRawCount(item),
+      rawOccurrences: getRawOccurrences(item),
     })),
   };
 }

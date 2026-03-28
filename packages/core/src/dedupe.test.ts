@@ -40,6 +40,13 @@ describe("dedupeFeedItems", () => {
     expect(items).toHaveLength(1);
     expect(items[0]?.freshness).toBe("live");
     expect(items[0]?.sourceIds.sort()).toEqual(["source-a", "source-b"]);
+    expect(items[0]?.rawCount).toBe(2);
+    expect(items[0]?.rawOccurrences).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ sourceId: "source-a", count: 1 }),
+        expect.objectContaining({ sourceId: "source-b", count: 1 }),
+      ]),
+    );
   });
 
   it("merges items with different ids when normalized url and title are the same", () => {
@@ -63,6 +70,7 @@ describe("dedupeFeedItems", () => {
     expect(items).toHaveLength(1);
     expect(items[0]?.id).toBe("older-item");
     expect(items[0]?.sourceIds.sort()).toEqual(["source-a", "source-b"]);
+    expect(items[0]?.rawCount).toBe(2);
   });
 
   it("treats http and https variants of the same article as duplicates", () => {
@@ -100,5 +108,26 @@ describe("dedupeFeedItems", () => {
     ]);
 
     expect(items).toHaveLength(2);
+  });
+
+  it("tracks repeated raw records from the same source", () => {
+    const items = dedupeFeedItems([
+      createItem({
+        id: "repeat-a",
+        rawCount: 1,
+        rawOccurrences: [{ sourceId: "source-a", channel: "閫氱煡鍏憡", count: 1 }],
+      }),
+      createItem({
+        id: "repeat-b",
+        rawCount: 1,
+        rawOccurrences: [{ sourceId: "source-a", channel: "閫氱煡鍏憡", count: 1 }],
+      }),
+    ]);
+
+    expect(items).toHaveLength(1);
+    expect(items[0]?.rawCount).toBe(2);
+    expect(items[0]?.rawOccurrences).toEqual([
+      { sourceId: "source-a", channel: "閫氱煡鍏憡", count: 2 },
+    ]);
   });
 });

@@ -8,6 +8,7 @@ import type {
 } from "@bnuz-feed/contracts";
 
 import { dedupeFeedItems } from "./dedupe";
+import { createSourceScopedItem } from "./rawOccurrences";
 import { cloneSnapshot, withFreshness } from "./snapshot";
 
 export interface LayeredAggregationServiceOptions {
@@ -30,13 +31,8 @@ export function createLayeredAggregationService(
       const sourceIds = item.sourceIds.length > 0 ? item.sourceIds : [item.sourceId];
 
       for (const sourceId of sourceIds) {
-        const nextItem: FeedItem = {
-          ...item,
-          sourceId,
-          sourceIds: [sourceId],
-        };
         const sourceItems = nextItemsBySource.get(sourceId) ?? [];
-        sourceItems.push(nextItem);
+        sourceItems.push(createSourceScopedItem(item, sourceId));
         nextItemsBySource.set(sourceId, sourceItems);
       }
     }
@@ -75,10 +71,10 @@ export function createLayeredAggregationService(
       updatedAt: nextSnapshot.updatedAt,
       origin: nextSnapshot.origin,
       items: dedupeFeedItems([...mergedItemsBySource.values()].flat()),
-      sourceHealth: {
-        ...baseSnapshot.sourceHealth,
-        ...nextSnapshot.sourceHealth,
-      },
+        sourceHealth: {
+          ...baseSnapshot.sourceHealth,
+          ...nextSnapshot.sourceHealth,
+        },
     };
   }
 

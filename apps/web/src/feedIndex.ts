@@ -1,4 +1,5 @@
 import type { FeedItem } from "@bnuz-feed/contracts";
+import { getRawOccurrences } from "@bnuz-feed/core";
 
 import { buildChannelKey, defaultChannelLabel } from "./sourceCatalog";
 
@@ -13,11 +14,17 @@ export function buildFeedIndex(
   sourceNamesById: Record<string, string>,
 ): IndexedFeedItem[] {
   return items.map((item) => {
-    const channelLabel = item.channel?.trim() || defaultChannelLabel;
-    const sourceNames = item.sourceIds
-      .map((sourceId) => sourceNamesById[sourceId] ?? sourceId)
-      .join(" ");
-    const searchableText = [item.title, item.summary, channelLabel, sourceNames]
+    const rawOccurrences = getRawOccurrences(item);
+    const channelLabels = [
+      ...new Set(rawOccurrences.map((occurrence) => occurrence.channel?.trim() || defaultChannelLabel)),
+    ];
+    const sourceNames = [
+      ...new Set(
+        rawOccurrences.map((occurrence) => sourceNamesById[occurrence.sourceId] ?? occurrence.sourceId),
+      ),
+    ].join(" ");
+    const channelLabel = channelLabels[0] ?? defaultChannelLabel;
+    const searchableText = [item.title, item.summary, channelLabels.join(" "), sourceNames]
       .filter((value) => typeof value === "string" && value.trim().length > 0)
       .join(" ")
       .toLowerCase();
@@ -44,11 +51,15 @@ export function filterFeedIndex(
 
   return indexedItems
     .filter((entry) => {
-      const selected = entry.item.sourceIds.some(
-        (sourceId) =>
-          selectedSourceSet.has(sourceId) &&
-          selectedChannelSet.has(buildChannelKey(sourceId, entry.channelLabel)),
-      );
+      const selected = getRawOccurrences(entry.item).some((occurrence) => {
+        if (!selectedSourceSet.has(occurrence.sourceId)) {
+          return false;
+        }
+
+        return selectedChannelSet.has(
+          buildChannelKey(occurrence.sourceId, occurrence.channel ?? defaultChannelLabel),
+        );
+      });
 
       if (!selected) {
         return false;

@@ -1,4 +1,11 @@
-import { AggregationError, type FeedItem, type FeedSnapshot, type FeedSource, type SourceHealth } from "@bnuz-feed/contracts";
+import {
+  AggregationError,
+  type FeedItem,
+  type FeedItemOccurrence,
+  type FeedSnapshot,
+  type FeedSource,
+  type SourceHealth,
+} from "@bnuz-feed/contracts";
 
 export interface SnapshotSourceOptions {
   feedSnapshotUrl: string;
@@ -6,9 +13,58 @@ export interface SnapshotSourceOptions {
   fetchFn?: typeof fetch;
 }
 
+function normalizeOccurrenceCount(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 1;
+  }
+
+  return Math.max(1, Math.floor(value));
+}
+
+function normalizeChannel(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function normalizeRawOccurrences(record: Partial<FeedItem>): FeedItemOccurrence[] {
+  if (Array.isArray(record.rawOccurrences) && record.rawOccurrences.length > 0) {
+    return record.rawOccurrences.map((occurrence) => {
+      const entry = occurrence as Partial<FeedItemOccurrence>;
+
+      return {
+        sourceId: String(entry.sourceId ?? record.sourceId ?? ""),
+        channel: normalizeChannel(entry.channel),
+        count: normalizeOccurrenceCount(entry.count),
+      };
+    });
+  }
+
+  const sourceIds =
+    Array.isArray(record.sourceIds) && record.sourceIds.length > 0
+      ? record.sourceIds.map(String)
+      : [String(record.sourceId ?? "")];
+
+  if (sourceIds.length <= 1) {
+    return [
+      {
+        sourceId: sourceIds[0] ?? String(record.sourceId ?? ""),
+        channel: normalizeChannel(record.channel),
+        count: normalizeOccurrenceCount(record.rawCount),
+      },
+    ];
+  }
+
+  return sourceIds.map((sourceId) => ({
+    sourceId,
+    channel: normalizeChannel(record.channel),
+    count: 1,
+  }));
+}
+
 function normalizeItems(items: unknown[]): FeedItem[] {
   return items.map((item) => {
     const record = item as Partial<FeedItem>;
+    const rawOccurrences = normalizeRawOccurrences(record);
+
     return {
       id: String(record.id ?? ""),
       sourceId: String(record.sourceId ?? ""),
@@ -22,6 +78,8 @@ function normalizeItems(items: unknown[]): FeedItem[] {
       summary: record.summary,
       fetchedAt: String(record.fetchedAt ?? new Date().toISOString()),
       freshness: "snapshot",
+      rawCount: rawOccurrences.reduce((total, occurrence) => total + occurrence.count, 0),
+      rawOccurrences,
     };
   });
 }

@@ -1,6 +1,7 @@
 import type { FeedItem, Normalizer, SourceRecord } from "@bnuz-feed/contracts";
 
 import { hashText } from "./hash";
+import { createRawOccurrence } from "./rawOccurrences";
 
 function normalizeText(value: string | undefined): string {
   return (value ?? "").trim().replace(/\s+/g, " ");
@@ -41,6 +42,8 @@ export function createDefaultNormalizer(): Normalizer {
         summary: record.rawSummary,
         fetchedAt: new Date().toISOString(),
         freshness: "live",
+        rawCount: 1,
+        rawOccurrences: [createRawOccurrence(record.sourceId, record.rawChannel)],
       };
     },
   };

@@ -33,26 +33,27 @@ vi.mock("./runtime/createAggregationService", () => ({
 vi.mock("./sourceCatalog", () => ({
   buildItemStats: () => ({
     channelCounts: {
-      "notice::通知动态": 0,
+      "notice::Announcements": 0,
     },
     sourceCounts: {
       notice: 0,
     },
   }),
-  defaultChannelLabel: "通知动态",
+  countVisibleRawItems: () => 0,
+  defaultChannelLabel: "Announcements",
   sourceCatalog: [
     {
-      channels: [{ label: "通知动态" }],
+      channels: [{ label: "Announcements" }],
       fetchTargetCount: 1,
       id: "notice",
-      name: "通知公告",
-      searchText: "通知公告 通知动态",
+      name: "Notice Board",
+      searchText: "notice board announcements",
     },
   ],
   sourceCatalogById: {
     notice: {
       id: "notice",
-      name: "通知公告",
+      name: "Notice Board",
     },
   },
   totalSourceChannelCount: 1,
@@ -76,8 +77,8 @@ vi.mock("./useSourceSelection", () => ({
   useSourceSelection: () => ({
     allSelected: true,
     getSourceSelectionState: () => "all",
-    selectedChannelKeys: ["notice::通知动态"],
-    selectedChannelSet: new Set(["notice::通知动态"]),
+    selectedChannelKeys: ["notice::Announcements"],
+    selectedChannelSet: new Set(["notice::Announcements"]),
     selectedSourceIds: ["notice"],
     toggleAll: vi.fn(),
     toggleChannel: vi.fn(),
@@ -94,15 +95,22 @@ describe("App drawer", () => {
     try {
       render(<App />);
 
-      fireEvent.click(screen.getByRole("button", { name: "选择栏目" }));
-
+      const drawerToggle = document.querySelector(".topbar__drawer-toggle");
+      const closeButton = document.querySelector(".source-panel__close");
       const panel = document.querySelector(".source-panel");
       const scrim = document.querySelector(".app__scrim");
+
+      expect(drawerToggle).toBeInstanceOf(HTMLButtonElement);
+      expect(closeButton).toBeInstanceOf(HTMLButtonElement);
+      expect(panel).toBeInstanceOf(HTMLElement);
+      expect(scrim).toBeInstanceOf(HTMLElement);
+
+      fireEvent.click(drawerToggle as HTMLButtonElement);
 
       expect(panel).toHaveClass("is-open");
       expect(scrim).toHaveClass("is-open");
 
-      fireEvent.click(screen.getByRole("button", { name: "关闭" }));
+      fireEvent.click(closeButton as HTMLButtonElement);
 
       expect(panel).toHaveClass("is-closing");
       expect(scrim).toHaveClass("is-closing");
@@ -118,5 +126,12 @@ describe("App drawer", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("shows the visible count as deduplicated and raw totals", () => {
+    render(<App />);
+
+    expect(screen.getByText("去重后条数（原始条数）")).toBeInTheDocument();
+    expect(screen.getByText("0（0）")).toBeInTheDocument();
   });
 });

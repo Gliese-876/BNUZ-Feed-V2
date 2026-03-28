@@ -59,4 +59,41 @@ describe("feedIndex", () => {
     expect(filteredItems).toHaveLength(1);
     expect(filteredItems[0]?.id).toBe("item-2");
   });
+
+  it("matches selection against raw source-channel occurrences", () => {
+    const indexedItems = buildFeedIndex(
+      [
+        {
+          id: "item-3",
+          sourceId: "source-a",
+          sourceIds: ["source-a", "source-b"],
+          title: "Merged notice",
+          summary: "Shared across sources",
+          channel: "Announcements",
+          url: "https://example.com/3",
+          fetchedAt: "2026-03-22T00:00:00.000Z",
+          freshness: "snapshot",
+          rawCount: 2,
+          rawOccurrences: [
+            { sourceId: "source-a", channel: "Announcements", count: 1 },
+            { sourceId: "source-b", channel: "Events", count: 1 },
+          ],
+        },
+      ],
+      {
+        "source-a": "Academic Office",
+        "source-b": "Global Office",
+      },
+    );
+
+    const filteredItems = filterFeedIndex(
+      indexedItems,
+      new Set(["source-b"]),
+      new Set(["source-b::Events"]),
+      "",
+    );
+
+    expect(filteredItems).toHaveLength(1);
+    expect(filteredItems[0]?.id).toBe("item-3");
+  });
 });
