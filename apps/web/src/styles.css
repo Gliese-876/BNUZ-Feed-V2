@@ -214,7 +214,8 @@ a {
 
 .topbar__brand p,
 .intro-card p,
-.field span,
+.field > span,
+.field > label,
 .source-panel__summary,
 .source-toggle span,
 .content__meta,
@@ -346,18 +347,6 @@ a {
     transform var(--motion-fast),
     background-color var(--motion-fast),
     box-shadow var(--motion-fast);
-}
-
-.metric-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary), rgba(53, 104, 84, 0));
-  transform: scaleX(0.32);
-  transform-origin: left;
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .metric-card span {
@@ -518,12 +507,85 @@ a {
 }
 
 .field {
+  position: relative;
   display: grid;
   gap: 8px;
 }
 
+.field:has(.field__select-control.is-open),
+.field:has(.field__date-control.is-open) {
+  z-index: 8;
+}
+
+.field__control {
+  position: relative;
+}
+
+.field__control--fade {
+  --field-text-fade-width: clamp(72px, 24%, 120px);
+}
+
+.field__select-control.is-open {
+  z-index: 6;
+}
+
+.field__date-control.is-open {
+  z-index: 6;
+}
+
+.field__placeholder {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  right: 14px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 1;
+  -webkit-mask-image: none;
+  mask-image: none;
+  transition:
+    opacity var(--motion-fast),
+    -webkit-mask-image var(--motion-fast),
+    mask-image var(--motion-fast);
+}
+
+.field__control--fade[data-overflowing="true"] .field__placeholder {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0,
+    #000 calc(100% - var(--field-text-fade-width)),
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0,
+    #000 calc(100% - var(--field-text-fade-width)),
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.field__control--fade > .field__input::placeholder {
+  color: transparent;
+  opacity: 0;
+}
+
+.field__control--fade > .field__input::-webkit-input-placeholder {
+  color: transparent;
+  opacity: 0;
+}
+
+.field__control--fade[data-has-value="true"] .field__placeholder {
+  opacity: 0;
+}
+
 .field input,
-.field select {
+.field select,
+.field__select-trigger,
+.field__date-trigger {
   width: 100%;
   min-height: 46px;
   padding: 0 14px;
@@ -539,13 +601,152 @@ a {
     transform var(--motion-fast);
 }
 
+.field__select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 42px;
+  cursor: pointer;
+}
+
+.field__select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field__date-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 42px;
+  cursor: pointer;
+}
+
+.field__date-trigger:not(.has-value) {
+  color: var(--text-muted);
+}
+
+.field__date-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field__date-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.field__select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 10px;
+  height: 10px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  color: var(--text-muted);
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+  transition:
+    transform var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.field__select-control.is-open .field__select-chevron {
+  color: var(--primary);
+  transform: translateY(-30%) rotate(-135deg);
+}
+
+.field__date-icon {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.field__date-icon::before,
+.field__date-icon::after {
+  content: "";
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.field__date-icon::before {
+  left: 3px;
+}
+
+.field__date-icon::after {
+  right: 3px;
+}
+
+.field__date-control.is-open .field__date-icon {
+  color: var(--primary);
+}
+
+.field__select-menu {
+  position: fixed;
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hover);
+  z-index: 81;
+}
+
+.field__select-option {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: calc(var(--radius-md) - 4px);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast),
+    color var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.field__select-option.is-selected {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.field__select-option:hover,
+.field__select-option:focus-visible {
+  background: var(--surface-soft);
+  outline: none;
+}
+
 .field input::placeholder {
   color: var(--text-muted);
   opacity: 1;
 }
 
 .field input:focus,
-.field select:focus {
+.field select:focus,
+.field__select-trigger:focus-visible,
+.field__select-control.is-open .field__select-trigger,
+.field__date-trigger:focus-visible,
+.field__date-control.is-open .field__date-trigger {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--focus-ring);
   transform: translateY(-1px);
@@ -606,20 +807,6 @@ a {
     transform var(--motion-fast),
     box-shadow var(--motion-fast),
     border-color var(--motion-fast);
-}
-
-.source-tree__card::before,
-.feed-card::before,
-.empty-state::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary), rgba(53, 104, 84, 0));
-  transform: scaleX(0.18);
-  transform-origin: left;
-  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .source-tree__count {
@@ -699,6 +886,13 @@ a {
   animation: fade-in var(--motion-fast) both;
 }
 
+.search-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  background: transparent;
+}
+
 .search-dialog__header,
 .search-dialog__actions,
 .search-dialog__action-group {
@@ -754,6 +948,7 @@ a {
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: visible;
 }
 
 .search-dialog__advanced {
@@ -951,14 +1146,6 @@ a {
   box-shadow: 0 10px 26px rgba(24, 32, 27, 0.08);
 }
 
-.source-tree__card:has(.source-toggle input:checked)::before,
-.source-tree__card:has(.channel-chip input:checked)::before,
-.feed-card:hover::before,
-.feed-card:focus-visible::before,
-.empty-state::before {
-  transform: scaleX(1);
-}
-
 .source-tree__card:has(.source-toggle input:checked) .source-tree__count,
 .source-tree__card:has(.channel-chip input:checked) .source-tree__count {
   background: var(--primary-soft);
@@ -993,10 +1180,6 @@ a {
     box-shadow: var(--shadow);
   }
 
-  .metric-card:hover::before {
-    transform: scaleX(1);
-  }
-
   .metric-card:hover strong {
     transform: translateY(-1px);
   }
@@ -1006,10 +1189,6 @@ a {
     transform: translateY(-3px);
     border-color: var(--primary);
     box-shadow: var(--shadow-hover);
-  }
-
-  .source-tree__card:hover::before {
-    transform: scaleX(1);
   }
 
   .channel-chip:hover {

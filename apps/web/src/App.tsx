@@ -20,6 +20,7 @@ import {
   aggregationService,
   appRuntimeConfig,
 } from "./runtime/createAggregationService";
+import { FadingTextInput } from "./FadingTextInput";
 import {
   buildItemStats,
   defaultChannelLabel,
@@ -415,7 +416,7 @@ function RuntimeShell() {
             className="field"
           >
             <span id={sourceLabelId}>搜索站点或栏目</span>
-            <input
+            <FadingTextInput
               onChange={(event) => setSourceQuery(event.target.value)}
               placeholder="例如：教务部、国际交流、通知公告"
               type="search"
@@ -510,7 +511,7 @@ function RuntimeShell() {
               className="field"
             >
               <span id={feedLabelId}>搜索当前内容</span>
-              <input
+              <FadingTextInput
                 onChange={(event) => setFeedQuery(event.target.value)}
                 placeholder="搜索标题、摘要、站点或栏目"
                 type="search"
