@@ -15,9 +15,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 90
     env:
-      BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 15
+      BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 40
       BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 5000
       BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 30000
       BNUZ_FEED_SNAPSHOT_CONCURRENCY: 3
