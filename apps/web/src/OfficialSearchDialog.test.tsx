@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { submitOfficialSiteSearchMock } = vi.hoisted(() => ({
@@ -54,25 +54,27 @@ function createTriggerRef() {
   };
 }
 
+const defaultScopeOptions = [
+  { id: "0", name: "All sites" },
+  { id: "notice", name: "Notice" },
+];
+
 describe("OfficialSearchDialog", () => {
   beforeEach(() => {
     submitOfficialSiteSearchMock.mockClear();
   });
 
-  it("renders as a fixed body portal with visible scope and match selects", async () => {
+  it("renders as a fixed body portal with visible select controls", async () => {
     setViewport(1280, 900);
     const { trigger, triggerRef } = createTriggerRef();
 
     const { unmount } = render(
       <OfficialSearchDialog
         dialogId="official-search-dialog"
-        initialQuery="奖学金"
+        initialQuery="seed"
         onClose={() => undefined}
         open
-        scopeOptions={[
-          { id: "0", name: "所有站点" },
-          { id: "notice", name: "通知公告" },
-        ]}
+        scopeOptions={defaultScopeOptions}
         triggerRef={triggerRef}
       />,
     );
@@ -89,8 +91,8 @@ describe("OfficialSearchDialog", () => {
     });
 
     expect(dialog.parentElement).toBe(document.body);
-    expect(screen.getByRole("combobox", { name: "站点范围" })).toBeInTheDocument();
-    expect(screen.getAllByRole("combobox", { name: "关键词匹配" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("searchbox")[0]).toBeInTheDocument();
+    expect(screen.getAllByRole("combobox").length).toBeGreaterThan(1);
 
     unmount();
     trigger.remove();
@@ -106,19 +108,19 @@ describe("OfficialSearchDialog", () => {
         initialQuery=""
         onClose={() => undefined}
         open
-        scopeOptions={[{ id: "0", name: "所有站点" }]}
+        scopeOptions={defaultScopeOptions}
         triggerRef={triggerRef}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("搜索词"), {
-      target: { value: "奖学金" },
+    fireEvent.change(screen.getAllByRole("searchbox")[0] as HTMLInputElement, {
+      target: { value: "scholarship" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "开始检索" }));
+    fireEvent.click(document.querySelector('button[type="submit"]') as HTMLButtonElement);
 
     expect(submitOfficialSiteSearchMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        query: "奖学金",
+        query: "scholarship",
         rows: undefined,
       }),
     );
@@ -136,15 +138,19 @@ describe("OfficialSearchDialog", () => {
         initialQuery=""
         onClose={() => undefined}
         open
-        scopeOptions={[{ id: "0", name: "所有站点" }]}
+        scopeOptions={defaultScopeOptions}
         triggerRef={triggerRef}
       />,
     );
 
-    fireEvent.click(screen.getByText("复合检索"));
-    const keywordInput = screen.getByLabelText("关键词");
+    fireEvent.click(document.querySelector(".search-dialog__advanced summary") as HTMLElement);
+
+    const keywordInput = document.querySelector(
+      '.search-dialog__advanced-grid input[type="search"]',
+    ) as HTMLInputElement;
     const keywordLabel = document.querySelector(`label[for="${keywordInput.id}"]`);
 
+    expect(keywordInput.id).not.toBe("");
     expect(keywordLabel).not.toBeNull();
     expect(keywordLabel).toHaveAttribute("for", keywordInput.id);
 
@@ -161,22 +167,98 @@ describe("OfficialSearchDialog", () => {
         initialQuery=""
         onClose={() => undefined}
         open
-        scopeOptions={[
-          { id: "0", name: "所有站点" },
-          { id: "notice", name: "通知公告" },
-        ]}
+        scopeOptions={defaultScopeOptions}
         triggerRef={triggerRef}
       />,
     );
 
-    const scopeCombobox = screen.getByRole("combobox", { name: "站点范围" });
+    const scopeCombobox = screen.getAllByRole("combobox")[0] as HTMLElement;
 
     fireEvent.click(scopeCombobox);
-    fireEvent.click(screen.getByRole("option", { name: "通知公告" }));
+    fireEvent.click(screen.getAllByRole("option")[1] as HTMLElement);
 
-    expect(scopeCombobox).toHaveTextContent("通知公告");
+    expect(scopeCombobox).toHaveTextContent("Notice");
 
     trigger.remove();
+  });
+
+  it("keeps the dialog mounted long enough to play its exit animation", () => {
+    vi.useFakeTimers();
+    setViewport(1280, 900);
+    const { trigger, triggerRef } = createTriggerRef();
+
+    try {
+      const { rerender } = render(
+        <OfficialSearchDialog
+          dialogId="official-search-dialog"
+          initialQuery=""
+          onClose={() => undefined}
+          open
+          scopeOptions={defaultScopeOptions}
+          triggerRef={triggerRef}
+        />,
+      );
+
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      rerender(
+        <OfficialSearchDialog
+          dialogId="official-search-dialog"
+          initialQuery=""
+          onClose={() => undefined}
+          open={false}
+          scopeOptions={defaultScopeOptions}
+          triggerRef={triggerRef}
+        />,
+      );
+
+      expect(screen.getByRole("dialog")).toHaveClass("is-closing");
+      expect(document.querySelector(".search-dialog__backdrop")).toHaveClass("is-closing");
+
+      act(() => {
+        vi.advanceTimersByTime(240);
+      });
+
+      expect(screen.queryByRole("dialog")).toBeNull();
+      expect(document.querySelector(".search-dialog__backdrop")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+      trigger.remove();
+    }
+  });
+
+  it("keeps the custom select menu mounted long enough to play its exit animation", () => {
+    vi.useFakeTimers();
+    setViewport(1280, 900);
+    const { trigger, triggerRef } = createTriggerRef();
+
+    try {
+      render(
+        <OfficialSearchDialog
+          dialogId="official-search-dialog"
+          initialQuery=""
+          onClose={() => undefined}
+          open
+          scopeOptions={defaultScopeOptions}
+          triggerRef={triggerRef}
+        />,
+      );
+
+      fireEvent.click(screen.getAllByRole("combobox")[0] as HTMLElement);
+      expect(document.querySelector(".field__select-menu")).toHaveClass("is-open");
+
+      fireEvent.pointerDown(document.body);
+      expect(document.querySelector(".field__select-menu")).toHaveClass("is-closing");
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+
+      expect(document.querySelector(".field__select-menu")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+      trigger.remove();
+    }
   });
 
   it("toggles the native start date picker from the date trigger", () => {
@@ -201,14 +283,15 @@ describe("OfficialSearchDialog", () => {
           initialQuery=""
           onClose={() => undefined}
           open
-          scopeOptions={[{ id: "0", name: "所有站点" }]}
+          scopeOptions={defaultScopeOptions}
           triggerRef={triggerRef}
         />,
       );
 
-      fireEvent.click(screen.getByText("复合检索"));
+      fireEvent.click(document.querySelector(".search-dialog__advanced summary") as HTMLElement);
+
       const startDateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
-      const startDateButton = screen.getByRole("button", { name: "开始时间" });
+      const startDateButton = document.querySelector(".field__date-trigger") as HTMLButtonElement;
 
       fireEvent.click(startDateButton);
       expect(showPickerMock).toHaveBeenCalledTimes(1);

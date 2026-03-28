@@ -19,12 +19,15 @@ import {
   type OfficialSiteSearchMatchMode,
 } from "./siteSearch";
 import { FadingTextInput } from "./FadingTextInput";
+import { useOverlayPresence } from "./useOverlayPresence";
 
 const dialogGap = 20;
 const dialogOffset = 12;
 const dialogMaxWidth = 720;
 const dialogMinHeight = 320;
 const selectMenuMaxHeight = 280;
+const popupExitDurationMs = 180;
+const dialogExitDurationMs = 220;
 
 interface DialogSelectOption {
   label: string;
@@ -151,6 +154,7 @@ function DialogSelect({ id, labelId, onChange, options, value }: DialogSelectPro
   const selectedOption = options[selectedIndex] ?? options[0];
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
+  const { isClosing, shouldRender } = useOverlayPresence(open, popupExitDurationMs);
 
   useEffect(() => {
     if (!open) {
@@ -283,11 +287,11 @@ function DialogSelect({ id, labelId, onChange, options, value }: DialogSelectPro
         aria-hidden="true"
         className="field__select-chevron"
       />
-      {open && typeof document !== "undefined"
+      {shouldRender && typeof document !== "undefined"
         ? createPortal(
             <div
               aria-labelledby={labelId}
-              className="field__select-menu"
+              className={`field__select-menu ${open ? "is-open" : ""} ${isClosing ? "is-closing" : ""}`}
               id={listboxId}
               ref={menuRef}
               role="listbox"
@@ -461,6 +465,7 @@ export function OfficialSearchDialog({
   const [form, setForm] = useState(() => createInitialFormState(initialQuery));
   const [error, setError] = useState("");
   const [dialogStyle, setDialogStyle] = useState<CSSProperties>({});
+  const { isClosing, shouldRender } = useOverlayPresence(open, dialogExitDurationMs);
   const titleId = useId();
   const descriptionId = useId();
   const fieldIdBase = useId();
@@ -528,7 +533,7 @@ export function OfficialSearchDialog({
     };
   }, [open, triggerRef]);
 
-  if (!open || typeof document === "undefined") {
+  if (!shouldRender || typeof document === "undefined") {
     return null;
   }
 
@@ -559,13 +564,13 @@ export function OfficialSearchDialog({
     <>
       <div
         aria-hidden="true"
-        className="search-dialog__backdrop"
+        className={`search-dialog__backdrop ${open ? "is-open" : ""} ${isClosing ? "is-closing" : ""}`}
         onClick={onClose}
       />
       <section
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
-        className="search-dialog"
+        className={`search-dialog ${open ? "is-open" : ""} ${isClosing ? "is-closing" : ""}`}
         id={dialogId}
         role="dialog"
         style={dialogStyle}

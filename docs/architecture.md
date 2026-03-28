@@ -2,323 +2,213 @@
 
 ## 1. 项目定位
 
-`BNUZH Feed` 是一个面向北京师范大学珠海校区公开站点的前端聚合工程。项目目标不是直接搭建完整业务系统，而是先把“站点发现、页面抓取、列表解析、记录标准化、聚合去重、缓存回退、React 消费”这条链路拆清楚并跑通，便于后续持续扩站。
+`BNUZH Feed` 是一个面向北京师范大学珠海校区公开站点的信息聚合前端。项目目标不是重建校内业务系统，而是把公开网页中的通知、新闻和栏目内容整理成统一的信息流，并提供稳定的筛选、检索与回看入口。
 
-当前代码状态与仓库现状一致：
+当前仓库已经从“验证抓取链路是否可行”进入“持续维护可用产品”的阶段，现状如下：
 
 - 工程基于 `React + TypeScript + Vite`，采用 monorepo 结构。
-- Web 端目前仍是运行时验证壳层，用于查看刷新结果、缓存来源和各站点健康状态，不是正式业务 UI。
-- `packages/source-registry/src/bnuzhSources.ts` 中一共登记了 `45` 个公开站点。
-- 其中 `43` 个站点已经接入真实 `fetchTargets` 与 parser。
-- 仍有 `2` 个站点不可访问，继续保留占位 parser：
-  - `党委保卫工作办公室`
-  - `北京师范大学珠海校区实验室安全与设备管理办公室`
+- `packages/source-registry/src/bnuzhSources.ts` 共登记 `45` 个站点。
+- 其中 `43` 个站点已经接入真实 `fetchTargets` 与 `parser`，会参与前台展示、快照生成和官方搜索站点范围。
+- 仍有 `2` 个站点保留为占位实现，不进入生产快照与前台筛选。
+- 线上默认使用“静态快照 + GitHub Pages”模式，浏览器直抓仅保留给本地调试与回归排查。
 
-完整站点台账见 `docs/site-structure.md`，公开站点原始清单见 `BNUZH_PUBLIC_SITELIST.md`。
+站点级接入台账见 [site-structure.md](/C:/Users/86186/Documents/Code/BNUZ_Feed/docs/site-structure.md)。
 
 ## 2. 仓库结构
 
 ```text
 apps/
-  web/                  Vite 应用入口、运行时组合根、最小验证壳层
+  web/                  Vite Web 应用、页面 UI、运行时装配
 packages/
-  contracts/            共享类型、错误模型、Worker 通信协议
-  core/                 标准化、去重、快照处理、聚合服务
-  source-registry/      站点清单、parser 注册表、通用 parser、占位 parser
-  runtime-browser/      浏览器抓取、Worker、IndexedDB 仓储、错误归类
-  runtime-snapshot/     /data/*.json 静态快照数据源
+  contracts/            共享类型、错误模型、Worker 协议
+  core/                 标准化、去重、聚合、快照处理
   react-bindings/       FeedProvider 与 React hooks
+  runtime-browser/      浏览器抓取、Worker、IndexedDB 存储
+  runtime-snapshot/     /data/*.json 静态快照数据源
+  source-registry/      站点注册表、fetchTargets、parser 实现
 docs/
   architecture.md       本文档
-  site-structure.md     已接入站点结构表与复核记录
+  site-structure.md     已接入站点结构与复核记录
+scripts/
+  generate-snapshot.ts  生成 feed 快照与站点健康状态
 ```
 
-各层职责边界如下：
+职责边界保持不变：
 
-- `contracts` 只定义协议和数据结构，不承载实现。
+- `contracts` 只定义协议，不承载实现。
 - `core` 只关心聚合逻辑，不依赖 React，也不依赖具体站点。
-- `source-registry` 只描述“有哪些站点、用哪个 parser、抓哪些目标页”，不负责请求执行。
-- `runtime-browser` 负责真实抓取与运行期仓储。
-- `runtime-snapshot` 负责静态快照回放。
-- `react-bindings` 只依赖 `AggregationService`，不直接接触 parser。
-- `apps/web` 负责把各模块装配成可运行的页面。
+- `source-registry` 只描述“抓什么、用哪个 parser”，不负责执行请求。
+- `runtime-browser` 与 `runtime-snapshot` 负责把数据源接到统一聚合服务。
+- `apps/web` 负责把服务装配成可运行的界面。
 
 ## 3. 当前运行链路
 
-当前应用的真实运行链路如下：
+当前真实链路如下：
 
 ```text
 bnuzhSources
   -> createParserRegistry()
-  -> BrowserLiveSource 或 SnapshotSource
+  -> BrowserLiveSource / SnapshotSource
   -> Parser
   -> Normalizer
-  -> createLayeredAggregationService
+  -> createLayeredAggregationService(...)
   -> IndexedDB Repository
   -> FeedProvider
-  -> useFeedSnapshot / useFeedRefresh / useSourceHealth
-  -> apps/web RuntimeShell
+  -> useFeedSnapshot / useFeedRefresh
+  -> apps/web/src/App.tsx
 ```
 
-关键实现点：
+关键实现文件：
 
-- `apps/web/src/runtime/createAggregationService.ts` 会同时创建：
-  - `BrowserLiveSource`
-  - `SnapshotSource`
-  - `IndexedDB` 仓储
-  - `createLayeredAggregationService(...)`
-- 浏览器模式下，默认请求参数是：
-  - `concurrency = 4`
-  - `timeoutMs = 8000`
-- `createLayeredAggregationService` 的职责是：
-  - 启动时优先读取 IndexedDB 缓存
-  - 刷新成功后保存最新快照
-  - 主数据源失败且当前无内存快照时，回退到静态快照
-- `runtime-browser` 会优先尝试使用 Worker；若环境不支持或 Worker 失败，则自动退回主线程执行。
+- [createAggregationService.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/runtime/createAggregationService.ts)
+- [generate-snapshot.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/scripts/generate-snapshot.ts)
+- [bnuzhSources.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/packages/source-registry/src/bnuzhSources.ts)
 
-## 4. Web 端当前形态
+运行时行为：
 
-`apps/web/src/App.tsx` 当前只提供最小运行壳层，页面主要展示：
+- `snapshot` 模式优先读取 `/data/feed-snapshot.json` 与 `/data/source-health.json`。
+- `browser` 模式尝试浏览器端真实抓取，并在可用时通过 Worker 执行解析。
+- `createLayeredAggregationService(...)` 会优先回放 `IndexedDB` 缓存，刷新成功后再写回本地。
+- 主数据源失败且当前没有内存快照时，运行时回退到静态快照。
 
-- 当前数据源模式
-- 快照来源（`live` / `cache` / `snapshot`）
-- 聚合后的条目数
-- 站点健康状态
-- 手动触发刷新按钮
+## 4. Web 前端当前形态
 
-这说明项目现阶段已经具备“抓取到 React 消费”的完整框架，但正式列表页、筛选页和运营化 UI 仍未展开。
+前端主入口位于 [App.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/App.tsx)，当前页面形态已经与早期版本不同，下面的描述以当前实现为准。
+
+### 4.1 顶部操作区
+
+顶部区域包含三类动作：
+
+- “全站检索”：打开官方全文检索弹窗。
+- “选择栏目”：打开信息源筛选抽屉。
+- “更新内容”：触发刷新控制器，拉取最新聚合结果。
+
+本地搜索框位于内容区工具栏，不在顶部弹窗里混用。
+
+### 4.2 统一的“选择栏目”抽屉
+
+当前所有屏幕尺寸统一使用同一套抽屉逻辑：
+
+- 顶部始终显示“选择栏目”按钮。
+- 桌面端原先常驻在左侧的筛选侧边栏已经删除。
+- 抽屉面板 `source-panel` 在所有尺寸下都以覆盖层形式出现，不再占用页面左侧固定布局。
+- 打开时使用 `is-open` 状态，关闭时先进入 `is-closing`，等待退场动画结束后再卸载。
+
+相关实现：
+
+- [App.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/App.tsx)
+- [useOverlayPresence.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/useOverlayPresence.ts)
+- [styles.css](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/styles.css)
+
+筛选行为本身没有改变：
+
+- 默认全选全部可用站点与栏目。
+- 站点与栏目勾选状态继续写入 `localStorage`。
+- 内容过滤仍由 [feedIndex.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/feedIndex.ts) 基于标题、摘要、站点名、栏目名执行前端匹配。
+
+### 4.3 本地搜索
+
+“搜索当前内容”仍然是本地过滤，不会请求官方全文搜索页：
+
+- 数据源是当前 `snapshot.items`。
+- 搜索索引由标题、摘要、站点名、栏目名拼接后统一做小写匹配。
+- 站点筛选、栏目筛选和关键词过滤会共同作用于当前列表。
+
+相关实现：
+
+- [feedIndex.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/feedIndex.ts)
+- [useSourceSelection.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/useSourceSelection.ts)
+- [FadingTextInput.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/FadingTextInput.tsx)
+
+### 4.4 官方全文检索弹窗
+
+官方全文检索入口位于 [OfficialSearchDialog.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/OfficialSearchDialog.tsx)，当前实现约定如下：
+
+- 弹窗只负责封装学校官方搜索表单，不在项目内抓取或重排官方搜索结果。
+- 普通搜索会提交 `query`，并在新标签页打开官方结果页。
+- 复合检索支持关键词、标题、正文、时间区间、每页条数和匹配方式。
+- 站点范围来自当前公开可用的 `sourceCatalog`，会额外包含“所有站点”。
+- 站点范围和匹配方式下拉框使用自定义浮层菜单，不再依赖原生 `<select>`。
+- 日期输入继续使用浏览器原生 `input[type="date"]` 选择器，但页面上暴露的是统一的触发按钮；点击一次弹出原生日期选择器，再点一次关闭，不再出现年份文本被选中的问题。
+
+提交逻辑位于 [siteSearch.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/siteSearch.ts)：
+
+- 普通关键词搜索不会再误带默认 `rows=10`，避免被官方页误判为复合检索。
+- 只有在用户实际使用复合条件，或显式修改每页条数时，才会附带复合检索参数。
+
+### 4.5 动效与弹层约定
+
+当前所有主要弹层都采用显式的“保留挂载直到退场动画完成”策略，避免闪现：
+
+- 全站检索弹窗
+- 弹窗内自定义下拉菜单
+- “选择栏目”抽屉
+- 抽屉遮罩层
+
+共享状态由 [useOverlayPresence.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/useOverlayPresence.ts) 提供：
+
+- `shouldRender` 控制组件在关闭后继续保留一段时间。
+- `isClosing` 控制退场样式类名。
+- 组件不会在 `open=false` 的同一帧立刻卸载。
+
+这套约定是当前前端交互的基础假设。后续新增弹层时应复用同样模式，而不是回退到“状态一变就立即卸载”的做法。
 
 ## 5. 运行模式与配置
 
-运行时配置位于 `apps/web/src/runtime/config.ts`。
+运行时配置位于 [config.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/runtime/config.ts)。
 
-- `VITE_FEED_SOURCE_MODE=snapshot` 时使用快照模式。
+- `VITE_FEED_SOURCE_MODE=snapshot` 时使用静态快照模式。
 - 其余情况默认使用 `browser` 模式。
-- `VITE_AUTO_REFRESH` 默认关闭，只有显式传入 `1` 或 `true` 才会自动刷新。
+- `VITE_AUTO_REFRESH` 默认开启；显式传入 `0` 或 `false` 时关闭自动刷新。
 
-两种运行模式的实际含义：
+当前默认配置仍然是：
 
-- 浏览器直连模式
-  - 直接请求公开站点页面
-  - 在 Worker 或主线程里完成解析、标准化和聚合
-  - 成功结果写入 IndexedDB
-- 快照模式
-  - 读取 `apps/web/public/data/feed-snapshot.json`
-  - 读取 `apps/web/public/data/source-health.json`
-  - 输出与实时模式结构一致的 `FeedSnapshot`
+- `sourceMode = snapshot`
+- `autoRefresh = true`
 
-当前默认配置是：
+这与现阶段的部署方式一致：线上优先保证稳定访问，本地再使用直抓模式做验证。
 
-- `sourceMode = browser`
-- `autoRefresh = false`
+## 6. 站点接入约定
 
-这个默认值符合当前工程阶段：以人工触发刷新、观察单站失败、排查 selector 回归为主。
-
-## 6. 核心数据契约
-
-### 6.1 SourceDescriptor
-
-`SourceDescriptor` 用来描述一个站点在运行时应该如何接入：
-
-- `entryUrls`：站点原始入口，用于标识来源与人工追溯。
-- `fetchTargets`：真实抓取目标页；站点一旦完成实现，就优先使用它，不再直接抓 `entryUrls`。
-- `parserKey`：站点 parser 的唯一键，格式固定为 `bnuzh/<path>`。
-- `capabilities.browserFetch`：是否允许浏览器直抓。
-- `capabilities.snapshotFallback`：实时失败时是否允许快照兜底。
-
-当前 `bnuzhSources.ts` 的实际行为是：
-
-- 先声明全部站点的基础信息。
-- 再从 `implementedBnuzhFetchTargets` 自动挂载已实现站点的 `fetchTargets`。
-- 对已实现站点，统一把 `browserFetch` 置为 `true`。
-
-### 6.2 FetchTarget
-
-```ts
-interface FetchTarget {
-  id: string;
-  url: string;
-  channel?: string;
-}
-```
-
-字段约定：
-
-- `id`：站点内部的目标页标识，也是 parser 分流用的 `requestId`。
-- `url`：真实公开列表页 URL，必须能匿名访问。
-- `channel`：可选频道名，通常会回写到 `rawChannel`。
-
-### 6.3 RawPage
-
-```ts
-interface RawPage {
-  sourceId: string;
-  requestId: string;
-  requestUrl: string;
-  finalUrl: string;
-  fetchedAt: string;
-  contentType?: string;
-  bodyText: string;
-  channel?: string;
-}
-```
-
-其中最关键的是 `requestId`。它显式告诉 parser：“当前抓到的是哪个目标页”，避免 parser 反过来猜 URL。
-
-### 6.4 SourceRecord / FeedItem / FeedSnapshot
-
-数据分三层：
-
-- `SourceRecord`
-  - parser 产出的原始结构
-  - 保留 `rawTitle`、`rawUrl`、`rawPublishedAt` 等站点原始信息
-- `FeedItem`
-  - normalizer 产出的统一结构
-  - 会补齐统一字段，并保留 `sourceIds` 以支持跨入口去重后追踪来源
-- `FeedSnapshot`
-  - 聚合后的完整快照
-  - 同时携带 `items` 与 `sourceHealth`
-
-## 7. parser 与站点模块约定
-
-### 7.1 注册方式
-
-站点实现统一放在 `packages/source-registry/src/bnuzh/` 下。每个站点文件都应导出：
-
-- `<path>FetchTargets`
-- `<path>Parser`
-
-随后在 `packages/source-registry/src/bnuzh/index.ts` 中统一注册到：
-
-- `implementedBnuzhFetchTargets`
-- `implementedBnuzhParsers`
-
-`createParserRegistry()` 会优先注入这些已实现 parser。未实现站点则自动回落到 `PlaceholderParser`。
-
-### 7.2 parser 接口
-
-所有 parser 都遵循同一接口：
-
-```ts
-parse(page: RawPage): Promise<SourceRecord[]>
-```
-
-约定如下：
-
-- 同一站点的多个栏目页尽量共用一个 parser。
-- 通过 `requestId` 区分不同栏目。
-- 解析失败时抛出 `AggregationError("PARSER_FAILED", ...)`。
-- parser 未实现时抛出 `AggregationError("PARSER_NOT_IMPLEMENTED", ...)`。
-- 解析成功但当前页没有有效记录时，返回空数组，由运行时统一归类为 `EMPTY_RESULT`。
-
-### 7.3 通用 parser 的优先级
-
-当前 BNUZ 子站的大多数实现优先复用：
-
-- `createConfiguredHtmlListParser`
-- `ConfiguredHtmlListParser`
-
-它适合以下场景：
-
-- 页面是公开 HTML 列表页
-- DOM 结构稳定
-- 可通过 selector 稳定拿到标题、链接、时间、摘要
-
-只有在以下场景才建议写站点专用 parser：
-
-- 同页混合多种容器，且需要候选分组打分
-- 需要扫描正文锚点而不是固定列表容器
-- 需要定制复杂日期抽取或标题清洗
-- 需要把单页内容、卡片内容或附件列表退化成消息源
-
-## 8. 站点接入的实际原则
-
-以下原则对应当前仓库中已经落地的实现方式，而不是抽象约定：
+站点接入规范没有因为最近的 UI 改动而改变，仍遵守以下原则：
 
 - 只抓匿名可访问的公开页面。
-- 优先抓独立列表页，不优先抓首页拼装块。
-- 只保留标题、详情链接和时间序列稳定的页面。
-- 页面没有可信时间时，不伪造 `publishedAt`。
-- 跳转页、空壳页、静态介绍页、业务入口页不纳入 `fetchTargets`。
-- 如果没有独立详情页，但同页存在稳定分段内容或附件列表，可以退化为“单页内容源”或“附件源”。
-- 相对链接一律基于 `page.finalUrl` 归一化成绝对链接。
-- 同一站点有多个分页时，应显式展开为多个 `fetchTargets`，而不是在 parser 内部隐式翻页。
+- 优先抓稳定的列表页，不优先抓首页拼装块。
+- 只把标题、链接、时间序列稳定的栏目写入 `fetchTargets`。
+- 相对链接统一基于 `page.finalUrl` 归一化为绝对链接。
+- 多分页栏目应显式展开为多个 `fetchTargets`，而不是在 parser 内隐式翻页。
+- 优先复用 `createConfiguredHtmlListParser`，只有在通用解析器不够时才写站点专用 parser。
 
-当前代码里已经出现并反复复用的实现模式主要有：
+站点接入详情继续统一维护在 [site-structure.md](/C:/Users/86186/Documents/Code/BNUZ_Feed/docs/site-structure.md)。
 
-- 标准文章列表页
-- 标准附件列表页
-- 正文区域锚点扫描
-- 多候选容器打分后择优解析
-- 单页分段内容抽取
-- 多分页归档列表
-- 同页混合站内详情、外链和附件
-- 英文站点的月份日期解析与密集 `<ul>` 评分
+## 7. 测试与回归
 
-这些模式的站点级事实台账统一维护在 `docs/site-structure.md`，不再在本文重复逐站展开。
+当前与前端行为直接相关的回归点包括：
 
-## 9. 已接入现状
+- [App.test.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/App.test.tsx)
+  - 验证桌面端也使用抽屉浮层，而不是常驻左侧侧栏。
+  - 验证抽屉关闭时会先进入退场状态。
+- [OfficialSearchDialog.test.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/OfficialSearchDialog.test.tsx)
+  - 验证官方搜索提交参数。
+  - 验证复合检索输入框焦点行为。
+  - 验证自定义下拉菜单和弹窗关闭时的保留挂载。
+  - 验证日期选择触发按钮的 toggle 行为。
+- [siteSearch.test.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/siteSearch.test.ts)
+- [feedIndex.test.ts](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/feedIndex.test.ts)
 
-截至当前仓库状态：
+常用命令：
 
-- 共登记 `45` 个站点。
-- 已实现真实抓取与解析的站点共 `43` 个。
-- 未实现但仍保留在注册表中的站点共 `2` 个。
-- 已实现站点的详细 `fetchTargets`、频道口径与复核备注，统一记录在 `docs/site-structure.md`。
+```bash
+npm run check
+npm test -- apps/web/src/App.test.tsx apps/web/src/OfficialSearchDialog.test.tsx apps/web/src/siteSearch.test.ts apps/web/src/feedIndex.test.ts
+```
 
-这意味着当前工作重点已经从“搭框架”转到“持续扩站、复核入口、收敛 selector 风险”。项目的核心风险也因此更加明确：
+## 8. 维护约定
 
-- 某些站点结构变化导致 selector 回归
-- 某些入口页面由公开页变为跳转页或空壳页
-- 某些历史分页、轮播页或专题页与主列表重复
-- 某些站点短期不可访问，需要继续保留占位实现
+后续开发请继续遵守以下约定：
 
-## 10. 新站点接入流程
-
-推荐按下面的顺序工作：
-
-1. 从 `BNUZH_PUBLIC_SITELIST.md` 确认站点名称、路径、入口 URL。
-2. 优先用 Playwright MCP 复核首页导航、栏目入口和真实列表 DOM。
-3. 若浏览器复核受阻，再用公开 HTML 或缓存页面做结构核验，但最终仍以真实公开 URL 为准。
-4. 只把真实可抓、结构稳定的栏目写入 `fetchTargets`。
-5. 优先尝试 `createConfiguredHtmlListParser`，确实不够时再写专用 parser。
-6. 补最少两类测试：
-   - `fetchTargets` 清单测试
-   - 列表解析测试
-7. 更新注册表与文档：
-   - `packages/source-registry/src/bnuzh/index.ts`
-   - `docs/site-structure.md`
-   - 本文档
-
-## 11. 测试与验证
-
-当前仓库根脚本如下：
-
-- `npm run dev`
-- `npm run build`
-- `npm run check`
-- `npm test`
-
-测试重点应放在两类问题上：
-
-- 站点目录是否接对了真实入口
-- selector、日期抽取、相对链接归一化是否在 HTML 变动后仍成立
-
-## 12. 扩展约束
-
-为避免架构重新耦合，后续开发应继续遵守以下边界：
-
-- 新增站点时，优先只改 `packages/source-registry` 与对应测试。
-- UI 组件不得直接请求外站，也不得直接 import parser。
-- 如果未来改成 GitHub Actions 预抓取，只应切换数据源装配，不改 React hooks 契约。
-- `core` 保持与站点无关，`react-bindings` 保持与具体 parser 无关。
-
-## 13. 建议的后续方向
-
-当前更合理的后续顺序是：
-
-1. 继续补齐剩余不可访问站点，或在条件允许时转为真实实现。
-2. 为 `runtime-browser` 增加更细粒度的失败诊断与限流能力。
-3. 为高风险站点补更多真实 HTML 测试样例，降低 selector 回归概率。
-4. 在现有 `FeedProvider` 基础上补正式列表页、筛选页和来源状态页。
-5. 如果引入预抓取流程，统一产出快照文件并稳定快照模式。
+- 新增站点时，优先改 `packages/source-registry` 与对应测试，不要把抓取逻辑写进 UI。
+- 新增弹窗、抽屉、下拉时，优先复用 `useOverlayPresence`，保持统一进退场行为。
+- 官方全文检索只做表单封装，不在前端实现二次抓取、排序或缓存。
+- 桌面与移动端尽量共享同一套交互逻辑，避免再分裂出两套筛选入口。
+- `docs/site-structure.md` 继续维护站点接入事实，本文只维护架构、运行链路和交互约定。

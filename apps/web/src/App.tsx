@@ -15,12 +15,12 @@ import {
 } from "@bnuz-feed/react-bindings";
 
 import { buildFeedIndex, filterFeedIndex } from "./feedIndex";
+import { FadingTextInput } from "./FadingTextInput";
 import { OfficialSearchDialog } from "./OfficialSearchDialog";
 import {
   aggregationService,
   appRuntimeConfig,
 } from "./runtime/createAggregationService";
-import { FadingTextInput } from "./FadingTextInput";
 import {
   buildItemStats,
   defaultChannelLabel,
@@ -30,8 +30,11 @@ import {
   type SourceCatalogNode,
 } from "./sourceCatalog";
 import { useIncrementalFeedWindow } from "./useIncrementalFeedWindow";
+import { useOverlayPresence } from "./useOverlayPresence";
 import { useRefreshController } from "./useRefreshController";
 import { useSourceSelection } from "./useSourceSelection";
+
+const drawerExitDurationMs = 220;
 
 function formatDateTime(value: string | undefined): string {
   if (!value) {
@@ -99,55 +102,14 @@ function RuntimeShell() {
   const snapshot = useFeedSnapshot();
   const { refresh, refreshing, error } = useFeedRefresh();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [sourcePanelCollapsed, setSourcePanelCollapsed] = useState(false);
   const [feedQuery, setFeedQuery] = useState("");
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
-  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const [sourceQuery, setSourceQuery] = useState("");
-  const [useDrawerLayout, setUseDrawerLayout] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return window.matchMedia("(max-width: 1180px)").matches;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia("(max-width: 1180px)");
-    const syncLayout = (event?: MediaQueryList | MediaQueryListEvent) => {
-      setUseDrawerLayout((event ?? mediaQuery).matches);
-    };
-
-    syncLayout(mediaQuery);
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", syncLayout);
-      return () => {
-        mediaQuery.removeEventListener("change", syncLayout);
-      };
-    }
-
-    mediaQuery.addListener(syncLayout);
-    return () => {
-      mediaQuery.removeListener(syncLayout);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!useDrawerLayout && drawerOpen) {
-      setDrawerOpen(false);
-    }
-  }, [drawerOpen, useDrawerLayout]);
-
-  useEffect(() => {
-    if (useDrawerLayout && sourcePanelCollapsed) {
-      setSourcePanelCollapsed(false);
-    }
-  }, [sourcePanelCollapsed, useDrawerLayout]);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const { isClosing: drawerClosing, shouldRender: drawerShouldRender } = useOverlayPresence(
+    drawerOpen,
+    drawerExitDurationMs,
+  );
 
   const deferredFeedQuery = useDeferredValue(feedQuery.trim().toLowerCase());
   const deferredSourceQuery = useDeferredValue(sourceQuery.trim().toLowerCase());
@@ -262,13 +224,15 @@ function RuntimeShell() {
   const feedLabelId = useId();
   const sourceLabelId = useId();
   const searchDialogId = useId();
-  const sourcePanelCollapsedOnDesktop = !useDrawerLayout && sourcePanelCollapsed;
+  const sourceDrawerId = useId();
+  const drawerOverlayVisible = drawerShouldRender;
+  const drawerStateClass = drawerOpen ? "is-open" : drawerClosing ? "is-closing" : "";
 
   return (
     <main className="app">
       <div
-        aria-hidden={!(useDrawerLayout && drawerOpen)}
-        className={`app__scrim ${useDrawerLayout && drawerOpen ? "is-visible" : ""}`}
+        aria-hidden={!drawerOverlayVisible}
+        className={`app__scrim ${drawerStateClass}`}
         onClick={() => setDrawerOpen(false)}
       />
 
@@ -300,15 +264,15 @@ function RuntimeShell() {
               triggerRef={searchButtonRef}
             />
           </div>
-          {useDrawerLayout ? (
-            <button
-              className="button button--tonal topbar__drawer-toggle"
-              onClick={() => setDrawerOpen(true)}
-              type="button"
-            >
-              选择栏目
-            </button>
-          ) : null}
+          <button
+            aria-controls={sourceDrawerId}
+            aria-expanded={drawerOpen}
+            className="button button--tonal topbar__drawer-toggle"
+            onClick={() => setDrawerOpen(true)}
+            type="button"
+          >
+            选择栏目
+          </button>
           <button
             className="button button--filled"
             disabled={refreshing}
@@ -359,58 +323,27 @@ function RuntimeShell() {
         </div>
       </section>
 
-      <div className={`layout ${sourcePanelCollapsedOnDesktop ? "layout--collapsed" : ""}`}>
+      <div className="layout">
         <aside
-          aria-hidden={useDrawerLayout ? !drawerOpen : undefined}
-          className={`source-panel ${useDrawerLayout && drawerOpen ? "is-open" : ""} ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}
+          aria-hidden={!drawerOverlayVisible}
+          className={`source-panel ${drawerStateClass}`}
+          id={sourceDrawerId}
         >
-          <div className={`source-panel__header ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}>
+          <div className="source-panel__header">
             <span className="source-panel__rail-label">筛选</span>
             <div>
               <span className="source-panel__eyebrow">信息源筛选</span>
               <h3>按站点和栏目勾选</h3>
             </div>
-            {!useDrawerLayout ? (
-              <button
-                aria-expanded={!sourcePanelCollapsedOnDesktop}
-                className={`icon-button source-panel__toggle ${sourcePanelCollapsedOnDesktop ? "is-collapsed" : ""}`}
-                onClick={() => setSourcePanelCollapsed((current) => !current)}
-                type="button"
-              >
-                {sourcePanelCollapsedOnDesktop ? "展开" : "收起"}
-              </button>
-            ) : null}
-            {useDrawerLayout ? (
-              <button
-                className="icon-button source-panel__close"
-                onClick={() => setDrawerOpen(false)}
-                type="button"
-              >
-                关闭
-              </button>
-            ) : null}
+            <button
+              className="icon-button source-panel__close"
+              onClick={() => setDrawerOpen(false)}
+              type="button"
+            >
+              关闭
+            </button>
           </div>
 
-          {sourcePanelCollapsedOnDesktop ? (
-            <div className="source-panel__collapsed">
-              <div className="source-panel__collapsed-stat">
-                <span>站点</span>
-                <strong>{selectedSourceIds.length}</strong>
-              </div>
-              <div className="source-panel__collapsed-stat">
-                <span>栏目</span>
-                <strong>{selectedChannelKeys.length}</strong>
-              </div>
-              <button
-                className="button button--text source-panel__collapsed-reset"
-                onClick={() => toggleAll(true)}
-                type="button"
-              >
-                默认
-              </button>
-            </div>
-          ) : (
-            <>
           <label
             aria-labelledby={sourceLabelId}
             className="field"
@@ -500,8 +433,6 @@ function RuntimeShell() {
               );
             })}
           </div>
-            </>
-          )}
         </aside>
 
         <section className="content">
@@ -590,7 +521,6 @@ function RuntimeShell() {
           )}
         </section>
       </div>
-
     </main>
   );
 }
