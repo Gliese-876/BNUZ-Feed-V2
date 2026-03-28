@@ -21,6 +21,52 @@ function pickPreferredItem(left: FeedItem, right: FeedItem): FeedItem {
   return left;
 }
 
+function normalizeText(value: string | undefined): string {
+  return (value ?? "").trim().replace(/\s+/g, " ");
+}
+
+function createLooseUrlKey(value: string): string {
+  try {
+    const url = new URL(value);
+    const normalizedSearch = [...url.searchParams.entries()]
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, itemValue]) => `${key}=${itemValue}`)
+      .join("&");
+
+    return [
+      url.hostname.toLowerCase(),
+      url.pathname.replace(/\/{2,}/g, "/"),
+      normalizedSearch ? `?${normalizedSearch}` : "",
+    ].join("");
+  } catch {
+    return value
+      .trim()
+      .replace(/^https?:\/\//i, "")
+      .replace(/\/{2,}/g, "/");
+  }
+}
+
+function createAliasKey(item: FeedItem): string | null {
+  const normalizedTitle = normalizeText(item.title).toLowerCase();
+  const normalizedUrl = createLooseUrlKey(item.url);
+
+  if (!normalizedTitle || !normalizedUrl) {
+    return null;
+  }
+
+  return `${normalizedUrl}|${normalizedTitle}`;
+}
+
+function mergeItems(left: FeedItem, right: FeedItem): FeedItem {
+  const preferred = pickPreferredItem(left, right);
+  const mergedSourceIds = [...new Set([...left.sourceIds, ...right.sourceIds])];
+
+  return {
+    ...preferred,
+    sourceIds: mergedSourceIds,
+  };
+}
+
 export function sortFeedItems(items: FeedItem[]): FeedItem[] {
   return [...items].sort((left, right) => {
     const leftPublished = left.publishedAt ? Date.parse(left.publishedAt) : 0;
@@ -35,27 +81,38 @@ export function sortFeedItems(items: FeedItem[]): FeedItem[] {
 }
 
 export function dedupeFeedItems(items: FeedItem[]): FeedItem[] {
-  const map = new Map<string, FeedItem>();
+  const byId = new Map<string, FeedItem>();
 
   for (const item of items) {
-    const existing = map.get(item.id);
+    const existing = byId.get(item.id);
 
     if (!existing) {
-      map.set(item.id, {
+      byId.set(item.id, {
         ...item,
         sourceIds: [...item.sourceIds],
       });
       continue;
     }
 
-    const preferred = pickPreferredItem(existing, item);
-    const mergedSourceIds = [...new Set([...existing.sourceIds, ...item.sourceIds])];
-
-    map.set(item.id, {
-      ...preferred,
-      sourceIds: mergedSourceIds,
-    });
+    byId.set(item.id, mergeItems(existing, item));
   }
 
-  return sortFeedItems([...map.values()]);
+  const byAlias = new Map<string, FeedItem>();
+
+  for (const item of byId.values()) {
+    const aliasKey = createAliasKey(item) ?? item.id;
+    const existing = byAlias.get(aliasKey);
+
+    if (!existing) {
+      byAlias.set(aliasKey, {
+        ...item,
+        sourceIds: [...item.sourceIds],
+      });
+      continue;
+    }
+
+    byAlias.set(aliasKey, mergeItems(existing, item));
+  }
+
+  return sortFeedItems([...byAlias.values()]);
 }
