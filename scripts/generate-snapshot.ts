@@ -53,14 +53,14 @@ function summarizeSnapshot(snapshot: FeedSnapshot) {
 }
 
 async function main() {
-  const nodeMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS, 5);
+  const nodeMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS, 10);
   const browserMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS, 5);
   const roundLimit = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_ROUND_LIMIT, 3);
   const retryDelayMs = resolveNonNegativeNumber(
     process.env.BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS,
     1500,
   );
-  const timeoutMs = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TIMEOUT_MS, 12000);
+  const timeoutMs = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TIMEOUT_MS, 5000);
   const browserHosts = parseBrowserHostList(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS);
   const browserTimeoutMs = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS, timeoutMs);
   const parserRegistry = createParserRegistry();
