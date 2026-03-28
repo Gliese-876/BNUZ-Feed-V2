@@ -17,7 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 30
+      BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS: 10
+      BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS: 5
+      BNUZ_FEED_SNAPSHOT_ROUND_LIMIT: 3
       BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 5000
       BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 30000
       BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS: 30000
@@ -55,9 +57,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Generate snapshot data
-        run: |
-          npm run snapshot
-          node scripts/check-snapshot-health.cjs
+        run: npm run snapshot
+
+      - name: Verify snapshot health
+        run: node scripts/check-snapshot-health.cjs
 
       - name: Build web app
         run: npm run build
