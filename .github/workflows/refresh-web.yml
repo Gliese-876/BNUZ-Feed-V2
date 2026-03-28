@@ -19,13 +19,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     env:
-      BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 10
+      BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 15
       BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 5000
       BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 30000
-      BNUZ_FEED_SNAPSHOT_CONCURRENCY: 4
-      BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY: 1
-      BNUZ_FEED_SNAPSHOT_CI_RUN_LIMIT: 3
+      BNUZ_FEED_SNAPSHOT_CONCURRENCY: 3
+      BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY: 2
 
     steps:
       - name: Checkout
@@ -54,27 +54,9 @@ jobs:
         run: npm ci
 
       - name: Generate snapshot data
-        shell: bash
         run: |
-          max_runs="${BNUZ_FEED_SNAPSHOT_CI_RUN_LIMIT:-3}"
-
-          for run_index in $(seq 1 "$max_runs"); do
-            echo "Snapshot run ${run_index}/${max_runs}"
-            npm run snapshot
-
-            if node scripts/check-snapshot-health.cjs; then
-              echo "Snapshot reached live-only state."
-              exit 0
-            fi
-
-            if [ "$run_index" -lt "$max_runs" ]; then
-              echo "Snapshot still has partial/degraded sources, retrying full run after cooldown."
-              sleep 15
-            fi
-          done
-
-          echo "Snapshot did not converge to live-only state within ${max_runs} full runs."
-          exit 1
+          npm run snapshot
+          node scripts/check-snapshot-health.cjs
 
       - name: Build web app
         run: npm run build
