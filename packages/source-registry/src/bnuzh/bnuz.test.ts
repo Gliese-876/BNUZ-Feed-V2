@@ -21,12 +21,12 @@ describe("bnuz parser", () => {
     expect(bnuzFetchTargets).toHaveLength(30);
     expect(bnuzFetchTargets).toEqual(
       expect.arrayContaining([
-        { id: "xqtt", url: "http://www.bnuzh.edu.cn/xqtt/index.htm", channel: "校区头条" },
-        { id: "zhxw/index4", url: "http://www.bnuzh.edu.cn/zhxw/index4.htm", channel: "综合新闻" },
-        { id: "tzgs", url: "http://www.bnuzh.edu.cn/tzgs/index.htm", channel: "通知公示" },
-        { id: "mtsd/index1", url: "http://www.bnuzh.edu.cn/mtsd/index1.htm", channel: "媒体师大" },
-        { id: "xshd/index4", url: "http://www.bnuzh.edu.cn/xshd/index4.htm", channel: "学术活动" },
-        { id: "xqgs", url: "http://www.bnuzh.edu.cn/xqgs/index.htm", channel: "校区故事" },
+        { id: "xqtt", url: "https://www.bnuzh.edu.cn/xqtt/index.htm", channel: "校区头条" },
+        { id: "zhxw/index4", url: "https://www.bnuzh.edu.cn/zhxw/index4.htm", channel: "综合新闻" },
+        { id: "tzgs", url: "https://www.bnuzh.edu.cn/tzgs/index.htm", channel: "通知公示" },
+        { id: "mtsd/index1", url: "https://www.bnuzh.edu.cn/mtsd/index1.htm", channel: "媒体师大" },
+        { id: "xshd/index4", url: "https://www.bnuzh.edu.cn/xshd/index4.htm", channel: "学术活动" },
+        { id: "xqgs", url: "https://www.bnuzh.edu.cn/xqgs/index.htm", channel: "校区故事" },
       ]),
     );
   });
@@ -34,8 +34,8 @@ describe("bnuz parser", () => {
   it("extracts standard date-and-title news lists with relative and absolute links", async () => {
     const page = createPage({
       requestId: "xqtt",
-      requestUrl: "http://www.bnuzh.edu.cn/xqtt/index.htm",
-      finalUrl: "http://www.bnuzh.edu.cn/xqtt/index.htm",
+      requestUrl: "https://www.bnuzh.edu.cn/xqtt/index.htm",
+      finalUrl: "https://www.bnuzh.edu.cn/xqtt/index.htm",
       bodyText: `
         <body>
           <div class="gp-container genArticle whiteBg gp-clearFix">
@@ -59,7 +59,7 @@ describe("bnuz parser", () => {
         sourceId: "f018e769b2bd4733a968e902befe7e17",
         rawId: "02f237cb3d274b9cb7886f94daac5865.htm",
         rawTitle: "珠海校区召开2026年维护校园安全稳定工作会议",
-        rawUrl: "http://www.bnuzh.edu.cn/xqtt/02f237cb3d274b9cb7886f94daac5865.htm",
+        rawUrl: "https://www.bnuzh.edu.cn/xqtt/02f237cb3d274b9cb7886f94daac5865.htm",
         rawPublishedAt: "2026-03-20",
         rawChannel: "校区头条",
         rawSummary: undefined,
@@ -118,8 +118,8 @@ describe("bnuz parser", () => {
   it("extracts featured academic cards with summaries from multiple blocks", async () => {
     const page = createPage({
       requestId: "xshd",
-      requestUrl: "http://www.bnuzh.edu.cn/xshd/index.htm",
-      finalUrl: "http://www.bnuzh.edu.cn/xshd/index.htm",
+      requestUrl: "https://www.bnuzh.edu.cn/xshd/index.htm",
+      finalUrl: "https://www.bnuzh.edu.cn/xshd/index.htm",
       bodyText: `
         <body>
           <div class="gp-container xshd gp-clearFix">
@@ -165,7 +165,7 @@ describe("bnuz parser", () => {
         sourceId: "f018e769b2bd4733a968e902befe7e17",
         rawId: "7365df8231df42f1bed7b59138028a34.htm",
         rawTitle: "【成果】文理学院梁燕婷团队在《Computers & Education》发表VR听力研究重要成果",
-        rawUrl: "http://www.bnuzh.edu.cn/xshd/7365df8231df42f1bed7b59138028a34.htm",
+        rawUrl: "https://www.bnuzh.edu.cn/xshd/7365df8231df42f1bed7b59138028a34.htm",
         rawPublishedAt: "2026-03-10",
         rawChannel: "学术活动",
         rawSummary: "该研究立足于“新文科”背景下的数字化建设。",

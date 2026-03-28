@@ -7,7 +7,7 @@ type PageSpec = {
   kind: "standard" | "featured";
 };
 
-const baseUrl = "http://www.bnuzh.edu.cn";
+const baseUrl = "https://www.bnuzh.edu.cn";
 
 const pageSpecs: PageSpec[] = [
   { requestId: "xqtt", channel: "校区头条", path: "/xqtt/index.htm", kind: "standard" },
