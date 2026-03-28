@@ -15,6 +15,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 6
+      BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 3000
+      BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 20000
 
     steps:
       - name: Checkout
