@@ -28,7 +28,6 @@ describe("dbgcyzystgjzdsyszhjd", () => {
       { id: "kyjyjl/index", url: "https://espre.bnuzh.edu.cn/dtxx/kyjz/kyjyjl/index.htm", channel: "科研经验交流" },
       { id: "gjhz/index", url: "https://espre.bnuzh.edu.cn/hzjl/gjhz/index.htm", channel: "国际合作（访学、公派）" },
       { id: "hybg/index", url: "https://espre.bnuzh.edu.cn/hzjl/hybg/index.htm", channel: "会议报告" },
-      { id: "hybg/index1", url: "https://espre.bnuzh.edu.cn/hzjl/hybg/index1.htm", channel: "会议报告" },
       { id: "hdfc/index", url: "https://espre.bnuzh.edu.cn/hdfc/index.htm", channel: "活动风采" },
       { id: "hdfc/index1", url: "https://espre.bnuzh.edu.cn/hdfc/index1.htm", channel: "活动风采" },
     ]);
@@ -72,9 +71,9 @@ describe("dbgcyzystgjzdsyszhjd", () => {
 
   it("parses the multi-line meeting page and keeps the page-specific request id", async () => {
     const page = createPage({
-      requestId: "hybg/index1",
-      requestUrl: "https://espre.bnuzh.edu.cn/hzjl/hybg/index1.htm",
-      finalUrl: "https://espre.bnuzh.edu.cn/hzjl/hybg/index1.htm",
+      requestId: "hybg/index",
+      requestUrl: "https://espre.bnuzh.edu.cn/hzjl/hybg/index.htm",
+      finalUrl: "https://espre.bnuzh.edu.cn/hzjl/hybg/index.htm",
       bodyText: `
         <body>
           <ul class="article-list list-unstyled">
@@ -107,7 +106,7 @@ describe("dbgcyzystgjzdsyszhjd", () => {
         rawChannel: "会议报告",
         rawSummary: undefined,
         extras: {
-          requestId: "hybg/index1",
+          requestId: "hybg/index",
         },
       },
       {
@@ -119,7 +118,7 @@ describe("dbgcyzystgjzdsyszhjd", () => {
         rawChannel: "会议报告",
         rawSummary: undefined,
         extras: {
-          requestId: "hybg/index1",
+          requestId: "hybg/index",
         },
       },
     ]);

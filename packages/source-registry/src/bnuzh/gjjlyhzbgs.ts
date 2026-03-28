@@ -90,6 +90,15 @@ function collectAnchorSegments(item: Element): string[] {
 }
 
 function resolvePublishedAt(item: Element): string | undefined {
+  const directCandidateSelectors = [".time", ".date", "time"];
+
+  for (const selector of directCandidateSelectors) {
+    const normalized = normalizeDateToken(item.querySelector(selector)?.textContent);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
   for (const segment of collectAnchorSegments(item)) {
     const normalized = normalizeDateToken(segment);
     if (normalized) {
@@ -101,12 +110,30 @@ function resolvePublishedAt(item: Element): string | undefined {
 }
 
 function resolveTitle(item: Element): string | undefined {
+  const directCandidateSelectors = [".title", ".news-title", ".fs18", ".fs16"];
+
+  for (const selector of directCandidateSelectors) {
+    const value = normalizeText(item.querySelector(selector)?.textContent);
+    if (value) {
+      return value;
+    }
+  }
+
   const segments = collectAnchorSegments(item);
   const contentSegments = segments.filter((segment) => !normalizeDateToken(segment));
   return normalizeText(contentSegments[0]);
 }
 
 function resolveSummary(item: Element): string | undefined {
+  const directCandidateSelectors = [".info", ".summary", ".desc"];
+
+  for (const selector of directCandidateSelectors) {
+    const value = normalizeText(item.querySelector(selector)?.textContent);
+    if (value) {
+      return value;
+    }
+  }
+
   const segments = collectAnchorSegments(item);
   const contentSegments = segments.filter((segment) => !normalizeDateToken(segment));
   return normalizeText(contentSegments[1]);
@@ -160,7 +187,7 @@ const parserConfig: HtmlListParserConfig = {
 
     return Array.from({ length: pages }, (_, pageIndex) => ({
       requestId: pageIndex === 0 ? target.requestId : `${target.requestId}/index${pageIndex}`,
-      itemSelector: target.itemSelector ?? "li > a[href]",
+      itemSelector: target.itemSelector ?? ".content a[href], li > a[href]",
       channel: target.channel,
       title: resolveTitle,
       url: { attr: "href" },

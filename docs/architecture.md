@@ -72,6 +72,18 @@ bnuzhSources
 - `createLayeredAggregationService(...)` 会优先回放 `IndexedDB` 缓存，刷新成功后再写回本地。
 - 主数据源失败且当前没有内存快照时，运行时回退到静态快照。
 
+### 3.1 快照稳定化与补抓策略
+
+当前快照链路不是“单轮全抓失败即结束”，而是“单轮全抓 + 失败源增量补抓”的稳定化模式：
+
+- `scripts/generate-snapshot.ts` 调用 `executeBrowserRefreshUntilStable(...)` 执行快照生成。
+- `packages/runtime-browser/src/runRefresh.ts` 会保留已经成功的源与页面结果，只对失败源继续发起后续轮次。
+- 当同一源内只有部分目标成功时，源状态会标记为 `partial`，而不是把整源直接判成失败。
+- 稳定化轮次默认会继续补抓 `partial`、`timeout`、`network_error`、`parser_error`、`empty` 这几类状态。
+- 快照脚本可通过 `BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS` 与 `BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS` 调整补抓上限和轮次间隔。
+
+这套策略的目的不是掩盖错误，而是把“瞬时网络抖动”和“单页偶发失败”与“真实 parser / 配置问题”分离开来，避免某一页失败就把整源数据清空。
+
 ## 4. Web 前端当前形态
 
 前端主入口位于 [App.tsx](/C:/Users/86186/Documents/Code/BNUZ_Feed/apps/web/src/App.tsx)，当前页面形态已经与早期版本不同，下面的描述以当前实现为准。
@@ -186,6 +198,16 @@ bnuzhSources
 - 相对链接统一基于 `page.finalUrl` 归一化为绝对链接。
 - 多分页栏目应显式展开为多个 `fetchTargets`，而不是在 parser 内隐式翻页。
 - 优先复用 `createConfiguredHtmlListParser`，只有在通用解析器不够时才写站点专用 parser。
+
+### 6.1 消息源复核口径
+
+站点复核时，需要区分“动态消息源”和“静态说明页”：
+
+- 只有持续产出通知、新闻、活动、快讯、速递、要闻等时间序列内容的栏目，才按消息源口径核对缺漏。
+- 规章制度、办事指南、设备中心、楼宇/场馆分布、图片展示、风采展示等静态栏目，不因为当前无条目而自动判为漏抓。
+- 对可疑动态栏目，先比对“配置频道”与“快照实际频道”，再直接抓取实时页面，检查 DOM 结构是否仍与 parser 假设一致。
+- 如果页面为 `200` 且存在本栏目详情页链接，但 parser 返回 `0`，应优先视为 parser 漏抓；如果页面本身没有正文列表或只有分页/导航链接，则应视为当前栏目为空。
+- 2026-03-28 这轮排查已按这个口径修复两处真实漏抓：`bnuzh/gjjlyhzbgs` 的 `新闻速递`，以及 `bnuzh/bjsfdxzxxy` 的 `新闻快讯`。
 
 站点接入详情继续统一维护在 [site-structure.md](/C:/Users/86186/Documents/Code/BNUZ_Feed/docs/site-structure.md)。
 

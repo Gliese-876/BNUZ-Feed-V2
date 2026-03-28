@@ -6,6 +6,7 @@ export type SourceHealthStatus =
   | "idle"
   | "loading"
   | "live"
+  | "partial"
   | "cache"
   | "snapshot"
   | "empty"

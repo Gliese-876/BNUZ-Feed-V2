@@ -18,7 +18,7 @@ function createPage(
 
 describe("kybgswz parser", () => {
   it("declares the confirmed public list pages", () => {
-    expect(kybgswzFetchTargets).toHaveLength(62);
+    expect(kybgswzFetchTargets).toHaveLength(32);
 
     expect(kybgswzFetchTargets.slice(0, 4)).toEqual([
       { id: "tpxw", url: "https://kyb.bnuzh.edu.cn/tpxw/index.htm", channel: "图片新闻" },
@@ -28,8 +28,8 @@ describe("kybgswz parser", () => {
     ]);
 
     expect(kybgswzFetchTargets.filter((target) => target.id === "kydt" || target.id.startsWith("kydt/index"))).toHaveLength(17);
-    expect(kybgswzFetchTargets.filter((target) => target.id === "sbtz" || target.id.startsWith("sbtz/index"))).toHaveLength(14);
-    expect(kybgswzFetchTargets.filter((target) => target.id === "kyhd" || target.id.startsWith("kyhd/index"))).toHaveLength(19);
+    expect(kybgswzFetchTargets.filter((target) => target.id === "sbtz" || target.id.startsWith("sbtz/index"))).toHaveLength(2);
+    expect(kybgswzFetchTargets.filter((target) => target.id === "kyhd" || target.id.startsWith("kyhd/index"))).toHaveLength(1);
     expect(kybgswzFetchTargets).toContainEqual({
       id: "kxyjxgfg",
       url: "https://kyb.bnuzh.edu.cn/glgz/kxyjxgfg/index.htm",

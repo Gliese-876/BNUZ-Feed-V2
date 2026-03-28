@@ -233,7 +233,7 @@ const parserConfig: HtmlListParserConfig = {
     if (target.kind === "news") {
       return {
         requestId: target.requestId,
-        itemSelector: "main a[href]",
+        itemSelector: ".article-container a[href], a[href]",
         channel: target.channel,
         title: (item) => resolveNewsParts(item).title,
         url: { attr: "href" },
@@ -248,7 +248,7 @@ const parserConfig: HtmlListParserConfig = {
 
     return {
       requestId: target.requestId,
-      itemSelector: "main a[href]",
+      itemSelector: ".article-container a[href], a[href]",
       channel: target.channel,
       title: (item) => resolveCatalogParts(item).title,
       url: { attr: "href" },

@@ -123,7 +123,8 @@ class BnuzParser implements Parser {
   readonly parserKey = "bnuzh/bnuz";
 
   async parse(page: RawPage): Promise<SourceRecord[]> {
-    const target = pageSpecs.find((spec) => spec.requestId === page.requestId);
+    const normalizedRequestId = page.requestId.replace(/\/index\d+$/, "");
+    const target = pageSpecs.find((spec) => spec.requestId === page.requestId || spec.requestId === normalizedRequestId);
 
     if (!target) {
       throw new AggregationError("PARSER_FAILED", `No configured target matched request "${page.requestId}".`, {

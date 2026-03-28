@@ -36,13 +36,17 @@ describe("dzwtjlrwzParser", () => {
       requestUrl: "https://ihap.bnuzh.edu.cn/zxdt/index.htm",
       finalUrl: "https://ihap.bnuzh.edu.cn/zxdt/index.htm",
       bodyText: `
-        <main>
-          <section class="news">
-            <a href="alpha.htm"><span class="title">Atlas Update</span><span class="summary">New species record</span></a>
-            <a href="beta.htm"><span class="title">Campus Bird Note</span><span class="summary">Observation summary</span></a>
-            <a href="index.htm">\u67e5\u770b\u66f4\u591a</a>
-          </section>
-        </main>
+        <div class="article-container">
+          <ul class="article-list list-unstyled">
+            <li class="item py-2 py-lg-3">
+              <a href="alpha.htm"><span class="title">Atlas Update</span><span class="summary">New species record</span></a>
+            </li>
+            <li class="item py-2 py-lg-3">
+              <a href="beta.htm"><span class="title">Campus Bird Note</span><span class="summary">Observation summary</span></a>
+            </li>
+          </ul>
+          <a href="index.htm">\u67e5\u770b\u66f4\u591a</a>
+        </div>
       `,
     });
 

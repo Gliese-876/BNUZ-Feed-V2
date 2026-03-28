@@ -97,6 +97,50 @@ describe("bjsfdxzxxyParser", () => {
     ]);
   });
 
+  it("parses news cards with split calendar dates and summaries", async () => {
+    const page = createPage({
+      requestId: "xwkx",
+      requestUrl: "https://zhixing.bnuzh.edu.cn/xwkx/index.htm",
+      finalUrl: "https://zhixing.bnuzh.edu.cn/xwkx/index.htm",
+      bodyText: `
+        <main>
+          <a class="article gap-3" href="33dc16fe643b445480c498af79b9c70a.htm">
+            <div class="calendar d-none d-lg-flex">
+              <div class="date">19/</div>
+              <div class="year-month">
+                <div class="month">11月</div>
+                <div class="year">2025</div>
+              </div>
+            </div>
+            <img class="cover" src="../images/2025-11/demo.jpg" alt="">
+            <div class="content gap-3">
+              <div class="title">知行沙龙第49期回顾篇｜教师面试实战技巧</div>
+              <div class="summary">2025年11月13日，北京师范大学知行书院知行沙龙第49期顺利举办。</div>
+              <button class="btn btn-primary">查看详情</button>
+            </div>
+          </a>
+        </main>
+      `,
+    });
+
+    const records = await bjsfdxzxxyParser.parse(page);
+
+    expect(records).toEqual([
+      {
+        sourceId: "d0e8c9b742a9498ebeb52f76523f9771",
+        rawId: "33dc16fe643b445480c498af79b9c70a.htm",
+        rawTitle: "知行沙龙第49期回顾篇｜教师面试实战技巧",
+        rawUrl: "https://zhixing.bnuzh.edu.cn/xwkx/33dc16fe643b445480c498af79b9c70a.htm",
+        rawPublishedAt: "2025-11-19",
+        rawChannel: "新闻快讯",
+        rawSummary: "2025年11月13日，北京师范大学知行书院知行沙龙第49期顺利举办。",
+        extras: {
+          requestId: "xwkx",
+        },
+      },
+    ]);
+  });
+
   it("parses photo-card lists with split calendar dates and summaries", async () => {
     const page = createPage({
       requestId: "xwtj",

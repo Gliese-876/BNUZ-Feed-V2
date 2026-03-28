@@ -5,6 +5,7 @@ import type { FeedSnapshot, SourceHealthStatus } from "@bnuz-feed/contracts";
 const maxRetryAttempts = 2;
 const retryDelayMs = [3000, 9000];
 const retryableStatuses = new Set<SourceHealthStatus>([
+  "partial",
   "timeout",
   "network_error",
   "parser_error",

@@ -17,7 +17,7 @@ const targetSpecs: TargetSpec[] = [
   { requestId: "llxx", path: "llxx/index.htm", channel: "理论学习", pages: 1 },
   { requestId: "gzzd", path: "gzzd/index.htm", channel: "规章制度", pages: 1 },
   { requestId: "yxtwfc", path: "yxtwfc/index.htm", channel: "院系团委风采", pages: 1 },
-  { requestId: "jchd", path: "jchd/index.htm", channel: "精彩活动", pages: 5 },
+  { requestId: "jchd", path: "jchd/index.htm", channel: "精彩活动", pages: 3 },
 ];
 
 function normalizeText(value: string | null | undefined): string | undefined {

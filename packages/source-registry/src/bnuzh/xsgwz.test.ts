@@ -230,4 +230,57 @@ describe("xsgwz", () => {
       },
     ]);
   });
+
+  it("parses the current textList layout used by the live site", async () => {
+    const page = createPage({
+      requestId: "xwdt",
+      requestUrl: "https://xiaoshi.bnuzh.edu.cn/gzdt/xwdt/index.htm",
+      finalUrl: "https://xiaoshi.bnuzh.edu.cn/gzdt/xwdt/index.htm",
+      bodyText: `
+        <div class="pageContent">
+          <ul class="textList gp-f18">
+            <li>
+              <a href="3a9fb042c0044b80ba5008c0355e1785.htm">
+                <div class="date gp-fr gp-f16">2025-11-10</div>
+                <div class="gp-ellipsis title">“百廿京师 教育兴邦”主题展览观展月报</div>
+              </a>
+            </li>
+            <li>
+              <a href="https://mp.weixin.qq.com/s/PTjX9nu90S_98m5iYNozYQ">
+                <div class="date gp-fr gp-f16">2025-08-25</div>
+                <div class="gp-ellipsis title">2023年校史馆调研工作简报</div>
+              </a>
+            </li>
+          </ul>
+        </div>
+      `,
+    });
+
+    await expect(xsgwzParser.parse(page)).resolves.toEqual([
+      {
+        sourceId: "d524eba4e8d744d58ce18fabec140359",
+        rawId: "3a9fb042c0044b80ba5008c0355e1785.htm",
+        rawTitle: "“百廿京师 教育兴邦”主题展览观展月报",
+        rawUrl: "https://xiaoshi.bnuzh.edu.cn/gzdt/xwdt/3a9fb042c0044b80ba5008c0355e1785.htm",
+        rawPublishedAt: "2025-11-10",
+        rawChannel: "新闻动态",
+        rawSummary: undefined,
+        extras: {
+          requestId: "xwdt",
+        },
+      },
+      {
+        sourceId: "d524eba4e8d744d58ce18fabec140359",
+        rawId: "https://mp.weixin.qq.com/s/PTjX9nu90S_98m5iYNozYQ",
+        rawTitle: "2023年校史馆调研工作简报",
+        rawUrl: "https://mp.weixin.qq.com/s/PTjX9nu90S_98m5iYNozYQ",
+        rawPublishedAt: "2025-08-25",
+        rawChannel: "新闻动态",
+        rawSummary: undefined,
+        extras: {
+          requestId: "xwdt",
+        },
+      },
+    ]);
+  });
 });

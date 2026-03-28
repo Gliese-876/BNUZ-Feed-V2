@@ -40,8 +40,6 @@ describe("xqtwwz", () => {
       { id: "jchd", url: "https://youth.bnuzh.edu.cn/jchd/index.htm", channel: "精彩活动" },
       { id: "jchd/index1", url: "https://youth.bnuzh.edu.cn/jchd/index1.htm", channel: "精彩活动" },
       { id: "jchd/index2", url: "https://youth.bnuzh.edu.cn/jchd/index2.htm", channel: "精彩活动" },
-      { id: "jchd/index3", url: "https://youth.bnuzh.edu.cn/jchd/index3.htm", channel: "精彩活动" },
-      { id: "jchd/index4", url: "https://youth.bnuzh.edu.cn/jchd/index4.htm", channel: "精彩活动" },
     ]);
   });
 

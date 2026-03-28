@@ -20,7 +20,6 @@ const targetSpecs: TargetSpec[] = [
   { requestId: "kyjyjl/index", path: "dtxx/kyjz/kyjyjl/index.htm", channel: "科研经验交流" },
   { requestId: "gjhz/index", path: "hzjl/gjhz/index.htm", channel: "国际合作（访学、公派）" },
   { requestId: "hybg/index", path: "hzjl/hybg/index.htm", channel: "会议报告" },
-  { requestId: "hybg/index1", path: "hzjl/hybg/index1.htm", channel: "会议报告" },
   { requestId: "hdfc/index", path: "hdfc/index.htm", channel: "活动风采" },
   { requestId: "hdfc/index1", path: "hdfc/index1.htm", channel: "活动风采" },
 ];

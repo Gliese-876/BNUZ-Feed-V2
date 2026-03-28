@@ -34,6 +34,8 @@ const xsgwzFetchTargetUrls: Record<TargetConfig["requestId"], string> = {
 };
 
 const candidateGroups = [
+  { selector: ".textList > li" },
+  { selector: ".pageContent .textList > li" },
   { selector: ".common-article-list > li" },
   { selector: ".common-pic-article-list > li" },
   { selector: ".article-list > li" },

@@ -82,6 +82,39 @@ describe("bnuz parser", () => {
     ]);
   });
 
+  it("accepts paginated request ids for the same list parser", async () => {
+    const page = createPage({
+      requestId: "xqtt/index1",
+      requestUrl: "http://www.bnuzh.edu.cn/xqtt/index1.htm",
+      finalUrl: "https://www.bnuzh.edu.cn/xqtt/index1.htm",
+      bodyText: `
+        <body>
+          <ul class="bnuh-list20 bnuh-list21">
+            <li>
+              <span>2026-03-11</span>
+              <a href="alpha.htm">分页列表测试</a>
+            </li>
+          </ul>
+        </body>
+      `,
+    });
+
+    await expect(bnuzParser.parse(page)).resolves.toEqual([
+      {
+        sourceId: "f018e769b2bd4733a968e902befe7e17",
+        rawId: "alpha.htm",
+        rawTitle: "分页列表测试",
+        rawUrl: "https://www.bnuzh.edu.cn/xqtt/alpha.htm",
+        rawPublishedAt: "2026-03-11",
+        rawChannel: "校区头条",
+        rawSummary: undefined,
+        extras: {
+          requestId: "xqtt/index1",
+        },
+      },
+    ]);
+  });
+
   it("extracts featured academic cards with summaries from multiple blocks", async () => {
     const page = createPage({
       requestId: "xshd",

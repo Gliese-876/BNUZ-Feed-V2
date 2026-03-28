@@ -14,8 +14,8 @@ const baseUrl = "https://kyb.bnuzh.edu.cn/";
 const sectionSpecs: SectionSpec[] = [
   { requestId: "tpxw", path: "tpxw/index.htm", channel: "图片新闻" },
   { requestId: "kydt", path: "kydt", channel: "科研动态", pages: 17 },
-  { requestId: "sbtz", path: "tzgg/sbtz", channel: "申报通知", pages: 14 },
-  { requestId: "kyhd", path: "tzgg/kyhd", channel: "科研活动", pages: 19 },
+  { requestId: "sbtz", path: "tzgg/sbtz", channel: "申报通知", pages: 2 },
+  { requestId: "kyhd", path: "tzgg/kyhd", channel: "科研活动" },
   { requestId: "kyrl", path: "kyrl/index.htm", channel: "科研日历" },
   { requestId: "kyxmglgd", path: "glgz/kyxmglgd/index.htm", channel: "科研项目管理规定" },
   { requestId: "kyjfglgd", path: "glgz/kyjfglgd/index.htm", channel: "科研经费管理规定" },

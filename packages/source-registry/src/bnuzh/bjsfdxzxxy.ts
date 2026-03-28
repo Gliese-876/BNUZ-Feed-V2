@@ -10,8 +10,11 @@ type SiteTarget = {
 
 const baseUrl = "https://zhixing.bnuzh.edu.cn/";
 
-const standardTargets: SiteTarget[] = [
+const newsCardTargets: SiteTarget[] = [
   { requestId: "xwkx", url: `${baseUrl}xwkx/index.htm`, channel: "新闻快讯" },
+];
+
+const standardTargets: SiteTarget[] = [
   { requestId: "tzgg", url: `${baseUrl}xsyd/tzgg/index.htm`, channel: "通知公告" },
   { requestId: "stzz", url: `${baseUrl}xsyd/stzz/index.htm`, channel: "组织团体" },
   { requestId: "zyfz", url: `${baseUrl}xsyd/zyfz/index.htm`, channel: "生涯发展" },
@@ -66,6 +69,20 @@ function createStandardTarget(target: SiteTarget): HtmlListParserConfig["targets
   };
 }
 
+function createNewsCardTarget(target: SiteTarget): HtmlListParserConfig["targets"][number] {
+  return {
+    requestId: target.requestId,
+    itemSelector: "a.article[href]",
+    channel: target.channel,
+    title: ".title",
+    url: { attr: "href" },
+    publishedAt: extractPublishedAt,
+    summary: ".summary",
+    rawId: { attr: "href" },
+    limit: 20,
+  };
+}
+
 function createPhotoTarget(target: SiteTarget): HtmlListParserConfig["targets"][number] {
   return {
     requestId: target.requestId,
@@ -81,11 +98,16 @@ function createPhotoTarget(target: SiteTarget): HtmlListParserConfig["targets"][
 }
 
 const parserTargets: HtmlListParserConfig["targets"] = [
+  ...newsCardTargets.map(createNewsCardTarget),
   ...standardTargets.map(createStandardTarget),
   ...photoTargets.map(createPhotoTarget),
 ];
 
-export const bjsfdxzxxyFetchTargets: FetchTarget[] = [...standardTargets, ...photoTargets].map((target) => ({
+export const bjsfdxzxxyFetchTargets: FetchTarget[] = [
+  ...newsCardTargets,
+  ...standardTargets,
+  ...photoTargets,
+].map((target) => ({
   id: target.requestId,
   url: target.url,
   channel: target.channel,
