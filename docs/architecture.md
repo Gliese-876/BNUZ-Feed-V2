@@ -11,6 +11,7 @@
 - 其中 `43` 个站点已经接入真实 `fetchTargets` 与 `parser`，会参与前台展示、快照生成和官方搜索站点范围。
 - 仍有 `2` 个站点保留为占位实现，不进入生产快照与前台筛选。
 - 线上默认使用“静态快照 + GitHub Pages”模式，浏览器直抓仅保留给本地调试与回归排查。
+- 当前需求梳理、代码实现、界面迭代、交互修复、文档维护与发布流程，均在 `Codex` 协作下以 `Vibe Coding` 方式推进。
 
 站点级接入台账见 [site-structure.md](/C:/Users/86186/Documents/Code/BNUZ_Feed/docs/site-structure.md)。
 
@@ -167,6 +168,13 @@ bnuzhSources
 - `autoRefresh = true`
 
 这与现阶段的部署方式一致：线上优先保证稳定访问，本地再使用直抓模式做验证。
+
+当前部署与刷新链路还包括以下约定：
+
+- GitHub Actions 的自动部署与手动刷新工作流都统一使用 `actions/setup-node@v4` + `node-version: 24`。
+- 自动刷新工作流位于 `.github/workflows/refresh-web.yml`，当前计划为每 `8` 小时一次。
+- 定时触发点对应 UTC+8 的 `02:00`、`10:00`、`18:00`，在满足 8 小时间隔的前提下尽量避开白天高峰。
+- 手动刷新工作流位于 `.github/workflows/manual-refresh-web.yml`，继续保留 `workflow_dispatch` 触发方式。
 
 ## 6. 站点接入约定
 
