@@ -53,7 +53,7 @@ function summarizeSnapshot(snapshot: FeedSnapshot) {
 }
 
 async function main() {
-  const nodeMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS, 10);
+  const nodeMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS, 5);
   const browserMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS, 5);
   const roundLimit = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_ROUND_LIMIT, 3);
   const retryDelayMs = resolveNonNegativeNumber(
@@ -155,7 +155,11 @@ async function main() {
   );
 }
 
-void main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+void main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
