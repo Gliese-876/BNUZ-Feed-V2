@@ -24,6 +24,8 @@ jobs:
       BNUZ_FEED_SNAPSHOT_MAX_ATTEMPTS: 30
       BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 5000
       BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 30000
+      BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS: 30000
+      BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS: www.bnuzh.edu.cn
       BNUZ_FEED_SNAPSHOT_CONCURRENCY: 3
       BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY: 2
 
@@ -52,6 +54,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Generate snapshot data
         run: |

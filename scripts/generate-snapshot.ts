@@ -7,6 +7,8 @@ import { createDefaultNormalizer } from "@bnuz-feed/core";
 import { executeBrowserRefreshUntilStable } from "@bnuz-feed/runtime-browser";
 import { createParserRegistry, publicBnuzhSources } from "@bnuz-feed/source-registry";
 
+import { createSnapshotFetch, parseBrowserHostList } from "./snapshotFetch";
+
 const outputDir = resolve(process.cwd(), "apps/web/public/data");
 const domParser = new JSDOM("").window.DOMParser;
 
@@ -42,60 +44,70 @@ async function main() {
     process.env.BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS,
     1500,
   );
-
-  const snapshot = await executeBrowserRefreshUntilStable({
-    sources: publicBnuzhSources,
-    parserRegistry: createParserRegistry(),
-    normalizer: createDefaultNormalizer(),
-    requestOptions: {
-      concurrency: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_CONCURRENCY, 6),
-      targetConcurrency: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY, 3),
-      timeoutMs: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TIMEOUT_MS, 12000),
-    },
-    stabilization: {
-      maxAttempts,
-      retryDelayMs,
-      onAttemptComplete: ({ attempt, attemptedSourceIds, pendingSourceIds, recoveredSourceIds, snapshot }) => {
-        const liveSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "live").length;
-        const partialSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "partial").length;
-        const degradedSources = Object.values(snapshot.sourceHealth).length - liveSources;
-
-        console.log(
-          [
-            `[snapshot] attempt=${attempt}/${maxAttempts}`,
-            `requestedSources=${attemptedSourceIds.length}`,
-            `liveSources=${liveSources}`,
-            `partialSources=${partialSources}`,
-            `degradedSources=${degradedSources}`,
-            `recoveredSources=${recoveredSourceIds.length}`,
-            `pendingRetries=${pendingSourceIds.length}`,
-          ].join(" "),
-        );
-      },
-    },
+  const timeoutMs = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TIMEOUT_MS, 12000);
+  const snapshotFetch = await createSnapshotFetch({
+    browserHosts: parseBrowserHostList(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS),
+    browserTimeoutMs: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS, timeoutMs),
   });
 
-  await mkdir(outputDir, { recursive: true });
+  try {
+    const snapshot = await executeBrowserRefreshUntilStable({
+      sources: publicBnuzhSources,
+      parserRegistry: createParserRegistry(),
+      normalizer: createDefaultNormalizer(),
+      requestOptions: {
+        concurrency: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_CONCURRENCY, 6),
+        targetConcurrency: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY, 3),
+        timeoutMs,
+      },
+      stabilization: {
+        maxAttempts,
+        retryDelayMs,
+        onAttemptComplete: ({ attempt, attemptedSourceIds, pendingSourceIds, recoveredSourceIds, snapshot }) => {
+          const liveSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "live").length;
+          const partialSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "partial").length;
+          const degradedSources = Object.values(snapshot.sourceHealth).length - liveSources;
 
-  await Promise.all([
-    writeJson(resolve(outputDir, "feed-snapshot.json"), snapshot),
-    writeJson(resolve(outputDir, "source-health.json"), snapshot.sourceHealth),
-  ]);
+          console.log(
+            [
+              `[snapshot] attempt=${attempt}/${maxAttempts}`,
+              `requestedSources=${attemptedSourceIds.length}`,
+              `liveSources=${liveSources}`,
+              `partialSources=${partialSources}`,
+              `degradedSources=${degradedSources}`,
+              `recoveredSources=${recoveredSourceIds.length}`,
+              `pendingRetries=${pendingSourceIds.length}`,
+            ].join(" "),
+          );
+        },
+      },
+      fetchFn: snapshotFetch.fetchFn,
+    });
 
-  const liveSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "live").length;
-  const partialSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "partial").length;
-  const degradedSources = Object.values(snapshot.sourceHealth).length - liveSources;
+    await mkdir(outputDir, { recursive: true });
 
-  console.log(
-    [
-      `snapshot written to ${outputDir}`,
-      `updatedAt=${snapshot.updatedAt}`,
-      `items=${snapshot.items.length}`,
-      `liveSources=${liveSources}`,
-      `partialSources=${partialSources}`,
-      `degradedSources=${degradedSources}`,
-    ].join(" "),
-  );
+    await Promise.all([
+      writeJson(resolve(outputDir, "feed-snapshot.json"), snapshot),
+      writeJson(resolve(outputDir, "source-health.json"), snapshot.sourceHealth),
+    ]);
+
+    const liveSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "live").length;
+    const partialSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "partial").length;
+    const degradedSources = Object.values(snapshot.sourceHealth).length - liveSources;
+
+    console.log(
+      [
+        `snapshot written to ${outputDir}`,
+        `updatedAt=${snapshot.updatedAt}`,
+        `items=${snapshot.items.length}`,
+        `liveSources=${liveSources}`,
+        `partialSources=${partialSources}`,
+        `degradedSources=${degradedSources}`,
+      ].join(" "),
+    );
+  } finally {
+    await snapshotFetch.dispose();
+  }
 }
 
 void main().catch((error) => {

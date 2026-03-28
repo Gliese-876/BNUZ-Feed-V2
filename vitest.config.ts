@@ -8,6 +8,7 @@ export default defineConfig({
       "apps/**/*.test.tsx",
       "packages/**/*.test.ts",
       "packages/**/*.test.tsx",
+      "scripts/**/*.test.ts",
     ],
     setupFiles: ["./vitest.setup.ts"],
   },
