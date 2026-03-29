@@ -302,7 +302,7 @@ function RuntimeShell() {
 
       <section className="intro-card">
         <div className="intro-card__main">
-          <h2>按站点结构筛选你真正关心的信息</h2>
+          <h2>校讯不远寻，此间日日新</h2>
           <p>默认已选中全部 43 个可用站点，你可以随时只保留自己真正关心的栏目。</p>
         </div>
         <div className="intro-metrics">
