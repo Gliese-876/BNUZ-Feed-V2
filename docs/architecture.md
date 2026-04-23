@@ -116,6 +116,8 @@ bnuzhSources
 - [refresh-web.yml](/C:/Users/86186/Documents/Code/BNUZ_Feed/.github/workflows/refresh-web.yml)
 - [manual-refresh-web.yml](/C:/Users/86186/Documents/Code/BNUZ_Feed/.github/workflows/manual-refresh-web.yml)
 
+其中 `refresh-web.yml` 的自动调度按北京时间每日 `06:00` 开始每 `15` 分钟执行一次，`22:00` 为最后一次触发。
+
 ### 4.3 部署门禁
 
 当前线上部署完全由 GitHub Actions 冷启动完成，不依赖本地机器。现状：

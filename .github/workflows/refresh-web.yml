@@ -2,7 +2,13 @@ name: Deploy BNUZ Feed V2 to GitHub Pages
 
 on:
   schedule:
-    - cron: "0 18,2,10 * * *"
+    # GitHub Actions cron uses UTC.
+    # Beijing time 06:00-07:45 => UTC 22:00-23:45 (previous day)
+    - cron: "0,15,30,45 22-23 * * *"
+    # Beijing time 08:00-21:45 => UTC 00:00-13:45
+    - cron: "0,15,30,45 0-13 * * *"
+    # Beijing time final run at 22:00 => UTC 14:00
+    - cron: "0 14 * * *"
   push:
     branches:
       - main
