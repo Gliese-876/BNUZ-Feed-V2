@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { JSDOM } from "jsdom";
 
-import type { FeedSnapshot, SourceDescriptor } from "@bnuz-feed/contracts";
+import type { FeedSnapshot, SourceDescriptor, SourceId } from "@bnuz-feed/contracts";
 import { createDefaultNormalizer } from "@bnuz-feed/core";
 import { executeBrowserRefreshUntilStable } from "@bnuz-feed/runtime-browser";
 import { createParserRegistry, publicBnuzhSources } from "@bnuz-feed/source-registry";
@@ -67,11 +67,18 @@ async function main() {
   const browserExecutablePath = process.env.BNUZ_FEED_SNAPSHOT_BROWSER_EXECUTABLE_PATH?.trim() || undefined;
   const parserRegistry = createParserRegistry();
   const normalizer = createDefaultNormalizer();
+  const sourceById = new Map(publicBnuzhSources.map((source) => [source.id, source]));
   const requestOptions = {
     concurrency: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_CONCURRENCY, 6),
     targetConcurrency: resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY, 3),
     timeoutMs,
   };
+
+  function formatSourceIds(sourceIds: SourceId[]): string {
+    return sourceIds
+      .map((sourceId) => `${sourceById.get(sourceId)?.name ?? sourceId}(${sourceId})`)
+      .join(",");
+  }
 
   async function runPhase(phase: SnapshotPhase, sources: SourceDescriptor[], maxAttempts: number) {
     const snapshotFetch = phase === "browser"
@@ -105,6 +112,7 @@ async function main() {
                 `degradedSources=${degradedSources}`,
                 `recoveredSources=${recoveredSourceIds.length}`,
                 `pendingRetries=${pendingSourceIds.length}`,
+                ...(pendingSourceIds.length > 0 ? [`pendingSources=${formatSourceIds(pendingSourceIds)}`] : []),
               ].join(" "),
             );
           },
@@ -133,6 +141,7 @@ async function main() {
           `degradedSources=${degradedSources}`,
           `browserAttempted=${browserAttempted}`,
           `remainingUnhealthy=${unhealthySourceIds.length}`,
+          ...(unhealthySourceIds.length > 0 ? [`remainingSources=${formatSourceIds(unhealthySourceIds)}`] : []),
         ].join(" "),
       );
     },
