@@ -8,37 +8,36 @@ type PageTarget = {
   path: string;
 };
 
-const baseUrl = "https://zhnews.bnuzh.edu.cn";
+const baseUrl = "https://xcb.bnuzh.edu.cn";
 
-const ttgzPages = Array.from({ length: 38 }, (_, index) => index);
+const ttgzPages = Array.from({ length: 39 }, (_, index) => index);
 const tzggPages = Array.from({ length: 17 }, (_, index) => index);
-const zhbdPages = Array.from({ length: 81 }, (_, index) => index);
+const zhbdPages = Array.from({ length: 84 }, (_, index) => index);
+const mtsdPages = Array.from({ length: 55 }, (_, index) => index);
 
 const ttgzTargets: PageTarget[] = ttgzPages.map((pageIndex) => ({
   requestId: pageIndex === 0 ? "ttgz" : `ttgz/index${pageIndex}`,
   channel: "头条关注",
-  path: pageIndex === 0 ? "/ttgz/index.htm" : `/ttgz/index${pageIndex}.htm`,
+  path: pageIndex === 0 ? "/xqxw/ttgz/index.htm" : `/xqxw/ttgz/index${pageIndex}.htm`,
 }));
 
 const tzggTargets: PageTarget[] = tzggPages.map((pageIndex) => ({
   requestId: pageIndex === 0 ? "tzgg" : `tzgg/index${pageIndex}`,
   channel: "通知公告",
-  path: pageIndex === 0 ? "/tzgg/index.htm" : `/tzgg/index${pageIndex}.htm`,
+  path: pageIndex === 0 ? "/xqxw/tzgg/index.htm" : `/xqxw/tzgg/index${pageIndex}.htm`,
 }));
 
 const zhbdTargets: PageTarget[] = zhbdPages.map((pageIndex) => ({
   requestId: pageIndex === 0 ? "zhbd" : `zhbd/index${pageIndex}`,
   channel: "综合报道",
-  path: pageIndex === 0 ? "/zhbd/index.htm" : `/zhbd/index${pageIndex}.htm`,
+  path: pageIndex === 0 ? "/xqxw/zhbd/index.htm" : `/xqxw/zhbd/index${pageIndex}.htm`,
 }));
 
-const mtsdTargets: PageTarget[] = [
-  {
-    requestId: "mtsd",
-    channel: "媒体师大",
-    path: "/mtsd/index.htm",
-  },
-];
+const mtsdTargets: PageTarget[] = mtsdPages.map((pageIndex) => ({
+  requestId: pageIndex === 0 ? "mtsd" : `mtsd/index${pageIndex}`,
+  channel: "媒体师大",
+  path: pageIndex === 0 ? "/xqxw/mtsd/index.htm" : `/xqxw/mtsd/index${pageIndex}.htm`,
+}));
 
 const gysdTargets: PageTarget[] = [
   {

@@ -13,24 +13,24 @@ const sectionTargets: Array<{
   channel: string;
 }> = [
   {
-    requestId: "gszj",
-    url: `${baseUrl}/gszj/index.htm`,
-    channel: "共生之间",
+    requestId: "wmzy",
+    url: `${baseUrl}/wmzy/index.htm`,
+    channel: "文脉织影",
   },
   {
-    requestId: "yjzj",
-    url: `${baseUrl}/yjzj/index.htm`,
-    channel: "语境之间",
+    requestId: "gjms",
+    url: `${baseUrl}/gjms/index.htm`,
+    channel: "硅基蔓生",
   },
   {
-    requestId: "jyzj",
-    url: `${baseUrl}/jyzj/index.htm`,
-    channel: "技艺之间",
+    requestId: "ggzz",
+    url: `${baseUrl}/ggzz/index.htm`,
+    channel: "感官褶皱",
   },
   {
-    requestId: "gzzj",
-    url: `${baseUrl}/gzzj/index.htm`,
-    channel: "感知之间",
+    requestId: "gxtp",
+    url: `${baseUrl}/gxtp/index.htm`,
+    channel: "关系拓扑",
   },
 ];
 

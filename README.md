@@ -24,6 +24,12 @@ BNUZ Feed V2 是一个面向北京师范大学珠海校区公开信息站点的�
 
 ## 工作方式
 
+### 数据源口径
+
+源清单以校区官方全文搜索页的 `siteList` 为准：[全站搜索](https://www.bnuzh.edu.cn/cms/web/search/index.jsp)。当前官方列表与本地 `bnuzhSources` 均为 `46` 个站点，没有保留不在官方列表里的源。
+
+其中 `44` 个站点已经有可运行的 `fetchTargets` 与 parser，会进入静态快照；`党委保卫工作办公室` 与 `北京师范大学珠海校区实验室安全与设备管理办公室` 仍保留在源清单中，但它们当前公开域名在直接 HTTPS 抓取时不可稳定访问，官方搜索空查询也不会返回全量内容，因此暂不纳入快照抓取，避免生成偏置数据或拖垮部署。
+
 ### 生产模式
 
 生产环境默认读取两个静态文件：
@@ -43,6 +49,8 @@ BNUZ Feed V2 是一个面向北京师范大学珠海校区公开信息站点的�
 4. 超过整轮上限仍未收敛则直接失败，不部署坏快照。
 
 线上 GitHub Actions 还会在构建阶段执行健康检查；只要仍存在 `partial` 或其他非 `live` 源，就会中止部署。
+
+2026 年 5 月下旬开始的连续失败主要来自源站变化：原“新闻网”迁移为“党委宣传工作办公室(新闻中心)”并改用 `https://xcb.bnuzh.edu.cn`，未来设计学院硕士研究生毕业展也替换了栏目路径。源注册表已按最新页面位置更新，并补入官方列表中缺少的“珠海管委会”。
 
 ### 调试模式
 
@@ -119,20 +127,24 @@ npm run build
 - `BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS=5000`
 - `BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS=10`
 - `BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS=5`
-- `BNUZ_FEED_SNAPSHOT_ROUND_LIMIT=3`
+- `BNUZ_FEED_SNAPSHOT_ROUND_LIMIT=2`
 - `BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS=5000`
 - `BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS=www.bnuzh.edu.cn`
 
-自动刷新计划当前为：北京时间每日 `06:00` 开始每 `15` 分钟执行一次，`22:00` 为最后一次触发。
+自动刷新计划当前为：北京时间每日 `06:00` 开始每 `15` 分钟执行一次，`22:00` 为最后一次触发。手动刷新已合并到同一个部署工作流的 `workflow_dispatch` 入口。
+
+失败路径保留单轮内的原有重试强度，但整轮上限从 `3` 轮收敛为 `2` 轮；同时 `Generate snapshot data` 步骤设置 `15` 分钟硬上限。按历史失败日志估算，两轮完整失败约 `13` 分钟，步骤超时确保重试预算不会超过一个定时周期。
 
 ## 部署
 
 当前仓库默认使用“生成快照 + 构建静态站点 + GitHub Pages 发布”的方式部署：
 
-1. 执行 `npm run snapshot`
-2. 执行 `node scripts/check-snapshot-health.cjs`
-3. 执行 `npm run build`
-4. 发布 `apps/web/dist`
+1. 安装依赖。
+2. 在 `push` 或手动触发时执行 `npm run check` 与 `npm test`。
+3. 执行 `npm run snapshot`。
+4. 执行 `node scripts/check-snapshot-health.cjs`。
+5. 执行 `npm run build`。
+6. 发布 `apps/web/dist`。
 
 工作流会根据仓库名自动设置 `VITE_BASE_PATH`，因此项目型 Pages 地址 `/<repo>/` 与根域名 Pages 地址 `/` 都可以正确生成资源路径。
 

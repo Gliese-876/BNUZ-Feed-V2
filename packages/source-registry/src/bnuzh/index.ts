@@ -41,6 +41,7 @@ import { xqtwwzFetchTargets, xqtwwzParser } from "./xqtwwz";
 import { xszyfzyjyzdzxwzFetchTargets, xszyfzyjyzdzxwzParser } from "./xszyfzyjyzdzxwz";
 import { yxwFetchTargets, yxwParser } from "./yxw";
 import { zcglbgsFetchTargets, zcglbgsParser } from "./zcglbgs";
+import { zhgwhFetchTargets, zhgwhParser } from "./zhgwh";
 import { zhxqxwwFetchTargets, zhxqxwwParser } from "./zhxqxww";
 import { zgjykjxhhyFetchTargets, zgjykjxhhyParser } from "./zgjykjxhhy";
 
@@ -127,6 +128,8 @@ export {
   yxwParser,
   zcglbgsFetchTargets,
   zcglbgsParser,
+  zhgwhFetchTargets,
+  zhgwhParser,
   zhxqxwwFetchTargets,
   zhxqxwwParser,
   zgjykjxhhyFetchTargets,
@@ -134,6 +137,7 @@ export {
 };
 
 export const implementedBnuzhFetchTargets: Record<string, FetchTarget[]> = {
+  "bnuzh/zhgwh": zhgwhFetchTargets,
   "bnuzh/bjzx": bjzxFetchTargets,
   "bnuzh/bjsfdxzxxy": bjsfdxzxxyFetchTargets,
   "bnuzh/bjsfdxetbwg": bjsfdxetbwgFetchTargets,
@@ -180,6 +184,7 @@ export const implementedBnuzhFetchTargets: Record<string, FetchTarget[]> = {
 };
 
 export const implementedBnuzhParsers: Record<string, Parser> = {
+  "bnuzh/zhgwh": zhgwhParser,
   "bnuzh/bjzx": bjzxParser,
   "bnuzh/bjsfdxzxxy": bjsfdxzxxyParser,
   "bnuzh/bjsfdxetbwg": bjsfdxetbwgParser,

@@ -18,18 +18,19 @@ function createPage(
 
 describe("zhxqxww parser", () => {
   it("declares the confirmed public message sources", () => {
-    expect(zhxqxwwFetchTargets).toHaveLength(138);
+    expect(zhxqxwwFetchTargets).toHaveLength(196);
     expect(zhxqxwwFetchTargets.slice(0, 3)).toEqual([
-      { id: "ttgz", url: "https://zhnews.bnuzh.edu.cn/ttgz/index.htm", channel: "头条关注" },
-      { id: "ttgz/index1", url: "https://zhnews.bnuzh.edu.cn/ttgz/index1.htm", channel: "头条关注" },
-      { id: "ttgz/index2", url: "https://zhnews.bnuzh.edu.cn/ttgz/index2.htm", channel: "头条关注" },
+      { id: "ttgz", url: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/index.htm", channel: "头条关注" },
+      { id: "ttgz/index1", url: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/index1.htm", channel: "头条关注" },
+      { id: "ttgz/index2", url: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/index2.htm", channel: "头条关注" },
     ]);
     expect(zhxqxwwFetchTargets).toEqual(
       expect.arrayContaining([
-        { id: "tzgg/index16", url: "https://zhnews.bnuzh.edu.cn/tzgg/index16.htm", channel: "通知公告" },
-        { id: "zhbd/index80", url: "https://zhnews.bnuzh.edu.cn/zhbd/index80.htm", channel: "综合报道" },
-        { id: "mtsd", url: "https://zhnews.bnuzh.edu.cn/mtsd/index.htm", channel: "媒体师大" },
-        { id: "gysd", url: "https://zhnews.bnuzh.edu.cn/gysd/index.htm", channel: "光影师大" },
+        { id: "ttgz/index38", url: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/index38.htm", channel: "头条关注" },
+        { id: "tzgg/index16", url: "https://xcb.bnuzh.edu.cn/xqxw/tzgg/index16.htm", channel: "通知公告" },
+        { id: "zhbd/index83", url: "https://xcb.bnuzh.edu.cn/xqxw/zhbd/index83.htm", channel: "综合报道" },
+        { id: "mtsd/index54", url: "https://xcb.bnuzh.edu.cn/xqxw/mtsd/index54.htm", channel: "媒体师大" },
+        { id: "gysd", url: "https://xcb.bnuzh.edu.cn/gysd/index.htm", channel: "光影师大" },
       ]),
     );
   });
@@ -37,8 +38,8 @@ describe("zhxqxww parser", () => {
   it("parses paginated headline cards with relative links and full dates", async () => {
     const page = createPage({
       requestId: "ttgz",
-      requestUrl: "https://zhnews.bnuzh.edu.cn/ttgz/index.htm",
-      finalUrl: "https://zhnews.bnuzh.edu.cn/ttgz/index.htm",
+      requestUrl: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/index.htm",
+      finalUrl: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/index.htm",
       bodyText: `
         <body>
           <section class="articleList02 articleList03 clearFix">
@@ -70,7 +71,7 @@ describe("zhxqxww parser", () => {
         sourceId: "b3e7c5f24a434f788257a698f79c37ff",
         rawId: "02f237cb3d274b9cb7886f94daac5865.htm",
         rawTitle: "珠海校区召开2026年维护校园安全稳定工作会议",
-        rawUrl: "https://zhnews.bnuzh.edu.cn/ttgz/02f237cb3d274b9cb7886f94daac5865.htm",
+        rawUrl: "https://xcb.bnuzh.edu.cn/xqxw/ttgz/02f237cb3d274b9cb7886f94daac5865.htm",
         rawPublishedAt: "2026-03-20",
         rawChannel: "头条关注",
         rawSummary: undefined,
@@ -96,8 +97,8 @@ describe("zhxqxww parser", () => {
   it("parses notice, report, media and photo-list layouts", async () => {
     const noticePage = createPage({
       requestId: "tzgg",
-      requestUrl: "https://zhnews.bnuzh.edu.cn/tzgg/index.htm",
-      finalUrl: "https://zhnews.bnuzh.edu.cn/tzgg/index.htm",
+      requestUrl: "https://xcb.bnuzh.edu.cn/xqxw/tzgg/index.htm",
+      finalUrl: "https://xcb.bnuzh.edu.cn/xqxw/tzgg/index.htm",
       bodyText: `
         <body>
           <section class="articleList02 articleList03 clearFix">
@@ -117,7 +118,7 @@ describe("zhxqxww parser", () => {
         sourceId: "b3e7c5f24a434f788257a698f79c37ff",
         rawId: "../tzgs/79d34640faf147bab80fb2031e47eb9c.htm",
         rawTitle: "【通知】2026年牛津大学暑期展望项目&学年访问生项目宣讲会通知",
-        rawUrl: "https://zhnews.bnuzh.edu.cn/tzgs/79d34640faf147bab80fb2031e47eb9c.htm",
+        rawUrl: "https://xcb.bnuzh.edu.cn/xqxw/tzgs/79d34640faf147bab80fb2031e47eb9c.htm",
         rawPublishedAt: "2026-03-17",
         rawChannel: "通知公告",
         rawSummary: undefined,
@@ -129,8 +130,8 @@ describe("zhxqxww parser", () => {
 
     const reportPage = createPage({
       requestId: "zhbd",
-      requestUrl: "https://zhnews.bnuzh.edu.cn/zhbd/index.htm",
-      finalUrl: "https://zhnews.bnuzh.edu.cn/zhbd/index.htm",
+      requestUrl: "https://xcb.bnuzh.edu.cn/xqxw/zhbd/index.htm",
+      finalUrl: "https://xcb.bnuzh.edu.cn/xqxw/zhbd/index.htm",
       bodyText: `
         <body>
           <section class="articleList02 articleList03 clearFix">
@@ -162,8 +163,8 @@ describe("zhxqxww parser", () => {
 
     const mediaPage = createPage({
       requestId: "mtsd",
-      requestUrl: "https://zhnews.bnuzh.edu.cn/mtsd/index.htm",
-      finalUrl: "https://zhnews.bnuzh.edu.cn/mtsd/index.htm",
+      requestUrl: "https://xcb.bnuzh.edu.cn/xqxw/mtsd/index.htm",
+      finalUrl: "https://xcb.bnuzh.edu.cn/xqxw/mtsd/index.htm",
       bodyText: `
         <body>
           <section class="articleList02 articleList03 clearFix">
@@ -195,8 +196,8 @@ describe("zhxqxww parser", () => {
 
     const photoPage = createPage({
       requestId: "gysd",
-      requestUrl: "https://zhnews.bnuzh.edu.cn/gysd/index.htm",
-      finalUrl: "https://zhnews.bnuzh.edu.cn/gysd/index.htm",
+      requestUrl: "https://xcb.bnuzh.edu.cn/gysd/index.htm",
+      finalUrl: "https://xcb.bnuzh.edu.cn/gysd/index.htm",
       bodyText: `
         <body>
           <section class="articleList02 articleList03 clearFix">
@@ -218,7 +219,7 @@ describe("zhxqxww parser", () => {
         sourceId: "b3e7c5f24a434f788257a698f79c37ff",
         rawId: "0ec6b290f35b4b61a5eaa8ed2e9ef0c6.htm",
         rawTitle: "励教楼",
-        rawUrl: "https://zhnews.bnuzh.edu.cn/gysd/0ec6b290f35b4b61a5eaa8ed2e9ef0c6.htm",
+        rawUrl: "https://xcb.bnuzh.edu.cn/gysd/0ec6b290f35b4b61a5eaa8ed2e9ef0c6.htm",
         rawPublishedAt: undefined,
         rawChannel: "光影师大",
         rawSummary: undefined,

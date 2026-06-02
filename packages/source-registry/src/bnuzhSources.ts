@@ -3,6 +3,7 @@ import type { SourceDescriptor } from "@bnuz-feed/contracts";
 import { implementedBnuzhFetchTargets } from "./bnuzh";
 
 export const bnuzhSources: SourceDescriptor[] = [
+  { id: "cededbda72044b06bea8893d2c43c8c7", name: "珠海管委会", entryUrls: ["https://zhb.bnu.edu.cn"], parserKey: "bnuzh/zhgwh", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "9f333a97019248b0bf8f48b232397257", name: "党委保卫工作办公室", entryUrls: ["https://dwbw.bnuzh.edu.cn"], parserKey: "bnuzh/dwbwgzbgs", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "0eb7d5617b434e70baf90c78007fbe01", name: "北京师范大学珠海校区实验室安全与设备管理办公室", entryUrls: ["https://ssb.bnuzh.edu.cn"], parserKey: "bnuzh/bjsfdxzhxqsysaqysbglbgs", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "1f38a8b49b964025b9b187440ba345d0", name: "北京师范大学儿童博物馆线上馆", entryUrls: ["http://childrensmuseum.bnuzh.edu.cn"], parserKey: "bnuzh/bjsfdxetbwg", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
@@ -44,7 +45,7 @@ export const bnuzhSources: SourceDescriptor[] = [
   { id: "75e9fe7e62fb4d13a04c54339b880077", name: "教务部", entryUrls: ["https://jwb.bnuzh.edu.cn/"], parserKey: "bnuzh/jwb", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "57c21fb282a442bc936ce7188d98ed82", name: "凤凰书院英文网", entryUrls: ["https://phs.bnuzh.edu.cn/English/"], parserKey: "bnuzh/fhsyyww", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "7de05bfb07b44620b482d189a2d7cc44", name: "凤凰书院", entryUrls: ["https://phs.bnuzh.edu.cn/"], parserKey: "bnuzh/fhsy", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
-  { id: "b3e7c5f24a434f788257a698f79c37ff", name: "新闻网", entryUrls: ["https://zhnews.bnuzh.edu.cn"], parserKey: "bnuzh/zhxqxww", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
+  { id: "b3e7c5f24a434f788257a698f79c37ff", name: "党委宣传工作办公室(新闻中心)", entryUrls: ["https://xcb.bnuzh.edu.cn"], parserKey: "bnuzh/zhxqxww", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "bfa3769881d248c5a8c379f84ba47149", name: "人才办", entryUrls: ["http://hr.bnuzh.edu.cn/"], parserKey: "bnuzh/rcb", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "1bd3af39c2cf4c2bbe07a1c2bc12e76b", name: "珠海校区英文网", entryUrls: ["http://english.bnuzh.edu.cn/"], parserKey: "bnuzh/ebnuz", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } },
   { id: "f018e769b2bd4733a968e902befe7e17", name: "北京师范大学珠海校区主站", entryUrls: ["http://www.bnuzh.edu.cn"], parserKey: "bnuzh/bnuz", enabled: true, capabilities: { browserFetch: true, snapshotFallback: true } }

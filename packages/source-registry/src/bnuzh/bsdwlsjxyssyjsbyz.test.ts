@@ -10,9 +10,9 @@ describe("bsdwlsjxyssyjsbyzParser", () => {
   it("extracts project-directory items from a section page", async () => {
     const page: RawPage = {
       sourceId: "d0cbeecb90a14a169dfe9cdb2c97c270",
-      requestId: "gszj",
-      requestUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gszj/index.htm",
-      finalUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gszj/index.htm",
+      requestId: "wmzy",
+      requestUrl: "https://sfd-degreeshow.bnuzh.edu.cn/wmzy/index.htm",
+      finalUrl: "https://sfd-degreeshow.bnuzh.edu.cn/wmzy/index.htm",
       fetchedAt: "2026-03-21T00:00:00.000Z",
       bodyText: `
         <html>
@@ -24,7 +24,7 @@ describe("bsdwlsjxyssyjsbyzParser", () => {
                     <span>钟远明</span>
                     <span class="en">Zhong Yuanming</span>
                   </span>
-                  <img class="avatar" src="../gszj/zym/avatar.jpg" alt="">
+                  <img class="avatar" src="../wmzy/chj/avatar.jpg" alt="">
                 </a>
               </li>
               <li class="enter-item" data-index="1">
@@ -33,7 +33,7 @@ describe("bsdwlsjxyssyjsbyzParser", () => {
                     <span>赵旭</span>
                     <span class="en">Zhao Xu</span>
                   </span>
-                  <img class="avatar" src="../gszj/zx/avatar.jpg" alt="">
+                  <img class="avatar" src="../wmzy/fyy/avatar.jpg" alt="">
                 </a>
               </li>
             </ul>
@@ -49,24 +49,24 @@ describe("bsdwlsjxyssyjsbyzParser", () => {
         sourceId: "d0cbeecb90a14a169dfe9cdb2c97c270",
         rawId: "zym/index.htm",
         rawTitle: "钟远明",
-        rawUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gszj/zym/index.htm",
+        rawUrl: "https://sfd-degreeshow.bnuzh.edu.cn/wmzy/zym/index.htm",
         rawPublishedAt: undefined,
-        rawChannel: "共生之间",
+        rawChannel: "文脉织影",
         rawSummary: "Zhong Yuanming",
         extras: {
-          requestId: "gszj",
+          requestId: "wmzy",
         },
       },
       {
         sourceId: "d0cbeecb90a14a169dfe9cdb2c97c270",
         rawId: "zx/index.htm",
         rawTitle: "赵旭",
-        rawUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gszj/zx/index.htm",
+        rawUrl: "https://sfd-degreeshow.bnuzh.edu.cn/wmzy/zx/index.htm",
         rawPublishedAt: undefined,
-        rawChannel: "共生之间",
+        rawChannel: "文脉织影",
         rawSummary: "Zhao Xu",
         extras: {
-          requestId: "gszj",
+          requestId: "wmzy",
         },
       },
     ]);
@@ -75,9 +75,9 @@ describe("bsdwlsjxyssyjsbyzParser", () => {
   it("supports another section target with the same list structure", async () => {
     const page: RawPage = {
       sourceId: "d0cbeecb90a14a169dfe9cdb2c97c270",
-      requestId: "gzzj",
-      requestUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gzzj/index.htm",
-      finalUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gzzj/index.htm",
+      requestId: "gxtp",
+      requestUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gxtp/index.htm",
+      finalUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gxtp/index.htm",
       fetchedAt: "2026-03-21T00:00:00.000Z",
       bodyText: `
         <html>
@@ -104,12 +104,12 @@ describe("bsdwlsjxyssyjsbyzParser", () => {
         sourceId: "d0cbeecb90a14a169dfe9cdb2c97c270",
         rawId: "zyn/index.htm",
         rawTitle: "周云诺",
-        rawUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gzzj/zyn/index.htm",
+        rawUrl: "https://sfd-degreeshow.bnuzh.edu.cn/gxtp/zyn/index.htm",
         rawPublishedAt: undefined,
-        rawChannel: "感知之间",
+        rawChannel: "关系拓扑",
         rawSummary: "Zhou Yunnuo",
         extras: {
-          requestId: "gzzj",
+          requestId: "gxtp",
         },
       },
     ]);
