@@ -5,6 +5,8 @@ type FetchFn = typeof fetch;
 export interface SnapshotFetchOptions {
   browserHosts: Iterable<string>;
   browserTimeoutMs: number;
+  browserChannel?: string;
+  browserExecutablePath?: string;
   nativeFetch?: FetchFn;
 }
 
@@ -15,6 +17,11 @@ export interface SnapshotFetchHandle {
 
 function normalizeHost(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function normalizeOptionalValue(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
 }
 
 export function parseBrowserHostList(value: string | undefined): string[] {
@@ -67,8 +74,14 @@ export function createHostScopedFetch(
   };
 }
 
-async function createPlaywrightFetch(browserTimeoutMs: number): Promise<FetchFn & { dispose(): Promise<void> }> {
+async function createPlaywrightFetch(options: {
+  browserTimeoutMs: number;
+  browserChannel?: string;
+  browserExecutablePath?: string;
+}): Promise<FetchFn & { dispose(): Promise<void> }> {
   let browser: Browser | null = null;
+  const browserChannel = normalizeOptionalValue(options.browserChannel);
+  const browserExecutablePath = normalizeOptionalValue(options.browserExecutablePath);
 
   async function getBrowser(): Promise<Browser> {
     if (browser) {
@@ -79,6 +92,8 @@ async function createPlaywrightFetch(browserTimeoutMs: number): Promise<FetchFn 
     browser = await chromium.launch({
       headless: true,
       args: ["--disable-dev-shm-usage"],
+      ...(browserChannel ? { channel: browserChannel } : {}),
+      ...(browserExecutablePath ? { executablePath: browserExecutablePath } : {}),
     });
     return browser;
   }
@@ -100,7 +115,7 @@ async function createPlaywrightFetch(browserTimeoutMs: number): Promise<FetchFn 
       const navigationPromise = (async () => {
         const response = await page.goto(url, {
           waitUntil: "domcontentloaded",
-          timeout: browserTimeoutMs,
+          timeout: options.browserTimeoutMs,
         });
 
         if (!response) {
@@ -169,7 +184,11 @@ export async function createSnapshotFetch(options: SnapshotFetchOptions): Promis
     };
   }
 
-  const browserFetch = await createPlaywrightFetch(options.browserTimeoutMs);
+  const browserFetch = await createPlaywrightFetch({
+    browserTimeoutMs: options.browserTimeoutMs,
+    browserChannel: options.browserChannel,
+    browserExecutablePath: options.browserExecutablePath,
+  });
 
   return {
     fetchFn: createHostScopedFetch(nativeFetch, browserFetch, browserHosts),

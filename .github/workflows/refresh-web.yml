@@ -58,8 +58,10 @@ jobs:
       BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 5000
       BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS: 5000
       BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS: www.bnuzh.edu.cn
+      BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL: chrome
       BNUZ_FEED_SNAPSHOT_CONCURRENCY: 3
       BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY: 2
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
     steps:
       - name: Checkout
@@ -84,24 +86,12 @@ jobs:
             echo "VITE_BASE_PATH=/${repo_name}/" >> "$GITHUB_ENV"
           fi
 
-      - name: Configure Playwright download mirror
-        if: vars.PLAYWRIGHT_DOWNLOAD_HOST != ''
-        run: echo "PLAYWRIGHT_DOWNLOAD_HOST=${{ vars.PLAYWRIGHT_DOWNLOAD_HOST }}" >> "$GITHUB_ENV"
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright Chromium
-        timeout-minutes: 10
-        run: npx playwright install chromium
+      - name: Verify system Chrome
+        timeout-minutes: 1
+        run: google-chrome --version
 
       - name: Generate snapshot data
         timeout-minutes: 15

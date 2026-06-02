@@ -63,6 +63,8 @@ async function main() {
   const timeoutMs = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_TIMEOUT_MS, 5000);
   const browserHosts = parseBrowserHostList(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS);
   const browserTimeoutMs = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS, timeoutMs);
+  const browserChannel = process.env.BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL?.trim() || undefined;
+  const browserExecutablePath = process.env.BNUZ_FEED_SNAPSHOT_BROWSER_EXECUTABLE_PATH?.trim() || undefined;
   const parserRegistry = createParserRegistry();
   const normalizer = createDefaultNormalizer();
   const requestOptions = {
@@ -76,6 +78,8 @@ async function main() {
       ? await createSnapshotFetch({
         browserHosts,
         browserTimeoutMs,
+        browserChannel,
+        browserExecutablePath,
       })
       : null;
     const fetchFn = snapshotFetch?.fetchFn ?? fetch;

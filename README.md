@@ -130,6 +130,8 @@ npm run build
 - `BNUZ_FEED_SNAPSHOT_ROUND_LIMIT=2`
 - `BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS=5000`
 - `BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS=www.bnuzh.edu.cn`
+- `BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL=chrome`
+- `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`
 
 自动刷新计划当前为：北京时间每日 `06:00` 开始每 `15` 分钟执行一次，`22:00` 为最后一次触发。手动刷新已合并到同一个部署工作流的 `workflow_dispatch` 入口。
 
@@ -137,7 +139,7 @@ npm run build
 
 整个 `build` job 与 `Generate snapshot data` 步骤都保留 `15` 分钟硬上限，避免上一轮刷新拖到下一轮并形成连锁取消。`push`/手动触发的 `check` 与 `test` 被拆到独立 `validate` job，不再挤占定时刷新的 15 分钟构建预算。
 
-Playwright 仍用于 `www.bnuzh.edu.cn` 的浏览器兜底抓取。Actions 会缓存 `~/.cache/ms-playwright`，并只安装 Chromium 浏览器本体；不把浏览器二进制提交进仓库。若默认 CDN 下载不稳定，可在仓库变量中设置 `PLAYWRIGHT_DOWNLOAD_HOST`，例如指向内部制品库或可信镜像源，工作流会自动使用该下载源。
+Playwright 仍用于 `www.bnuzh.edu.cn` 的浏览器兜底抓取，但 Actions 不再下载 Playwright 自带 Chromium，也不把浏览器二进制提交进仓库。GitHub hosted Ubuntu runner 预装了 Chrome/Chromium，工作流通过 `BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL=chrome` 让 Playwright 直接控制系统 Chrome。若将来迁移到没有预装 Chrome 的自托管 runner，可设置 `BNUZ_FEED_SNAPSHOT_BROWSER_EXECUTABLE_PATH` 指向本机浏览器。
 
 ## 部署
 
@@ -145,7 +147,7 @@ Playwright 仍用于 `www.bnuzh.edu.cn` 的浏览器兜底抓取。Actions 会�
 
 1. 安装依赖。
 2. 在 `push` 或手动触发时并行执行 `npm run check` 与 `npm test`。
-3. 缓存并安装 Playwright Chromium。
+3. 校验 runner 预装的系统 Chrome。
 4. 执行 `npm run snapshot`。
 5. 执行 `node scripts/check-snapshot-health.cjs`。
 6. 执行 `npm run build`。
