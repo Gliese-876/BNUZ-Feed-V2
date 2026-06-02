@@ -20,13 +20,36 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-refresh-${{ github.ref }}
+  group: pages-refresh-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
+  validate:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate source registry
+        run: |
+          npm run check
+          npm test
+
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     env:
       BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS: 10
       BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS: 5
@@ -61,17 +84,24 @@ jobs:
             echo "VITE_BASE_PATH=/${repo_name}/" >> "$GITHUB_ENV"
           fi
 
+      - name: Configure Playwright download mirror
+        if: vars.PLAYWRIGHT_DOWNLOAD_HOST != ''
+        run: echo "PLAYWRIGHT_DOWNLOAD_HOST=${{ vars.PLAYWRIGHT_DOWNLOAD_HOST }}" >> "$GITHUB_ENV"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate source registry
-        if: github.event_name != 'schedule'
-        run: |
-          npm run check
-          npm test
-
       - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 10
+        run: npx playwright install chromium
 
       - name: Generate snapshot data
         timeout-minutes: 15
@@ -89,7 +119,10 @@ jobs:
           path: apps/web/dist
 
   deploy:
-    needs: build
+    needs:
+      - validate
+      - build
+    if: always() && needs.build.result == 'success' && (needs.validate.result == 'success' || needs.validate.result == 'skipped')
     runs-on: ubuntu-latest
     concurrency:
       group: pages-deploy

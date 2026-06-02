@@ -135,16 +135,21 @@ npm run build
 
 失败路径保留单轮内的原有重试强度，但整轮上限从 `3` 轮收敛为 `2` 轮；同时 `Generate snapshot data` 步骤设置 `15` 分钟硬上限。按历史失败日志估算，两轮完整失败约 `13` 分钟，步骤超时确保重试预算不会超过一个定时周期。
 
+整个 `build` job 与 `Generate snapshot data` 步骤都保留 `15` 分钟硬上限，避免上一轮刷新拖到下一轮并形成连锁取消。`push`/手动触发的 `check` 与 `test` 被拆到独立 `validate` job，不再挤占定时刷新的 15 分钟构建预算。
+
+Playwright 仍用于 `www.bnuzh.edu.cn` 的浏览器兜底抓取。Actions 会缓存 `~/.cache/ms-playwright`，并只安装 Chromium 浏览器本体；不把浏览器二进制提交进仓库。若默认 CDN 下载不稳定，可在仓库变量中设置 `PLAYWRIGHT_DOWNLOAD_HOST`，例如指向内部制品库或可信镜像源，工作流会自动使用该下载源。
+
 ## 部署
 
 当前仓库默认使用“生成快照 + 构建静态站点 + GitHub Pages 发布”的方式部署：
 
 1. 安装依赖。
-2. 在 `push` 或手动触发时执行 `npm run check` 与 `npm test`。
-3. 执行 `npm run snapshot`。
-4. 执行 `node scripts/check-snapshot-health.cjs`。
-5. 执行 `npm run build`。
-6. 发布 `apps/web/dist`。
+2. 在 `push` 或手动触发时并行执行 `npm run check` 与 `npm test`。
+3. 缓存并安装 Playwright Chromium。
+4. 执行 `npm run snapshot`。
+5. 执行 `node scripts/check-snapshot-health.cjs`。
+6. 执行 `npm run build`。
+7. 发布 `apps/web/dist`。
 
 工作流会根据仓库名自动设置 `VITE_BASE_PATH`，因此项目型 Pages 地址 `/<repo>/` 与根域名 Pages 地址 `/` 都可以正确生成资源路径。
 
