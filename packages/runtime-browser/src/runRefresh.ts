@@ -151,6 +151,14 @@ async function fetchPage(
       });
     }
 
+    if (error instanceof Error && error.cause && typeof error.cause === "object") {
+      const cause = error.cause as { code?: unknown; message?: unknown };
+      const details = [cause.code, cause.message].filter((value) => typeof value === "string").join(": ");
+      if (details) {
+        throw new AggregationError("FETCH_FAILED", `${error.message} (${details})`, { requestUrl });
+      }
+    }
+
     throw error;
   } finally {
     clearTimeout(timeout);

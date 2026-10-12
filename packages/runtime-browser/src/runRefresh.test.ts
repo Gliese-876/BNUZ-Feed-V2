@@ -35,6 +35,21 @@ function wait(ms: number): Promise<void> {
 }
 
 describe("executeBrowserRefresh", () => {
+  it("preserves network failure causes for cloud connection diagnostics", async () => {
+    const cause = Object.assign(new Error("certificate verification failed"), { code: "UNABLE_TO_VERIFY_LEAF_SIGNATURE" });
+    const snapshot = await executeBrowserRefresh({
+      sources: [createSource("alpha", 1)],
+      parserRegistry: { get: () => ({ parse: async () => [] }) },
+      normalizer: createDefaultNormalizer(),
+      requestOptions: { concurrency: 1, timeoutMs: 1000 },
+      fetchFn: vi.fn<typeof fetch>().mockRejectedValue(new TypeError("fetch failed", { cause })),
+    });
+    expect(snapshot.sourceHealth.alpha).toMatchObject({
+      status: "network_error", errorCode: "FETCH_FAILED",
+      message: "fetch failed (UNABLE_TO_VERIFY_LEAF_SIGNATURE: certificate verification failed)",
+    });
+  });
+
   it("normalizes invalid concurrency and classifies thrown parser errors", async () => {
     const fetchFn = vi.fn<typeof fetch>().mockResolvedValue({
       ok: true,
