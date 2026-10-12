@@ -137,7 +137,9 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    # Scheduled refreshes skip validate. Override the implicit success() check
+    # so a skipped ancestor does not suppress deployment of a successful build.
+    if: ${{ !cancelled() && needs.build.result == 'success' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
