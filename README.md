@@ -26,6 +26,8 @@ npm run build          # 构建到 apps/web/dist
 
 `npm run build:snapshot` 可以连续生成快照并构建。单独构建使用仓库中已有的快照；其数据时间显示在页面上。
 
+支持 PWA 安装与离线阅读。浏览器允许安装时，首页更新时间旁显示“安装应用”；也可使用浏览器的安装菜单。首次联网打开后，断网仍可查看已缓存的页面与信息，原文链接需联网访问。新版页面准备好后显示“更新应用”，点击才刷新页面。实现与验证方式见 [PWA](docs/pwa.md)。
+
 ## 数据与运行方式
 
 站点清单以[校区官方全文搜索页](https://www.bnuzh.edu.cn/cms/web/search/index.jsp)的 `siteList` 为依据。可抓取来源、入口和解析器在 `packages/source-registry` 维护；暂无公开可抓内容的官方站点仍可从官方搜索入口访问。最新核验结果、站点结构变化和接入限制见 [站点文档](docs/site-structure.md)。

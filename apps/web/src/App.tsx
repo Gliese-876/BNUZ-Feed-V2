@@ -6,6 +6,7 @@ import { buildFeedIndex, filterFeedIndex } from "./feedIndex";
 import { FeedList } from "./FeedList";
 import { formatDate } from "./formatDate";
 import { OfficialSearchDialog } from "./OfficialSearchDialog";
+import { PwaControls } from "./PwaControls";
 import { aggregationService, appRuntimeConfig } from "./runtime/createAggregationService";
 import { buildItemStats, countVisibleRawItems, sourceCatalog, totalSourceChannelCount } from "./sourceCatalog";
 import { SourcePanel } from "./SourcePanel";
@@ -103,7 +104,7 @@ function RuntimeShell() {
           <div><span className="intro-metrics__label">SOURCES / 信息源</span><strong>{sourceCatalog.length}<small> 个</small></strong><span>公开站点</span></div>
           <div><span className="intro-metrics__label">CHANNELS / 栏目</span><strong>{totalSourceChannelCount}<small> 个</small></strong><span>可选栏目</span></div>
         </div>
-        <div className="intro-card__footer"><span>最近更新 / {formatDate(snapshot?.updatedAt, true)}</span><span>公开信息聚合 · 原文直达 ↗</span></div>
+        <div className="intro-card__footer"><span>最近更新 / {formatDate(snapshot?.updatedAt, true)}</span><PwaControls /><span>公开信息聚合 · 原文直达 ↗</span></div>
       </section>
 
       <section aria-labelledby="feed-title" className="content" id="feed-content" tabIndex={-1}>

@@ -91,7 +91,7 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
 .intro-metrics small { font-size: .8rem; letter-spacing: 0; font-weight: 400; }
 .intro-metrics span { color: var(--muted); font-size: .69rem; }
 .intro-metrics .intro-metrics__label { color: var(--text); font-size: .6rem; font-weight: 700; letter-spacing: .025em; white-space: nowrap; }
-.intro-card__footer { display: flex; justify-content: space-between; gap: 16px; grid-column: 1 / -1; border-top: 1px solid var(--line); padding: 14px 0; color: var(--muted); font-size: .68rem; }
+.intro-card__footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; grid-column: 1 / -1; border-top: 1px solid var(--line); padding: 14px 0; color: var(--muted); font-size: .68rem; }
 
 .content { margin-top: 28px; outline: none; }
 .content__heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 20px; border-bottom: 2px solid var(--text); }
@@ -139,6 +139,7 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
 .empty-state > span:not(.empty-state__symbol) { color: var(--muted); font-size: .8rem; }
 .app-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 32px; padding: 24px 0; border-top: 2px solid var(--text); color: var(--muted); font-size: .65rem; }
 .app-footer strong { color: var(--text); font-size: 1rem; letter-spacing: -.055em; }
+.pwa-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 
 .app__scrim, .search-dialog__backdrop { position: fixed; inset: 0; z-index: 50; background: #0007; }
 .source-panel { position: fixed; z-index: 51; inset: 0 0 0 auto; display: flex; flex-direction: column; width: min(480px, 100%); background: var(--surface); border-left: 1px solid var(--text); outline: none; }
@@ -261,9 +262,6 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
   .collection-switch button { gap: 6px; padding: 0 10px; font-size: .74rem; white-space: nowrap; }
   .collection-switch span { padding: 2px 4px; font-size: .56rem; white-space: nowrap; }
 }
-
-.topbar, .intro-card__footer, .content__heading, .feed-list, .app-footer { margin-inline: calc(-1 * var(--content-gutter)); }
-.topbar, .intro-card__footer, .content__heading, .app-footer { padding-inline: var(--content-gutter); }
 
 @media (prefers-reduced-motion: no-preference) {
   .button, .icon-button, .feed-card__link, .feed-card h3 { transition: background-color 120ms ease, color 120ms ease; }
