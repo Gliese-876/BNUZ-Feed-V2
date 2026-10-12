@@ -30,6 +30,26 @@ function createSnapshot(
 }
 
 describe("createLayeredAggregationService", () => {
+  it("does not roll readable data back to an older offline or CDN snapshot", async () => {
+    const cached = { ...createSnapshot("snapshot"), updatedAt: "2026-03-16T10:00:00Z" };
+    const older = createSnapshot("snapshot", [createItem("notice", "old", "snapshot")]);
+    const newer = { ...createSnapshot("snapshot", [createItem("notice", "new", "snapshot")]), updatedAt: "2026-03-17T10:00:00Z" };
+    const repository = { load: vi.fn().mockResolvedValue(cached), save: vi.fn() };
+    const service = createLayeredAggregationService({
+      primary: { refresh: vi.fn().mockResolvedValueOnce(older).mockResolvedValueOnce(newer) }, repository,
+    });
+    await service.bootstrap();
+    const listener = vi.fn();
+    service.subscribe(listener);
+    expect((await service.refresh()).updatedAt).toBe(cached.updatedAt);
+    expect(service.getSnapshot()?.items[0]?.id).toBe("item-1");
+    expect(repository.save).not.toHaveBeenCalled();
+    expect(listener).not.toHaveBeenCalled();
+    expect((await service.refresh()).updatedAt).toBe(newer.updatedAt);
+    expect(repository.save).toHaveBeenCalledOnce();
+    expect(listener).toHaveBeenCalledOnce();
+  });
+
   it("coalesces bootstrap and commits a following refresh after cache hydration", async () => {
     let loadCache!: (snapshot: FeedSnapshot) => void;
     const repository: Repository = {

@@ -92,6 +92,11 @@ export function createLayeredAggregationService(
   }
 
   function mergeSnapshot(nextSnapshot: FeedSnapshot, sourceIds?: SourceId[]): FeedSnapshot {
+    if (currentSnapshot && !sourceIds?.length && nextSnapshot.origin !== "live" &&
+      Date.parse(nextSnapshot.updatedAt) < Date.parse(currentSnapshot.updatedAt)) {
+      // An offline/CDN response must not replace newer readable data.
+      return currentSnapshot;
+    }
     if (!currentSnapshot || (!sourceIds?.length && nextSnapshot.origin !== "live")) {
       return nextSnapshot;
     }
@@ -150,7 +155,8 @@ export function createLayeredAggregationService(
           ) {
             throw new AggregationError("FETCH_FAILED", "No source returned readable feed data.");
           }
-          return applySnapshot(mergeSnapshot(snapshot, sourceIds), true);
+          const merged = mergeSnapshot(snapshot, sourceIds);
+          return merged === currentSnapshot ? cloneSnapshot(merged) : applySnapshot(merged, true);
         } catch (error) {
           if (currentSnapshot) {
             throw error;

@@ -60,7 +60,7 @@ function RuntimeShell() {
     return filterFeedIndex(indexedItems, sourceSet, channelSet, deferredFeedQuery);
   }, [channelSet, deferredFeedQuery, indexedItems, snapshot?.items, sourceSet]);
   const visibleRawItemCount = useMemo(() => countVisibleRawItems(visibleItems, sourceSet, channelSet), [channelSet, sourceSet, visibleItems]);
-  const resetKey = `${snapshot?.updatedAt ?? "empty"}::${deferredFeedQuery}::${selectedSourceIds.join("|")}::${selectedChannelKeys.join("|")}`;
+  const resetKey = `${deferredFeedQuery}::${selectedSourceIds.join("|")}::${selectedChannelKeys.join("|")}`;
   const { canLoadMore, loadMore, renderedCount, sentinelRef } = useIncrementalFeedWindow(visibleItems.length, resetKey);
   const renderedItems = useMemo(() => visibleItems.slice(0, renderedCount), [renderedCount, visibleItems]);
 
