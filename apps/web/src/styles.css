@@ -14,7 +14,7 @@
   --blue: #2948d9;
   --yellow: #f4d447;
   --pink: #efafc2;
-  --row-hover: #e9edf7;
+  --row-hover: #e8e8e2;
   --selection-bg: #2948d9;
   --on-accent: #fff;
   --button-bg: #d62c20;
@@ -36,7 +36,7 @@
     --primary-soft: #3a2725;
     --focus: #a3b4ff;
     --blue: #91a5ff;
-    --row-hover: #293542;
+    --row-hover: #2c3033;
     --button-bg: #bd3026;
     --button-hover: #a5261f;
     --title-highlight: #66541e;
@@ -120,7 +120,7 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
 
 .feed-list { border-top: 1px solid var(--text); }
 .feed-card { border-bottom: 1px solid var(--line); content-visibility: auto; contain-intrinsic-size: auto 190px; }
-.feed-card__link { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 3fr); column-gap: 32px; row-gap: 12px; padding: 28px 0; }
+.feed-card__link { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(0, 3fr); column-gap: 32px; row-gap: 12px; padding: 28px 20px; }
 .feed-card__link:focus-visible { outline-offset: -2px; background: var(--row-hover); }
 .feed-card__meta { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; grid-column: 1; grid-row: 1 / span 3; padding-top: 4px; }
 .feed-chip { color: var(--muted); font-size: .72rem; }
@@ -178,7 +178,6 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
   .button--filled:not(:disabled):hover { background: var(--button-hover); }
   .button--tonal:hover, .button--outline:hover, .button--text:hover, .icon-button:hover { background: var(--soft); }
   .feed-card__link:hover { background: var(--row-hover); }
-  .feed-card__link:hover h3, .feed-card__link:hover .feed-card__read { color: var(--primary); }
 }
 
 @media (max-width: 900px) {
@@ -233,7 +232,7 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
   .content__count strong { margin: 0 5px; font-size: 1.5rem; }
   .field > span, .field > label { font-size: .7rem; }
   .field input, .field select { font-size: .78rem; }
-  .feed-card__link { grid-template-columns: 1fr; row-gap: 10px; padding: 22px 0; }
+  .feed-card__link { grid-template-columns: 1fr; row-gap: 10px; padding: 22px 14px; }
   .feed-card__meta { flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 7px 12px; grid-column: 1; grid-row: auto; padding: 0; }
   .feed-chip, .feed-card__date { font-size: .63rem; }
   .feed-chip--source { font-size: .67rem; }
