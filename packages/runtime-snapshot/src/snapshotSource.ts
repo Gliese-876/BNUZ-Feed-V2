@@ -9,7 +9,7 @@ import {
 
 export interface SnapshotSourceOptions {
   feedSnapshotUrl: string;
-  sourceHealthUrl: string;
+  sourceHealthUrl?: string;
   fetchFn?: typeof fetch;
 }
 
@@ -27,7 +27,7 @@ function normalizeChannel(value: unknown): string | undefined {
 
 function normalizeRawOccurrences(record: Partial<FeedItem>): FeedItemOccurrence[] {
   if (Array.isArray(record.rawOccurrences) && record.rawOccurrences.length > 0) {
-    return record.rawOccurrences.map((occurrence) => {
+    const occurrences = record.rawOccurrences.filter(isRecord).map((occurrence) => {
       const entry = occurrence as Partial<FeedItemOccurrence>;
 
       return {
@@ -36,6 +36,9 @@ function normalizeRawOccurrences(record: Partial<FeedItem>): FeedItemOccurrence[
         count: normalizeOccurrenceCount(entry.count),
       };
     });
+    if (occurrences.length > 0) {
+      return occurrences;
+    }
   }
 
   const sourceIds =
@@ -60,8 +63,16 @@ function normalizeRawOccurrences(record: Partial<FeedItem>): FeedItemOccurrence[
   }));
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function optionalText(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
 function normalizeItems(items: unknown[]): FeedItem[] {
-  return items.map((item) => {
+  return items.filter(isRecord).map((item) => {
     const record = item as Partial<FeedItem>;
     const rawOccurrences = normalizeRawOccurrences(record);
 
@@ -73,9 +84,9 @@ function normalizeItems(items: unknown[]): FeedItem[] {
         : [String(record.sourceId ?? "")],
       title: String(record.title ?? ""),
       url: String(record.url ?? ""),
-      publishedAt: record.publishedAt,
-      channel: record.channel,
-      summary: record.summary,
+      publishedAt: optionalText(record.publishedAt),
+      channel: normalizeChannel(record.channel),
+      summary: optionalText(record.summary),
       fetchedAt: String(record.fetchedAt ?? new Date().toISOString()),
       freshness: "snapshot",
       rawCount: rawOccurrences.reduce((total, occurrence) => total + occurrence.count, 0),
@@ -85,24 +96,28 @@ function normalizeItems(items: unknown[]): FeedItem[] {
 }
 
 function normalizeSourceHealthMap(sourceHealth: unknown): Record<string, SourceHealth> {
-  if (!sourceHealth || typeof sourceHealth !== "object") {
+  if (!isRecord(sourceHealth)) {
     return {};
   }
 
   return Object.fromEntries(
-    Object.entries(sourceHealth as Record<string, Partial<SourceHealth>>).map(([sourceId, entry]) => [
-      sourceId,
-      {
-        sourceId,
-        status: entry.status ?? "snapshot",
-        checkedAt: entry.checkedAt ?? new Date().toISOString(),
-        itemCount: entry.itemCount ?? 0,
-        message: entry.message,
-        errorCode: entry.errorCode,
-        lastSuccessAt: entry.lastSuccessAt,
-        requestUrl: entry.requestUrl,
-      },
-    ]),
+    Object.entries(sourceHealth)
+      .filter(([, entry]) => isRecord(entry))
+      .map(([sourceId, value]) => {
+        const entry = value as Partial<SourceHealth>;
+        return [sourceId, {
+          sourceId,
+          status: entry.status ?? "snapshot",
+          checkedAt: optionalText(entry.checkedAt) ?? new Date().toISOString(),
+          itemCount: typeof entry.itemCount === "number" && Number.isFinite(entry.itemCount)
+            ? Math.max(0, Math.floor(entry.itemCount))
+            : 0,
+          message: optionalText(entry.message),
+          errorCode: entry.errorCode,
+          lastSuccessAt: optionalText(entry.lastSuccessAt),
+          requestUrl: optionalText(entry.requestUrl),
+        }];
+      }),
   );
 }
 
@@ -119,16 +134,22 @@ export function createSnapshotSource(options: SnapshotSourceOptions): FeedSource
       );
     }
 
-    const snapshotJson = (await snapshotResponse.json()) as Partial<FeedSnapshot>;
+    const payload: unknown = await snapshotResponse.json();
+    if (!isRecord(payload)) {
+      throw new AggregationError("SNAPSHOT_FAILED", "Snapshot payload must be an object.");
+    }
+    const snapshotJson = payload as Partial<FeedSnapshot>;
     let sourceHealth = normalizeSourceHealthMap(snapshotJson.sourceHealth);
 
-    try {
-      const healthResponse = await fetchFn(options.sourceHealthUrl);
-      if (healthResponse.ok) {
-        sourceHealth = normalizeSourceHealthMap(await healthResponse.json());
+    if (Object.keys(sourceHealth).length === 0 && options.sourceHealthUrl) {
+      try {
+        const healthResponse = await fetchFn(options.sourceHealthUrl);
+        if (healthResponse.ok) {
+          sourceHealth = normalizeSourceHealthMap(await healthResponse.json());
+        }
+      } catch {
+        // Sidecar health data is optional for older snapshots.
       }
-    } catch {
-      // Sidecar health data is optional.
     }
 
     return {

@@ -80,14 +80,15 @@ function resolveValue(
 }
 
 function resolveUrl(url: string | undefined, page: RawPage): string | undefined {
-  if (!url) {
+  if (!url || url.startsWith("#")) {
     return undefined;
   }
 
   try {
-    return new URL(url, page.finalUrl || page.requestUrl).toString();
+    const resolved = new URL(url, page.finalUrl || page.requestUrl);
+    return resolved.protocol === "https:" || resolved.protocol === "http:" ? resolved.toString() : undefined;
   } catch {
-    return url;
+    return undefined;
   }
 }
 

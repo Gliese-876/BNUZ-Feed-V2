@@ -1,9 +1,10 @@
 import {
   createContext,
   startTransition,
+  useCallback,
   useContext,
   useEffect,
-  useEffectEvent,
+  useMemo,
   useState,
   type PropsWithChildren,
 } from "react";
@@ -30,42 +31,52 @@ export function FeedProvider({
   children,
   service,
 }: FeedProviderProps) {
-  const [snapshot, setSnapshot] = useState<FeedSnapshot | null>(service.getSnapshot());
+  const [snapshot, setSnapshot] = useState<FeedSnapshot | null>(() => service.getSnapshot());
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const session = useMemo(() => ({ active: true, pending: 0 }), [service]);
 
-  const syncFromService = useEffectEvent(() => {
-    startTransition(() => {
-      setSnapshot(service.getSnapshot());
-    });
-  });
+  const runRefresh = useCallback(async (sourceIds?: string[]) => {
+    if (!session.active) {
+      return service.getSnapshot();
+    }
 
-  const runRefresh = useEffectEvent(async (sourceIds?: string[]) => {
+    session.pending += 1;
     setRefreshing(true);
     setError(null);
-
     try {
       const nextSnapshot = await service.refresh(sourceIds);
-      startTransition(() => {
-        setSnapshot(nextSnapshot);
-      });
+      if (session.active) {
+        setError(null);
+        startTransition(() => {
+          setSnapshot((current) => session.active ? nextSnapshot : current);
+        });
+      }
       return nextSnapshot;
     } catch (refreshError) {
-      const normalizedError =
-        refreshError instanceof Error ? refreshError : new Error("Unknown refresh failure.");
-      setError(normalizedError);
+      if (session.active) {
+        setError(normalizeError(refreshError));
+      }
       return service.getSnapshot();
     } finally {
-      setRefreshing(false);
+      session.pending -= 1;
+      if (session.active) {
+        setRefreshing(session.pending > 0);
+      }
     }
-  });
+  }, [service, session]);
 
   useEffect(() => {
-    const unsubscribe = service.subscribe(() => {
-      syncFromService();
-    });
-
+    session.active = true;
+    setSnapshot(service.getSnapshot());
+    setRefreshing(session.pending > 0);
+    setError(null);
     let active = true;
+    const unsubscribe = service.subscribe(() => {
+      startTransition(() => {
+        setSnapshot((current) => active ? service.getSnapshot() : current);
+      });
+    });
 
     void service.bootstrap().then((bootstrappedSnapshot) => {
       if (!active) {
@@ -73,33 +84,38 @@ export function FeedProvider({
       }
 
       startTransition(() => {
-        setSnapshot(bootstrappedSnapshot);
+        setSnapshot((current) => active ? bootstrappedSnapshot : current);
       });
 
       if (autoRefresh) {
         void runRefresh();
       }
+    }).catch((bootstrapError: unknown) => {
+      if (active) {
+        setError(normalizeError(bootstrapError));
+      }
     });
 
     return () => {
       active = false;
+      session.active = false;
       unsubscribe();
     };
-  }, [autoRefresh, runRefresh, service, syncFromService]);
+  }, [autoRefresh, runRefresh, service, session]);
 
-  return (
-    <FeedContext.Provider
-      value={{
-        snapshot,
-        sourceHealth: snapshot?.sourceHealth ?? {},
-        refreshing,
-        error,
-        refresh: runRefresh,
-      }}
-    >
-      {children}
-    </FeedContext.Provider>
-  );
+  const value = useMemo(() => ({
+    snapshot,
+    sourceHealth: snapshot?.sourceHealth ?? {},
+    refreshing,
+    error,
+    refresh: runRefresh,
+  }), [snapshot, refreshing, error, runRefresh]);
+
+  return <FeedContext.Provider value={value}>{children}</FeedContext.Provider>;
+}
+
+function normalizeError(error: unknown): Error {
+  return error instanceof Error ? error : new Error("Unknown feed failure.");
 }
 
 function useFeedContext(): FeedContextValue {

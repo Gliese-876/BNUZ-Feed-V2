@@ -1,28 +1,8 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+import { normalizeText } from "../parsers/html";
+import { targetSpecs } from "./targets/yxw";
+export { yxwFetchTargets } from "./targets/yxw";
 
 import { createConfiguredHtmlListParser, type HtmlListParserConfig } from "../parsers/configuredHtmlListParser";
-
-type TargetSpec = {
-  requestId: string;
-  path: string;
-  channel: string;
-};
-
-const baseUrl = "https://welcome.bnuzh.edu.cn/";
-
-const targetSpecs: TargetSpec[] = [
-  { requestId: "yxkx/index", path: "yxkx/index.htm", channel: "迎新快讯" },
-  { requestId: "yxkx/index1", path: "yxkx/index1.htm", channel: "迎新快讯" },
-  { requestId: "yxzy/index", path: "yxzy/index.htm", channel: "迎新指引" },
-  { requestId: "xzbsd/index", path: "xzbsd/index.htm", channel: "学在北师大" },
-  { requestId: "zzbsd/index", path: "zzbsd/index.htm", channel: "住在北师大" },
-  { requestId: "lzbsd/index", path: "lzbsd/index.blk.htm", channel: "乐在北师大" },
-];
-
-function normalizeText(value: string | null | undefined): string | undefined {
-  const normalized = value?.replace(/\s+/g, " ").trim();
-  return normalized ? normalized : undefined;
-}
 
 function normalizeDateToken(value: string | null | undefined): string | undefined {
   const text = normalizeText(value);
@@ -82,11 +62,5 @@ const parserConfig: HtmlListParserConfig = {
     limit: 20,
   })),
 };
-
-export const yxwFetchTargets: FetchTarget[] = targetSpecs.map((target) => ({
-  id: target.requestId,
-  url: `${baseUrl}${target.path}`,
-  channel: target.channel,
-}));
 
 export const yxwParser = createConfiguredHtmlListParser(parserConfig);

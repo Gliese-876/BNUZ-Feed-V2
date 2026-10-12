@@ -1,4 +1,3 @@
-export { createBrowserWorker } from "./createBrowserWorker";
 export { createBrowserLiveSource } from "./browserLiveSource";
 export { classifySourceError } from "./classifySourceError";
 export { createIndexedDbRepository } from "./indexedDbRepository";

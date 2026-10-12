@@ -1,200 +1,71 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+import { createConfiguredHtmlListParser } from "../parsers/configuredHtmlListParser";
+import { baseUrl, targetSpecs } from "./targets/lysywz";
 
-import { createConfiguredHtmlListParser, type HtmlListParserConfig } from "../parsers/configuredHtmlListParser";
+export { lysywzFetchTargets } from "./targets/lysywz";
 
-type TargetSpec = {
-  requestId: string;
-  path: string;
-  channel: string;
-  allowedHosts?: string[];
-};
-
-const baseUrl = "https://leyu.bnuzh.edu.cn/";
-
-const targetSpecs: TargetSpec[] = [
-  { requestId: "zhyw", path: "zhyw/index.htm", channel: "乐育要闻" },
-  { requestId: "tzgg", path: "tzgg/index.htm", channel: "通知公告" },
-  { requestId: "hdyg", path: "hdyg/index.htm", channel: "活动预告" },
-  { requestId: "lyxs", path: "yrts/lyxs/index.htm", channel: "乐育学社" },
-  { requestId: "lxxs", path: "yrts/lxxs/index.htm", channel: "凌霄学社" },
-  { requestId: "dxxs", path: "yrts/dxxs/index.htm", channel: "笃行学社" },
-  { requestId: "lypp", path: "yrts/lypp/index.htm", channel: "乐育品牌" },
-  { requestId: "dshd", path: "dshd/index.htm", channel: "导师有约" },
-  { requestId: "lygs", path: "lygs/index.htm", channel: "乐育风采" },
-  { requestId: "zbfc", path: "djyl/zbfc/index.htm", channel: "支部风采" },
-  { requestId: "txfc", path: "txfc/txfc/index.htm", channel: "团学风采" },
-  { requestId: "jyfw", path: "syyh/jyfw/index.htm", channel: "就业服务" },
-  { requestId: "jysd", path: "syyh/jysd/index.htm", channel: "就业速递" },
-  { requestId: "bszn", path: "fwzn/bszn/index.htm", channel: "办事指南" },
-  { requestId: "fwgzzd", path: "fwzn/gzzd/index.htm", channel: "服务指南-规章制度", allowedHosts: ["nic.bnuzh.edu.cn"] },
-  { requestId: "xyhd", path: "xyzj/xyhd/index.htm", channel: "校友活动" },
-  { requestId: "xyzx", path: "xyzj/xyzx/index.htm", channel: "校友资讯" },
-];
+const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const dateToken = String.raw`(?:\d{4}[./-]\d{1,2}[./-]\d{1,2}|\d{4}年\d{1,2}月\d{1,2}日?|\d{1,2}\s*月\s*\d{1,2}\s*日?|\d{1,2}[-/]\d{1,2})`;
+const leadingDate = new RegExp(`^(${dateToken})(?:\\s*[|丨—:：-]\\s*|\\s+)?`);
+const trailingDate = new RegExp(`(?:\\s*[|丨—:：-]\\s*|\\s+)?(${dateToken})$`);
 
 function normalizeText(value: string | null | undefined): string | undefined {
-  const normalized = value?.replace(/\s+/g, " ").trim();
-  return normalized ? normalized : undefined;
+  return value?.replace(/\s+/g, " ").trim() || undefined;
 }
 
-function normalizeDateToken(value: string | null | undefined): string | undefined {
-  const text = normalizeText(value);
-  if (!text) {
-    return undefined;
-  }
+function normalizeDate(value: string | null | undefined): string | undefined {
+  const compact = value?.replace(/\s+/g, "");
+  const match = compact?.match(/^(?:(\d{4})(?:[./-]|年))?(\d{1,2})(?:[./-]|月)(\d{1,2})日?$/);
+  if (!match) return undefined;
 
-  const compact = text.replace(/\s+/g, "");
-
-  const fullMatch = compact.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/);
-  if (fullMatch) {
-    const [, year = "", month = "", day = ""] = fullMatch;
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-
-  const cnMatch = compact.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日?$/);
-  if (cnMatch) {
-    const [, year = "", month = "", day = ""] = cnMatch;
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-
-  const monthDayMatch = compact.match(/^(\d{1,2})月(\d{1,2})日?$/);
-  if (monthDayMatch) {
-    const [, month = "", day = ""] = monthDayMatch;
-    return `${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-
-  const shortMatch = compact.match(/^(\d{1,2})[-/](\d{1,2})$/);
-  if (shortMatch) {
-    const [, month = "", day = ""] = shortMatch;
-    return `${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-
-  return undefined;
+  const [, year, month = "", day = ""] = match;
+  if (Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) return undefined;
+  return `${year ? `${year}-` : ""}${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
-function extractBoundaryDate(text: string | null | undefined): string | undefined {
-  const normalized = normalizeText(text);
-  if (!normalized) {
-    return undefined;
-  }
+function resolvePublishedAt(item: Element): string | undefined {
+  const date = normalizeDate(item.querySelector(".time, .date, time")?.textContent);
+  if (date) return date;
 
-  const leading = normalized.match(
-    /^((?:\d{4}[./-]\d{1,2}[./-]\d{1,2})|(?:\d{4}年\d{1,2}月\d{1,2}日?)|(?:\d{1,2}\s*月\s*\d{1,2}\s*日?)|(?:\d{1,2}[./-]\d{1,2}))(?:\s*[|丨—:：-]\s*|\s+)?/,
-  );
-  if (leading) {
-    return normalizeDateToken(leading[1]);
-  }
+  // The current picture-card template exposes only a day and an English month.
+  const month = months.indexOf(item.querySelector(".common-list-date .month")?.textContent?.trim().toUpperCase() ?? "");
+  const day = item.querySelector(".common-list-date .day")?.textContent?.trim();
+  if (month >= 0 && day) return normalizeDate(`${month + 1}-${day}`);
 
-  const trailing = normalized.match(
-    /(?:\s*[|丨—:：-]\s*|\s+)?((?:\d{4}[./-]\d{1,2}[./-]\d{1,2})|(?:\d{4}年\d{1,2}月\d{1,2}日?)|(?:\d{1,2}\s*月\s*\d{1,2}\s*日?)|(?:\d{1,2}[./-]\d{1,2}))$/,
-  );
-  if (trailing) {
-    return normalizeDateToken(trailing[1]);
-  }
-
-  const anywhere = normalized.match(
-    /((?:\d{4}[./-]\d{1,2}[./-]\d{1,2})|(?:\d{4}年\d{1,2}月\d{1,2}日?)|(?:\d{1,2}\s*月\s*\d{1,2}\s*日?)|(?:\d{1,2}[./-]\d{1,2}))/,
-  );
-  return anywhere ? normalizeDateToken(anywhere[1]) : undefined;
-}
-
-function stripBoundaryDate(text: string | null | undefined): string | undefined {
-  const normalized = normalizeText(text);
-  if (!normalized) {
-    return undefined;
-  }
-
-  const stripped = normalized
-    .replace(
-      /^((?:\d{4}[./-]\d{1,2}[./-]\d{1,2})|(?:\d{4}年\d{1,2}月\d{1,2}日?)|(?:\d{1,2}\s*月\s*\d{1,2}\s*日?)|(?:\d{1,2}[./-]\d{1,2}))(?:\s*[|丨—:：-]\s*|\s+)?/,
-      "",
-    )
-    .replace(
-      /(?:\s*[|丨—:：-]\s*|\s+)?((?:\d{4}[./-]\d{1,2}[./-]\d{1,2})|(?:\d{4}年\d{1,2}月\d{1,2}日?)|(?:\d{1,2}\s*月\s*\d{1,2}\s*日?)|(?:\d{1,2}[./-]\d{1,2}))$/,
-      "",
-    )
-    .replace(/[|丨—:：-]+\s*$/g, "")
-    .trim();
-
-  return normalizeText(stripped);
+  const text = normalizeText(item.textContent);
+  return normalizeDate(text?.match(leadingDate)?.[1] ?? text?.match(trailingDate)?.[1]);
 }
 
 function resolveTitle(item: Element): string | undefined {
-  const selectors = [".title", ".news-title", ".article-title", ".name", ".fs-2"];
-
-  for (const selector of selectors) {
-    const text = stripBoundaryDate(item.querySelector(selector)?.textContent);
-    if (text) {
-      return text;
-    }
-  }
-
-  return stripBoundaryDate(item.textContent);
+  const title = normalizeText(item.querySelector(".title, .news-title, .article-title, .name, .fs-2")?.textContent);
+  return title ?? normalizeText(item.textContent?.replace(leadingDate, "").replace(trailingDate, ""));
 }
 
-function resolveSummary(item: Element): string | undefined {
-  const selectors = [".summary", ".desc", ".intro", ".text"];
-
-  for (const selector of selectors) {
-    const text = normalizeText(item.querySelector(selector)?.textContent);
-    if (text) {
-      return text;
-    }
-  }
-
-  return undefined;
-}
-
-function isAllowedItem(
-  item: Element,
-  page: { finalUrl: string; requestUrl: string },
-  pathPrefix: string,
-  allowedHosts: string[] = [],
-): boolean {
-  const href = item.getAttribute("href");
-  if (!href) {
-    return false;
-  }
-
-  if (!extractBoundaryDate(item.textContent)) {
-    return false;
-  }
-
-  if (/^https?:\/\/mp\.weixin\.qq\.com\//i.test(href)) {
-    return true;
-  }
+function isAllowedItem(item: Element, pageUrl: string, pathPrefix: string, allowedHosts: string[] = []): boolean {
+  if (!resolvePublishedAt(item)) return false;
 
   try {
-    const resolved = new URL(href, page.finalUrl || page.requestUrl || baseUrl);
-    if (allowedHosts.some((host) => resolved.hostname === host)) {
-      return true;
-    }
-    return resolved.pathname.startsWith(pathPrefix);
+    const resolved = new URL(item.getAttribute("href") ?? "", pageUrl || baseUrl);
+    if (resolved.protocol !== "https:" && resolved.protocol !== "http:") return false;
+    if (resolved.hostname === "mp.weixin.qq.com" || allowedHosts.includes(resolved.hostname)) return true;
+    return resolved.origin === new URL(baseUrl).origin && resolved.pathname.startsWith(pathPrefix);
   } catch {
     return false;
   }
 }
 
-const parserConfig: HtmlListParserConfig = {
+export const lysywzParser = createConfiguredHtmlListParser({
   parserKey: "bnuzh/lysywz",
   targets: targetSpecs.map((target) => ({
     requestId: target.requestId,
-    itemSelector: "a[href]",
+    itemSelector: "a.article[href], .article-list a[href]",
     channel: target.channel,
     title: resolveTitle,
     url: { attr: "href" },
-    publishedAt: (item) => extractBoundaryDate(item.textContent),
-    summary: resolveSummary,
+    publishedAt: resolvePublishedAt,
+    summary: (item) => normalizeText(item.querySelector(".summary, .desc, .intro, .text")?.textContent),
     rawId: { attr: "href" },
     limit: 20,
     itemFilter: (item, page) =>
-      isAllowedItem(item, page, `/${target.path.replace(/index\.htm$/, "")}`, target.allowedHosts),
+      isAllowedItem(item, page.finalUrl || page.requestUrl, `/${target.path.replace(/index\.htm$/, "")}`, target.allowedHosts),
   })),
-};
-
-export const lysywzFetchTargets: FetchTarget[] = targetSpecs.map((target) => ({
-  id: target.requestId,
-  url: `${baseUrl}${target.path}`,
-  channel: target.channel,
-}));
-
-export const lysywzParser = createConfiguredHtmlListParser(parserConfig);
+});

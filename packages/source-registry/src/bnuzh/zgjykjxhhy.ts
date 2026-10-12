@@ -1,24 +1,7 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+import { normalizeText } from "../parsers/html";
+export { zgjykjxhhyFetchTargets } from "./targets/zgjykjxhhy";
 
 import { createConfiguredHtmlListParser, type HtmlListParserConfig } from "../parsers/configuredHtmlListParser";
-
-type TargetSpec = {
-  requestId: string;
-  url: string;
-  channel: string;
-};
-
-const baseUrl = "https://easc.bnuzh.edu.cn/";
-
-const targetSpecs: TargetSpec[] = [
-  { requestId: "news", url: baseUrl, channel: "新闻通知" },
-  { requestId: "schedule", url: baseUrl, channel: "会议安排" },
-];
-
-function normalizeText(value: string | null | undefined): string | undefined {
-  const normalized = value?.replace(/\s+/g, " ").trim();
-  return normalized ? normalized : undefined;
-}
 
 function resolveNewsTitle(item: Element): string | undefined {
   return normalizeText(item.querySelector(".title")?.textContent ?? item.querySelector("a[href]")?.textContent);
@@ -102,11 +85,5 @@ const parserConfig: HtmlListParserConfig = {
     },
   ],
 };
-
-export const zgjykjxhhyFetchTargets: FetchTarget[] = targetSpecs.map((target) => ({
-  id: target.requestId,
-  url: target.url,
-  channel: target.channel,
-}));
 
 export const zgjykjxhhyParser = createConfiguredHtmlListParser(parserConfig);

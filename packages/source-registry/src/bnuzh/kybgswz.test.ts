@@ -18,7 +18,7 @@ function createPage(
 
 describe("kybgswz parser", () => {
   it("declares the confirmed public list pages", () => {
-    expect(kybgswzFetchTargets).toHaveLength(32);
+    expect(kybgswzFetchTargets).toHaveLength(37);
 
     expect(kybgswzFetchTargets.slice(0, 4)).toEqual([
       { id: "tpxw", url: "https://kyb.bnuzh.edu.cn/tpxw/index.htm", channel: "图片新闻" },
@@ -28,8 +28,13 @@ describe("kybgswz parser", () => {
     ]);
 
     expect(kybgswzFetchTargets.filter((target) => target.id === "kydt" || target.id.startsWith("kydt/index"))).toHaveLength(17);
-    expect(kybgswzFetchTargets.filter((target) => target.id === "sbtz" || target.id.startsWith("sbtz/index"))).toHaveLength(2);
+    expect(kybgswzFetchTargets.filter((target) => target.id === "sbtz" || target.id.startsWith("sbtz/index"))).toHaveLength(1);
     expect(kybgswzFetchTargets.filter((target) => target.id === "kyhd" || target.id.startsWith("kyhd/index"))).toHaveLength(1);
+    expect(kybgswzFetchTargets.filter((target) => target.id.startsWith("kyxmglgd/"))).toHaveLength(7);
+    expect(kybgswzFetchTargets.some((target) => target.id === "kyxmglgd")).toBe(false);
+    expect(kybgswzFetchTargets.find((target) => target.id === "kyxmglgd/gjzrkxjj")?.url).toBe(
+      "https://kyb.bnuzh.edu.cn/glgz/kyxmglgd/gjzrkxjj/index.htm",
+    );
     expect(kybgswzFetchTargets).toContainEqual({
       id: "kxyjxgfg",
       url: "https://kyb.bnuzh.edu.cn/glgz/kxyjxgfg/index.htm",
@@ -42,7 +47,7 @@ describe("kybgswz parser", () => {
     });
     expect(kybgswzFetchTargets.at(-1)).toEqual({
       id: "zlxz",
-      url: "https://kyb.bnuzh.edu.cn/zlxz/index.blk.htm",
+      url: "https://kyb.bnuzh.edu.cn/zlxz/index.htm",
       channel: "资料下载",
     });
   });
@@ -140,8 +145,8 @@ describe("kybgswz parser", () => {
 
     const downloadPage = createPage({
       requestId: "zlxz",
-      requestUrl: "https://kyb.bnuzh.edu.cn/zlxz/index.blk.htm",
-      finalUrl: "https://kyb.bnuzh.edu.cn/zlxz/index.blk.htm",
+      requestUrl: "https://kyb.bnuzh.edu.cn/zlxz/index.htm",
+      finalUrl: "https://kyb.bnuzh.edu.cn/zlxz/index.htm",
       bodyText: `
         <body>
           <div class="article-container">

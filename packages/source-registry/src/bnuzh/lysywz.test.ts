@@ -25,9 +25,14 @@ describe("lysywz parser", () => {
       { id: "lyxs", url: "https://leyu.bnuzh.edu.cn/yrts/lyxs/index.htm", channel: "乐育学社" },
       { id: "lxxs", url: "https://leyu.bnuzh.edu.cn/yrts/lxxs/index.htm", channel: "凌霄学社" },
       { id: "dxxs", url: "https://leyu.bnuzh.edu.cn/yrts/dxxs/index.htm", channel: "笃行学社" },
-      { id: "lypp", url: "https://leyu.bnuzh.edu.cn/yrts/lypp/index.htm", channel: "乐育品牌" },
+      { id: "lypp", url: "https://leyu.bnuzh.edu.cn/yrts/lypp/lykt/index.htm", channel: "乐育课堂" },
+      { id: "lysl", url: "https://leyu.bnuzh.edu.cn/yrts/lypp/lysl/index.htm", channel: "乐育沙龙" },
+      { id: "sqjysj", url: "https://leyu.bnuzh.edu.cn/yrts/lypp/sqjysj/index.htm", channel: "暑期教育实践" },
+      { id: "sjgjjt", url: "https://leyu.bnuzh.edu.cn/yrts/lypp/sjgjjt/index.htm", channel: "世界冠军讲坛" },
+      { id: "msmxcjt", url: "https://leyu.bnuzh.edu.cn/yrts/lypp/msmxcjt/index.htm", channel: "名师名校长讲坛" },
       { id: "dshd", url: "https://leyu.bnuzh.edu.cn/dshd/index.htm", channel: "导师有约" },
-      { id: "lygs", url: "https://leyu.bnuzh.edu.cn/lygs/index.htm", channel: "乐育风采" },
+      { id: "lygs", url: "https://leyu.bnuzh.edu.cn/lygs/lyfc/index.htm", channel: "乐育风采" },
+      { id: "qgyw", url: "https://leyu.bnuzh.edu.cn/lygs/qgyw/index.htm", channel: "强国有我" },
       { id: "zbfc", url: "https://leyu.bnuzh.edu.cn/djyl/zbfc/index.htm", channel: "支部风采" },
       { id: "txfc", url: "https://leyu.bnuzh.edu.cn/txfc/txfc/index.htm", channel: "团学风采" },
       { id: "jyfw", url: "https://leyu.bnuzh.edu.cn/syyh/jyfw/index.htm", channel: "就业服务" },
@@ -36,6 +41,59 @@ describe("lysywz parser", () => {
       { id: "fwgzzd", url: "https://leyu.bnuzh.edu.cn/fwzn/gzzd/index.htm", channel: "服务指南-规章制度" },
       { id: "xyhd", url: "https://leyu.bnuzh.edu.cn/xyzj/xyhd/index.htm", channel: "校友活动" },
       { id: "xyzx", url: "https://leyu.bnuzh.edu.cn/xyzj/xyzx/index.htm", channel: "校友资讯" },
+    ]);
+  });
+
+  it("parses the current picture cards with separate English month and day elements", async () => {
+    const page = createPage({
+      requestId: "zhyw",
+      requestUrl: "https://leyu.bnuzh.edu.cn/zhyw/index.htm",
+      finalUrl: "https://leyu.bnuzh.edu.cn/zhyw/index.htm",
+      bodyText: `
+        <nav><a href="index.htm">综合要闻</a></nav>
+        <ul class="common-pic-article-list">
+          <li><a class="article" href="https://mp.weixin.qq.com/s/6oyi-FdZIpcEQNfeMVqMHQ">
+            <div class="cover"><img src="../images/2026-09/be13f09aee4849089fa1cf91fe833350.jpg"></div>
+            <div class="title mb-3">入院教育丨乐育书院院长杜育红为2026级新生讲授《心中有爱，眼中有光》</div>
+            <div class="common-list-date"><div class="day">13</div><div class="month"> SEP </div></div>
+          </a></li>
+          <li><a class="article" href="2c48cb525020422aa93e093640a2ecc1.htm">
+            <div class="title">新生入学教育·专业经典导读《从一到无穷大：科学中的事实与猜想》</div>
+            <div class="common-list-date"><div class="day">03</div><div class="month">SEP</div></div>
+          </a></li>
+          <li><a class="article" href="https://example.com/zhyw/other.htm">
+            <div class="title">外部页面</div>
+            <div class="common-list-date"><div class="day">03</div><div class="month">SEP</div></div>
+          </a></li>
+        </ul>`,
+    });
+
+    const records = await lysywzParser.parse(page);
+    expect(records).toHaveLength(2);
+    expect(records[0]).toMatchObject({
+      rawTitle: "入院教育丨乐育书院院长杜育红为2026级新生讲授《心中有爱，眼中有光》",
+      rawPublishedAt: "09-13",
+      rawUrl: "https://mp.weixin.qq.com/s/6oyi-FdZIpcEQNfeMVqMHQ",
+    });
+    expect(records[1]).toMatchObject({
+      rawPublishedAt: "09-03",
+      rawUrl: "https://leyu.bnuzh.edu.cn/zhyw/2c48cb525020422aa93e093640a2ecc1.htm",
+    });
+  });
+
+  it("uses the current notice date field without treating dates inside the title as publication dates", async () => {
+    const page = createPage({
+      requestId: "tzgg",
+      requestUrl: "https://leyu.bnuzh.edu.cn/tzgg/index.htm",
+      finalUrl: "https://leyu.bnuzh.edu.cn/tzgg/index.htm",
+      bodyText: `<ul class="common-article-list"><li>
+        <a class="article gap-3 p-3" href="41d886805f3e44dba9cd07f0a3dbe73d.htm">
+          <div class="title">2026/10/01 活动报名通知</div><div class="time">2026/09/29</div>
+        </a>
+      </li></ul>`,
+    });
+    await expect(lysywzParser.parse(page)).resolves.toMatchObject([
+      { rawTitle: "2026/10/01 活动报名通知", rawPublishedAt: "2026-09-29" },
     ]);
   });
 

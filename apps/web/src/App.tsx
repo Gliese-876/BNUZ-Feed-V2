@@ -1,135 +1,37 @@
-import {
-  useDeferredValue,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type InputHTMLAttributes,
-} from "react";
-
-import {
-  FeedProvider,
-  useFeedRefresh,
-  useFeedSnapshot,
-} from "@bnuz-feed/react-bindings";
+import { useDeferredValue, useId, useMemo, useRef, useState } from "react";
+import { FeedProvider, useFeedRefresh, useFeedSnapshot } from "@bnuz-feed/react-bindings";
+import { bnuzhSources } from "@bnuz-feed/source-registry/catalog";
 
 import { buildFeedIndex, filterFeedIndex } from "./feedIndex";
-import { FadingTextInput } from "./FadingTextInput";
+import { FeedList } from "./FeedList";
+import { formatDate } from "./formatDate";
 import { OfficialSearchDialog } from "./OfficialSearchDialog";
-import {
-  aggregationService,
-  appRuntimeConfig,
-} from "./runtime/createAggregationService";
-import {
-  buildItemStats,
-  countVisibleRawItems,
-  defaultChannelLabel,
-  sourceCatalog,
-  sourceCatalogById,
-  totalSourceChannelCount,
-  type SourceCatalogNode,
-} from "./sourceCatalog";
+import { aggregationService, appRuntimeConfig } from "./runtime/createAggregationService";
+import { buildItemStats, countVisibleRawItems, sourceCatalog, totalSourceChannelCount } from "./sourceCatalog";
+import { SourcePanel } from "./SourcePanel";
 import { useIncrementalFeedWindow } from "./useIncrementalFeedWindow";
-import { useOverlayPresence } from "./useOverlayPresence";
 import { useRefreshController } from "./useRefreshController";
 import { useSourceSelection } from "./useSourceSelection";
 
-const drawerExitDurationMs = 220;
-
-function formatDateTime(value: string | undefined): string {
-  if (!value) {
-    return "暂无更新记录";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("zh-CN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-function formatPublishedAt(value: string | undefined): string {
-  if (!value) {
-    return "未标注日期";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("zh-CN", {
-    dateStyle: "medium",
-  }).format(date);
-}
-
-function formatVisibleCount(dedupedCount: number, rawCount: number): string {
-  return `${dedupedCount}（${rawCount}）`;
-}
-
-function matchesSourceQuery(source: SourceCatalogNode, query: string): boolean {
-  if (!query) {
-    return true;
-  }
-
-  return source.searchText.includes(query);
-}
-
-function SelectionCheckbox({
-  indeterminate = false,
-  ...props
-}: InputHTMLAttributes<HTMLInputElement> & { indeterminate?: boolean }) {
-  const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!ref.current) {
-      return;
-    }
-
-    ref.current.indeterminate = indeterminate;
-  }, [indeterminate]);
-
-  return (
-    <input
-      {...props}
-      ref={ref}
-      type="checkbox"
-    />
-  );
-}
+const sourceNamesById = Object.fromEntries(sourceCatalog.map((source) => [source.id, source.name]));
+const officialSearchScopeOptions = [
+  { id: "0", name: "所有站点" },
+  ...bnuzhSources.map(({ id, name }) => ({ id, name })),
+];
+const numberFormatter = new Intl.NumberFormat("zh-CN");
 
 function RuntimeShell() {
   const snapshot = useFeedSnapshot();
   const { refresh, refreshing, error } = useFeedRefresh();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [feedQuery, setFeedQuery] = useState("");
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
-  const [sourceQuery, setSourceQuery] = useState("");
+  const [feedQuery, setFeedQuery] = useState("");
   const searchButtonRef = useRef<HTMLButtonElement>(null);
-  const { isClosing: drawerClosing, shouldRender: drawerShouldRender } = useOverlayPresence(
-    drawerOpen,
-    drawerExitDurationMs,
-  );
-
-  const deferredFeedQuery = useDeferredValue(feedQuery.trim().toLowerCase());
-  const deferredSourceQuery = useDeferredValue(sourceQuery.trim().toLowerCase());
-
-  const {
-    allSelected,
-    getSourceSelectionState,
-    selectedChannelKeys,
-    selectedChannelSet,
-    selectedSourceIds,
-    toggleAll,
-    toggleChannel,
-    toggleSource,
-  } = useSourceSelection(sourceCatalog);
-
+  const sourceButtonRef = useRef<HTMLButtonElement>(null);
+  const searchDialogId = useId();
+  const sourceDrawerId = useId();
+  const feedSearchId = useId();
+  const selection = useSourceSelection(sourceCatalog);
   const { refreshAll } = useRefreshController({
     autoRefresh: appRuntimeConfig.autoRefresh,
     refresh,
@@ -137,416 +39,89 @@ function RuntimeShell() {
     sourceMode: appRuntimeConfig.sourceMode,
   });
 
-  const deferredSelectedSourceIds = useDeferredValue(selectedSourceIds);
-  const deferredSelectedChannelKeys = useDeferredValue(selectedChannelKeys);
-
-  const sourceNamesById = useMemo(
-    () =>
-      Object.fromEntries(sourceCatalog.map((source) => [source.id, source.name])) as Record<
-        string,
-        string
-      >,
-    [],
-  );
-  const indexedItems = useMemo(
-    () => buildFeedIndex(snapshot?.items ?? [], sourceNamesById),
-    [snapshot?.items, sourceNamesById],
-  );
+  const deferredFeedQuery = useDeferredValue(feedQuery.trim().toLowerCase());
+  const selectedSourceIds = useDeferredValue(selection.selectedSourceIds);
+  const selectedChannelKeys = useDeferredValue(selection.selectedChannelKeys);
+  const sourceSet = useMemo(() => new Set(selectedSourceIds), [selectedSourceIds]);
+  const channelSet = useMemo(() => new Set(selectedChannelKeys), [selectedChannelKeys]);
+  const indexedItems = useMemo(() => buildFeedIndex(snapshot?.items ?? [], sourceNamesById), [snapshot?.items]);
   const itemStats = useMemo(() => buildItemStats(snapshot?.items ?? []), [snapshot?.items]);
-  const filteredSources = useMemo(
-    () => sourceCatalog.filter((source) => matchesSourceQuery(source, deferredSourceQuery)),
-    [deferredSourceQuery],
-  );
-  const officialSearchScopeOptions = useMemo(
-    () => [
-      { id: "0", name: "所有站点" },
-      ...sourceCatalog.map((source) => ({
-        id: source.id,
-        name: source.name,
-      })),
-    ],
-    [],
-  );
-  const deferredSelectedSourceSet = useMemo(
-    () => new Set(deferredSelectedSourceIds),
-    [deferredSelectedSourceIds],
-  );
-  const deferredSelectedChannelSet = useMemo(
-    () => new Set(deferredSelectedChannelKeys),
-    [deferredSelectedChannelKeys],
-  );
-  const allFiltersSelected =
-    deferredSelectedSourceIds.length === sourceCatalog.length &&
-    deferredSelectedChannelKeys.length === totalSourceChannelCount;
   const visibleItems = useMemo(() => {
-    if (!snapshot?.items || snapshot.items.length === 0) {
-      return [];
-    }
-
-    if (allFiltersSelected && !deferredFeedQuery) {
-      return snapshot.items;
-    }
-
-    return filterFeedIndex(
-      indexedItems,
-      deferredSelectedSourceSet,
-      deferredSelectedChannelSet,
-      deferredFeedQuery,
-    );
-  }, [
-    allFiltersSelected,
-    deferredFeedQuery,
-    deferredSelectedChannelSet,
-    deferredSelectedSourceSet,
-    indexedItems,
-    snapshot?.items,
-  ]);
-
-  const feedResetKey = useMemo(
-    () =>
-      [
-        snapshot?.updatedAt ?? "empty",
-        deferredFeedQuery,
-        deferredSelectedSourceIds.join("|"),
-        deferredSelectedChannelKeys.join("|"),
-      ].join("::"),
-    [
-      deferredFeedQuery,
-      deferredSelectedChannelKeys,
-      deferredSelectedSourceIds,
-      snapshot?.updatedAt,
-    ],
-  );
-  const { canLoadMore, renderedCount, sentinelRef } = useIncrementalFeedWindow(
-    visibleItems.length,
-    feedResetKey,
-  );
-  const renderedItems = useMemo(
-    () => visibleItems.slice(0, renderedCount),
-    [renderedCount, visibleItems],
-  );
-  const visibleRawItemCount = useMemo(
-    () =>
-      countVisibleRawItems(
-        visibleItems,
-        deferredSelectedSourceSet,
-        deferredSelectedChannelSet,
-      ),
-    [deferredSelectedChannelSet, deferredSelectedSourceSet, visibleItems],
-  );
-
-  const feedLabelId = useId();
-  const sourceLabelId = useId();
-  const searchDialogId = useId();
-  const sourceDrawerId = useId();
-  const drawerOverlayVisible = drawerShouldRender;
-  const drawerStateClass = drawerOpen ? "is-open" : drawerClosing ? "is-closing" : "";
+    if (!snapshot?.items.length) return [];
+    return filterFeedIndex(indexedItems, sourceSet, channelSet, deferredFeedQuery);
+  }, [channelSet, deferredFeedQuery, indexedItems, snapshot?.items, sourceSet]);
+  const visibleRawItemCount = useMemo(() => countVisibleRawItems(visibleItems, sourceSet, channelSet), [channelSet, sourceSet, visibleItems]);
+  const resetKey = `${snapshot?.updatedAt ?? "empty"}::${deferredFeedQuery}::${selectedSourceIds.join("|")}::${selectedChannelKeys.join("|")}`;
+  const { canLoadMore, loadMore, renderedCount, sentinelRef } = useIncrementalFeedWindow(visibleItems.length, resetKey);
+  const renderedItems = useMemo(() => visibleItems.slice(0, renderedCount), [renderedCount, visibleItems]);
 
   return (
     <main className="app">
-      <div
-        aria-hidden={!drawerOverlayVisible}
-        className={`app__scrim ${drawerStateClass}`}
-        onClick={() => setDrawerOpen(false)}
-      />
-
+      <a className="skip-link" href="#feed-content">跳转到内容</a>
       <header className="topbar">
-        <div className="topbar__brand">
-          <span className="topbar__eyebrow">北师大珠海校区公开信息</span>
-          <h1>BNUZ Feed</h1>
-          <p>把多个公开站点的通知、新闻与栏目内容整理到同一个阅读入口。</p>
-        </div>
+        <a aria-label="BNUZ Feed 首页" className="topbar__brand" href={import.meta.env.BASE_URL}>
+          <span><strong>BNUZ Feed<span aria-hidden="true" className="topbar__mark" /></strong><span className="topbar__eyebrow">北师大珠海校区公开信息</span></span>
+        </a>
         <div className="topbar__actions">
-          <div className="topbar__search">
-            <button
-              aria-controls={searchDialogOpen ? searchDialogId : undefined}
-              aria-expanded={searchDialogOpen}
-              aria-haspopup="dialog"
-              className="button button--tonal"
-              onClick={() => setSearchDialogOpen((current) => !current)}
-              ref={searchButtonRef}
-              type="button"
-            >
-              全站检索
-            </button>
-            <OfficialSearchDialog
-              dialogId={searchDialogId}
-              initialQuery={feedQuery}
-              onClose={() => setSearchDialogOpen(false)}
-              open={searchDialogOpen}
-              scopeOptions={officialSearchScopeOptions}
-              triggerRef={searchButtonRef}
-            />
-          </div>
-          <button
-            aria-controls={sourceDrawerId}
-            aria-expanded={drawerOpen}
-            className="button button--tonal topbar__drawer-toggle"
-            onClick={() => setDrawerOpen(true)}
-            type="button"
-          >
-            选择栏目
-          </button>
-          <button
-            className="button button--filled"
-            disabled={refreshing}
-            onClick={() => {
-              void refreshAll();
-            }}
-            type="button"
-          >
-            {refreshing ? "更新中..." : "更新内容"}
-          </button>
+          <button aria-controls={searchDialogOpen ? searchDialogId : undefined} aria-expanded={searchDialogOpen} aria-haspopup="dialog" className="button button--tonal" onClick={() => setSearchDialogOpen(true)} ref={searchButtonRef} type="button">全站检索 <span aria-hidden="true">↗</span></button>
+          <button className="button button--filled" disabled={refreshing} onClick={() => void refreshAll()} type="button">{refreshing ? "更新中…" : "更新内容"}</button>
         </div>
       </header>
 
-      <section className="intro-card">
+      <section aria-labelledby="intro-title" className="intro-card">
         <div className="intro-card__main">
-          <h2>校讯不远寻，此间日日新</h2>
-          <p>默认已选中全部 {sourceCatalog.length} 个可用站点，你可以随时只保留自己真正关心的栏目。</p>
+          <span className="intro-card__eyebrow">01 — CAMPUS INFORMATION</span>
+          <h1 id="intro-title"><span>校园动态，</span><span>一处读完。</span></h1>
+          <p>官方通知、校园新闻、栏目更新。<br />从分散的信息里，找到你关心的事。</p>
         </div>
-        <div className="intro-metrics">
-          <article
-            className="metric-card"
-            style={{ animationDelay: "180ms" }}
-          >
-            <span>信息源</span>
-            <strong>{sourceCatalog.length}</strong>
-          </article>
-          <article
-            className="metric-card"
-            style={{ animationDelay: "240ms" }}
-          >
-            <span>栏目</span>
-            <strong>{totalSourceChannelCount}</strong>
-          </article>
-          <article
-            className="metric-card metric-card--counts"
-            style={{ animationDelay: "300ms" }}
-          >
-            <span>当前显示</span>
-            <span>去重后条数（原始条数）</span>
-            <strong>{formatVisibleCount(visibleItems.length, visibleRawItemCount)}</strong>
-          </article>
-          <article
-            className="metric-card metric-card--wide"
-            style={{ animationDelay: "360ms" }}
-          >
-            <span>最近更新</span>
-            <strong>{formatDateTime(snapshot?.updatedAt)}</strong>
-          </article>
+        <div className="intro-metrics" aria-label="信息源概览">
+          <div><span className="intro-metrics__label">SOURCES / 信息源</span><strong>{sourceCatalog.length}<small> 个</small></strong><span>公开站点持续收录</span></div>
+          <div><span className="intro-metrics__label">CHANNELS / 栏目</span><strong>{totalSourceChannelCount}<small> 个</small></strong><span>按你的关注自由筛选</span></div>
         </div>
+        <div className="intro-card__footer"><span>最近更新 / {formatDate(snapshot?.updatedAt, true)}</span><span>公开信息聚合 · 原文直达 ↗</span></div>
       </section>
 
-      <div className="layout">
-        <aside
-          aria-hidden={!drawerOverlayVisible}
-          className={`source-panel ${drawerStateClass}`}
-          id={sourceDrawerId}
-        >
-          <div className="source-panel__header">
-            <span className="source-panel__rail-label">筛选</span>
-            <div>
-              <span className="source-panel__eyebrow">信息源筛选</span>
-              <h3>按站点和栏目勾选</h3>
-            </div>
-            <button
-              className="icon-button source-panel__close"
-              onClick={() => setDrawerOpen(false)}
-              type="button"
-            >
-              关闭
-            </button>
-          </div>
-
-          <label
-            aria-labelledby={sourceLabelId}
-            className="field"
-          >
-            <span id={sourceLabelId}>搜索站点或栏目</span>
-            <FadingTextInput
-              onChange={(event) => setSourceQuery(event.target.value)}
-              placeholder="例如：教务部、国际交流、通知公告"
-              type="search"
-              value={sourceQuery}
-            />
+      <section aria-labelledby="feed-title" className="content" id="feed-content" tabIndex={-1}>
+        <div className="content__heading">
+          <div><span className="section-eyebrow">02 — THE LATEST</span><h2 id="feed-title">最新公开信息</h2></div>
+          <button aria-controls={sourceDrawerId} aria-expanded={drawerOpen} aria-haspopup="dialog" className="button button--outline topbar__drawer-toggle" onClick={() => setDrawerOpen(true)} ref={sourceButtonRef} type="button">选择栏目 <span className="button__count">{selection.selectedSourceIds.length}</span></button>
+        </div>
+        <div className="content__toolbar">
+          <label className="field content__search" htmlFor={feedSearchId}>
+            <span>搜索当前内容</span>
+            <input id={feedSearchId} onChange={(event) => setFeedQuery(event.target.value)} placeholder="搜索标题、摘要、站点或栏目" type="search" value={feedQuery} />
           </label>
-
-          <div className="source-panel__toolbar">
-            <label className="source-toggle">
-              <SelectionCheckbox
-                checked={allSelected}
-                indeterminate={!allSelected && selectedSourceIds.length > 0}
-                onChange={(event) => toggleAll(event.target.checked)}
-              />
-              <span>全选</span>
-            </label>
-            <button
-              className="button button--text"
-              onClick={() => toggleAll(true)}
-              type="button"
-            >
-              恢复默认
-            </button>
+          <div className="content__meta" aria-live="polite" aria-atomic="true">
+            <span className="content__count">当前结果 <strong>{numberFormatter.format(visibleItems.length)}</strong> 条</span>
+            <span>原始收录 {numberFormatter.format(visibleRawItemCount)} 条 · 重复条目已合并</span>
           </div>
+        </div>
 
-          <div className="source-panel__summary">
-            <span>
-              {selectedSourceIds.length} / {sourceCatalog.length} 个站点已启用
-            </span>
-          </div>
+        {error ? <div className="notice" role="alert"><span>{snapshot ? "本次更新未完成，正在显示上次成功更新的内容。" : "暂时无法载入信息，请重试。"}</span><button className="button button--text" disabled={refreshing} onClick={() => void refreshAll()} type="button">重试更新</button></div> : null}
 
-          <div className="source-tree">
-            {filteredSources.map((source, index) => {
-              const selectionState = getSourceSelectionState(source);
-
-              return (
-                <section
-                  className="source-tree__card"
-                  key={source.id}
-                  style={{ animationDelay: `${180 + index * 28}ms` }}
-                >
-                  <div className="source-tree__header">
-                    <label className="source-toggle">
-                      <SelectionCheckbox
-                        checked={selectionState === "all"}
-                        indeterminate={selectionState === "partial"}
-                        onChange={(event) => toggleSource(source, event.target.checked)}
-                      />
-                      <div>
-                        <strong>{source.name}</strong>
-                        <span>{source.fetchTargetCount} 个入口</span>
-                      </div>
-                    </label>
-                    <span className="source-tree__count">
-                      {itemStats.sourceCounts[source.id] ?? 0}
-                    </span>
-                  </div>
-
-                  <div className="channel-grid">
-                    {source.channels.map((channel) => {
-                      const channelKey = `${source.id}::${channel.label}`;
-
-                      return (
-                        <label
-                          className="channel-chip"
-                          key={channelKey}
-                        >
-                          <SelectionCheckbox
-                            checked={selectedChannelSet.has(channelKey)}
-                            onChange={(event) =>
-                              toggleChannel(source, channel.label, event.target.checked)
-                            }
-                          />
-                          <span>{channel.label}</span>
-                          <small>{itemStats.channelCounts[channelKey] ?? 0}</small>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        </aside>
-
-        <section className="content">
-          <div className="content__toolbar">
-            <label
-              aria-labelledby={feedLabelId}
-              className="field"
-            >
-              <span id={feedLabelId}>搜索当前内容</span>
-              <FadingTextInput
-                onChange={(event) => setFeedQuery(event.target.value)}
-                placeholder="搜索标题、摘要、站点或栏目"
-                type="search"
-                value={feedQuery}
-              />
-            </label>
-            <div className="content__meta">
-              <span>{visibleItems.length} 条内容</span>
-              <span>已渲染 {renderedCount} 条</span>
-              {error ? <span>当前展示最近一次成功同步的内容</span> : null}
+        {visibleItems.length > 0 ? (
+          <>
+            <FeedList items={renderedItems} />
+            <div className="feed-list__footer">
+              <span>已显示 {renderedItems.length} / {visibleItems.length} 条内容</span>
+              {canLoadMore ? <><button className="button button--outline" onClick={loadMore} type="button">加载更多</button><div aria-hidden="true" className="feed-list__sentinel" ref={sentinelRef} /></> : <span>已读到这里，校园动态尽在此处</span>}
             </div>
+          </>
+        ) : (
+          <div className="empty-state" role="status">
+            <span aria-hidden="true" className="empty-state__symbol">⌕</span>
+            <strong>{!snapshot && !error ? "正在载入校园信息…" : "当前没有可显示的内容"}</strong>
+            {snapshot ? <><span>试试其他关键词，或恢复全部站点与栏目。</span><button className="button button--tonal" onClick={() => { selection.toggleAll(true); setFeedQuery(""); }} type="button">恢复默认筛选</button></> : <span>{error ? "请使用上方的重试按钮重新载入。" : "汇集多个官方站点，精彩内容即将呈现。"}</span>}
           </div>
-
-          {visibleItems.length > 0 ? (
-            <>
-              <div className="feed-list">
-                {renderedItems.map((item, index) => {
-                  const primarySource =
-                    sourceCatalogById[item.sourceId] ??
-                    item.sourceIds
-                      .map((sourceId) => sourceCatalogById[sourceId])
-                      .find((source) => source !== undefined);
-
-                  return (
-                    <article
-                      className="feed-card"
-                      key={item.id}
-                      onClick={() => window.open(item.url, "_blank", "noopener,noreferrer")}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          window.open(item.url, "_blank", "noopener,noreferrer");
-                        }
-                      }}
-                      role="link"
-                      style={{ animationDelay: `${200 + Math.min(index, 11) * 38}ms` }}
-                      tabIndex={0}
-                    >
-                      <div className="feed-card__meta">
-                        <span className="feed-chip feed-chip--source">
-                          {primarySource?.name ?? item.sourceId}
-                        </span>
-                        <span className="feed-chip">
-                          {item.channel?.trim() || defaultChannelLabel}
-                        </span>
-                        <span className="feed-card__date">
-                          {formatPublishedAt(item.publishedAt)}
-                        </span>
-                      </div>
-                      <h3>{item.title}</h3>
-                      {item.summary ? <p>{item.summary}</p> : null}
-                      <div className="feed-card__footer">
-                        <span>更新于 {formatDateTime(item.fetchedAt)}</span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-
-              {canLoadMore ? (
-                <div className="feed-list__footer">
-                  <span>继续向下滚动会自动加载更多内容</span>
-                  <div
-                    aria-hidden="true"
-                    className="feed-list__sentinel"
-                    ref={sentinelRef}
-                  />
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <div className="empty-state">
-              <strong>当前筛选条件下没有可显示的内容。</strong>
-              <span>可以恢复默认筛选，或者换一个关键词再试。</span>
-            </div>
-          )}
-        </section>
-      </div>
+        )}
+      </section>
+      <footer className="app-footer"><strong>BNUZ Feed</strong><span>公开信息聚合 · 以官方站点原文为准</span></footer>
+      <SourcePanel id={sourceDrawerId} itemStats={itemStats} onClose={() => setDrawerOpen(false)} open={drawerOpen} selection={selection} triggerRef={sourceButtonRef} />
+      <OfficialSearchDialog dialogId={searchDialogId} initialQuery={feedQuery} onClose={() => setSearchDialogOpen(false)} open={searchDialogOpen} scopeOptions={officialSearchScopeOptions} triggerRef={searchButtonRef} />
     </main>
   );
 }
 
 export default function App() {
-  return (
-    <FeedProvider
-      autoRefresh={false}
-      service={aggregationService}
-    >
-      <RuntimeShell />
-    </FeedProvider>
-  );
+  return <FeedProvider autoRefresh={false} service={aggregationService}><RuntimeShell /></FeedProvider>;
 }

@@ -8,6 +8,7 @@ import type {
   SourceDescriptor,
   SourceRecord,
 } from "@bnuz-feed/contracts";
+import { createDefaultNormalizer } from "@bnuz-feed/core";
 
 import { executeBrowserRefresh, executeBrowserRefreshUntilStable } from "./runRefresh";
 
@@ -34,6 +35,26 @@ function wait(ms: number): Promise<void> {
 }
 
 describe("executeBrowserRefresh", () => {
+  it("normalizes invalid concurrency and classifies thrown parser errors", async () => {
+    const fetchFn = vi.fn<typeof fetch>().mockResolvedValue({
+      ok: true,
+      url: "https://alpha.example.com/0",
+      headers: { get: () => "text/html" },
+      text: async () => "invalid page",
+    } as unknown as Response);
+    const snapshot = await executeBrowserRefresh({
+      sources: [createSource("alpha", 1)],
+      parserRegistry: { get: () => ({ parse: async () => { throw new Error("Unexpected markup"); } }) },
+      normalizer: createDefaultNormalizer(),
+      requestOptions: { concurrency: NaN, targetConcurrency: Infinity, timeoutMs: 1000 },
+      fetchFn,
+    });
+    expect(fetchFn).toHaveBeenCalledOnce();
+    expect(snapshot.sourceHealth.alpha).toMatchObject({
+      status: "parser_error", errorCode: "PARSER_FAILED", message: "Unexpected markup",
+    });
+  });
+
   it("limits nested fetch and parse concurrency during refresh", async () => {
     const sources = [createSource("alpha", 4), createSource("beta", 4)];
     let activeFetches = 0;
@@ -190,6 +211,33 @@ describe("executeBrowserRefresh", () => {
 });
 
 describe("executeBrowserRefreshUntilStable", () => {
+  it("does not count a successful target twice when retrying a partial source", async () => {
+    const requests = new Map<string, number>();
+    const snapshot = await executeBrowserRefreshUntilStable({
+      sources: [createSource("alpha", 2)],
+      parserRegistry: { get: () => ({ parse: async (page) => [{
+        sourceId: page.sourceId, rawId: page.requestId, rawTitle: page.requestId, rawUrl: page.requestUrl,
+      }] }) },
+      normalizer: createDefaultNormalizer(),
+      requestOptions: { concurrency: 1, targetConcurrency: 1, timeoutMs: 1000 },
+      stabilization: { maxAttempts: 2, retryDelayMs: 0 },
+      fetchFn: vi.fn<typeof fetch>(async (input) => {
+        const url = String(input);
+        const count = (requests.get(url) ?? 0) + 1;
+        requests.set(url, count);
+        if (url.endsWith("/1") && count === 1) {
+          throw new Error("temporary failure");
+        }
+        return {
+          ok: true, url, headers: { get: () => "text/html" }, text: async () => "ok",
+        } as unknown as Response;
+      }),
+    });
+    expect(snapshot.items).toHaveLength(2);
+    expect(snapshot.items.map((item) => item.rawCount)).toEqual([1, 1]);
+    expect(snapshot.sourceHealth.alpha).toMatchObject({ status: "live", itemCount: 2 });
+  });
+
   it("retries only the failed sources and preserves successful results", async () => {
     const sources = [createSource("alpha", 1), createSource("beta", 1)];
     const requestCounts = new Map<string, number>();

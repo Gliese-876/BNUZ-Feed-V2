@@ -1,4 +1,4 @@
-import type { FeedFreshness, FeedItem } from "@bnuz-feed/contracts";
+import type { FeedFreshness, FeedItem, FeedItemOccurrence } from "@bnuz-feed/contracts";
 
 import { getRawOccurrences, mergeRawOccurrences } from "./rawOccurrences";
 
@@ -9,18 +9,24 @@ const freshnessRank: Record<FeedFreshness, number> = {
 };
 
 function pickPreferredItem(left: FeedItem, right: FeedItem): FeedItem {
-  if (freshnessRank[right.freshness] > freshnessRank[left.freshness]) {
-    return right;
+  if (left.freshness !== right.freshness) {
+    return freshnessRank[right.freshness] > freshnessRank[left.freshness] ? right : left;
   }
 
-  const leftPublished = left.publishedAt ? Date.parse(left.publishedAt) : Number.NEGATIVE_INFINITY;
-  const rightPublished = right.publishedAt ? Date.parse(right.publishedAt) : Number.NEGATIVE_INFINITY;
+  const leftPublished = timestamp(left.publishedAt);
+  const rightPublished = timestamp(right.publishedAt);
 
   if (rightPublished > leftPublished) {
     return right;
   }
 
-  return left;
+  return rightPublished === leftPublished && right.fetchedAt > left.fetchedAt ? right : left;
+}
+
+function timestamp(value: string | undefined): number {
+  if (value && /^(?:--)?\d{1,2}[-/]\d{1,2}$/.test(value.trim())) return 0;
+  const parsed = value ? Date.parse(value) : NaN;
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function normalizeText(value: string | undefined): string {
@@ -30,13 +36,11 @@ function normalizeText(value: string | undefined): string {
 function createLooseUrlKey(value: string): string {
   try {
     const url = new URL(value);
-    const normalizedSearch = [...url.searchParams.entries()]
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([key, itemValue]) => `${key}=${itemValue}`)
-      .join("&");
+    url.searchParams.sort();
+    const normalizedSearch = url.searchParams.toString();
 
     return [
-      url.hostname.toLowerCase(),
+      url.host.toLowerCase(),
       url.pathname.replace(/\/{2,}/g, "/"),
       normalizedSearch ? `?${normalizedSearch}` : "",
     ].join("");
@@ -59,10 +63,14 @@ function createAliasKey(item: FeedItem): string | null {
   return `${normalizedUrl}|${normalizedTitle}`;
 }
 
-function mergeItems(left: FeedItem, right: FeedItem): FeedItem {
+function mergeItems(left: FeedItem, right: FeedItem, occurrenceMode: "sum" | "max"): FeedItem {
   const preferred = pickPreferredItem(left, right);
   const mergedSourceIds = [...new Set([...left.sourceIds, ...right.sourceIds])];
-  const rawOccurrences = mergeRawOccurrences(getRawOccurrences(left), getRawOccurrences(right));
+  const leftOccurrences = getRawOccurrences(left);
+  const rightOccurrences = getRawOccurrences(right);
+  const rawOccurrences = occurrenceMode === "sum"
+    ? mergeRawOccurrences(leftOccurrences, rightOccurrences)
+    : mergeOccurrenceRevisions(leftOccurrences, rightOccurrences);
   const rawCount = rawOccurrences.reduce((total, occurrence) => total + occurrence.count, 0);
 
   return {
@@ -71,6 +79,21 @@ function mergeItems(left: FeedItem, right: FeedItem): FeedItem {
     rawCount,
     rawOccurrences,
   };
+}
+
+function mergeOccurrenceRevisions(
+  left: FeedItemOccurrence[],
+  right: FeedItemOccurrence[],
+): FeedItemOccurrence[] {
+  const occurrences = new Map<string, FeedItemOccurrence>();
+  for (const occurrence of [...left, ...right]) {
+    const key = `${occurrence.sourceId}\u0000${occurrence.channel ?? ""}`;
+    const previous = occurrences.get(key);
+    if (!previous || previous.count < occurrence.count) {
+      occurrences.set(key, occurrence);
+    }
+  }
+  return [...occurrences.values()];
 }
 
 function cloneItem(item: FeedItem): FeedItem {
@@ -86,19 +109,18 @@ function cloneItem(item: FeedItem): FeedItem {
 }
 
 export function sortFeedItems(items: FeedItem[]): FeedItem[] {
-  return [...items].sort((left, right) => {
-    const leftPublished = left.publishedAt ? Date.parse(left.publishedAt) : 0;
-    const rightPublished = right.publishedAt ? Date.parse(right.publishedAt) : 0;
-
-    if (leftPublished !== rightPublished) {
-      return rightPublished - leftPublished;
-    }
-
-    return right.fetchedAt.localeCompare(left.fetchedAt);
-  });
+  return items
+    .map((item) => ({ item, published: timestamp(item.publishedAt) }))
+    .sort((left, right) =>
+      right.published - left.published || right.item.fetchedAt.localeCompare(left.item.fetchedAt),
+    )
+    .map(({ item }) => item);
 }
 
-export function dedupeFeedItems(items: FeedItem[]): FeedItem[] {
+export function dedupeFeedItems(
+  items: FeedItem[],
+  occurrenceMode: "sum" | "max" = "sum",
+): FeedItem[] {
   const byId = new Map<string, FeedItem>();
 
   for (const item of items) {
@@ -109,7 +131,7 @@ export function dedupeFeedItems(items: FeedItem[]): FeedItem[] {
       continue;
     }
 
-    byId.set(item.id, mergeItems(existing, item));
+    byId.set(item.id, mergeItems(existing, item, occurrenceMode));
   }
 
   const byAlias = new Map<string, FeedItem>();
@@ -119,11 +141,11 @@ export function dedupeFeedItems(items: FeedItem[]): FeedItem[] {
     const existing = byAlias.get(aliasKey);
 
     if (!existing) {
-      byAlias.set(aliasKey, cloneItem(item));
+      byAlias.set(aliasKey, item);
       continue;
     }
 
-    byAlias.set(aliasKey, mergeItems(existing, item));
+    byAlias.set(aliasKey, mergeItems(existing, item, occurrenceMode));
   }
 
   return sortFeedItems([...byAlias.values()]);

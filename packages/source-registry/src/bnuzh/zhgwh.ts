@@ -1,14 +1,6 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+export { zhgwhFetchTargets } from "./targets/zhgwh";
 
 import { createConfiguredHtmlListParser } from "../parsers/configuredHtmlListParser";
-
-export const zhgwhFetchTargets: FetchTarget[] = [
-  {
-    id: "zhzn",
-    url: "https://zhb.bnu.edu.cn/zhzn/index.htm",
-    channel: "综合指南",
-  },
-];
 
 export const zhgwhParser = createConfiguredHtmlListParser({
   parserKey: "bnuzh/zhgwh",

@@ -1,37 +1,8 @@
-import { AggregationError, type FetchTarget, type Parser, type RawPage, type SourceRecord } from "@bnuz-feed/contracts";
+import { normalizeText } from "../parsers/html";
+import { xsgwzTargets } from "./targets/xsgwz";
+export { xsgwzFetchTargets } from "./targets/xsgwz";
 
-type TargetConfig = {
-  requestId: string;
-  channel: string;
-};
-
-const baseUrl = "https://xiaoshi.bnuzh.edu.cn";
-
-const xsgwzTargets: TargetConfig[] = [
-  { requestId: "xwdt", channel: "新闻动态" },
-  { requestId: "tzgg", channel: "通知公告" },
-  { requestId: "xsyj1", channel: "师大校史" },
-  { requestId: "sdrw", channel: "师大人物" },
-  { requestId: "slxz", channel: "史料选载" },
-  { requestId: "sdjs", channel: "师大纪事" },
-  { requestId: "lstp", channel: "历史图片" },
-  { requestId: "zjgg", channel: "征集公告" },
-  { requestId: "zpcl", channel: "展品陈列" },
-  { requestId: "ztzl", channel: "专题展览" },
-];
-
-const xsgwzFetchTargetUrls: Record<TargetConfig["requestId"], string> = {
-  xwdt: `${baseUrl}/gzdt/xwdt/index.htm`,
-  tzgg: `${baseUrl}/gzdt/tzgg/index.htm`,
-  xsyj1: `${baseUrl}/xsyj/xsyj1/index.htm`,
-  sdrw: `${baseUrl}/xsyj/sdrw/index.htm`,
-  slxz: `${baseUrl}/xsyj/slxz/index.htm`,
-  sdjs: `${baseUrl}/xsyj/sdjs/index.htm`,
-  lstp: `${baseUrl}/yxjy/lstp/index.htm`,
-  zjgg: `${baseUrl}/zpzj/zjgg/index.htm`,
-  zpcl: `${baseUrl}/zpzj/zpcl/index.htm`,
-  ztzl: `${baseUrl}/bnxsg/ztzl/index.htm`,
-};
+import { AggregationError, type Parser, type RawPage, type SourceRecord } from "@bnuz-feed/contracts";
 
 const candidateGroups = [
   { selector: ".textList > li" },
@@ -94,11 +65,6 @@ const navTitles = new Set([
   "北京师范大学珠海校区",
   "北京师范大学校史研究室",
 ]);
-
-function normalizeText(value: string | null | undefined): string | undefined {
-  const normalized = value?.replace(/\s+/g, " ").trim();
-  return normalized ? normalized : undefined;
-}
 
 function normalizeDateText(value: string | undefined): string | undefined {
   const text = normalizeText(value);
@@ -289,21 +255,5 @@ class XsgwzParser implements Parser {
     return Array.from(deduped.values());
   }
 }
-
-export const xsgwzFetchTargets: FetchTarget[] = xsgwzTargets.flatMap((target) => {
-  const url = xsgwzFetchTargetUrls[target.requestId];
-
-  if (!url) {
-    return [];
-  }
-
-  return [
-    {
-      id: target.requestId,
-      url,
-      channel: target.channel,
-    },
-  ];
-});
 
 export const xsgwzParser: Parser = new XsgwzParser();

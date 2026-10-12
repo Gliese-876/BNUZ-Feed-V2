@@ -12,6 +12,7 @@
     "build": "npm run build --workspace @bnuz-feed/web",
     "build:snapshot": "npm run snapshot && npm run build",
     "check": "tsc -p tsconfig.json --noEmit",
+    "check:sources": "tsx scripts/check-sources.ts",
     "snapshot": "tsx scripts/generate-snapshot.ts",
     "test": "vitest run"
   },

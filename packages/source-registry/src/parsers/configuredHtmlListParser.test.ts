@@ -7,6 +7,22 @@ import type { RawPage } from "@bnuz-feed/contracts";
 import { ConfiguredHtmlListParser } from "./configuredHtmlListParser";
 
 describe("ConfiguredHtmlListParser", () => {
+  it("excludes placeholder, executable, and malformed links", async () => {
+    const parser = new ConfiguredHtmlListParser({ parserKey: "links", targets: [{
+      requestId: "news", itemSelector: "a", title: {}, url: { attr: "href" },
+    }] });
+    const records = await parser.parse({
+      sourceId: "example", requestId: "news", requestUrl: "https://example.edu/news/", finalUrl: "https://example.edu/news/",
+      fetchedAt: "2026-10-12T00:00:00.000Z", bodyText: `
+        <a href="#">导航</a><a href="javascript:void(0)">占位</a><a href="data:text/html,hello">数据</a>
+        <a href="mailto:office@example.edu">邮件</a><a href="http://[">坏链接</a>
+        <a href="article.htm">有效文章</a><a href="https://mp.weixin.qq.com/s/example">外链</a>`,
+    });
+    expect(records.map((record) => record.rawUrl)).toEqual([
+      "https://example.edu/news/article.htm", "https://mp.weixin.qq.com/s/example",
+    ]);
+  });
+
   it("extracts normalized records from a configured HTML list", async () => {
     const parser = new ConfiguredHtmlListParser({
       parserKey: "bnuzh/example",

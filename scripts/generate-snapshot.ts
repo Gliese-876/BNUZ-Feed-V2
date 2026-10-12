@@ -24,7 +24,7 @@ function resolveNumber(value: string | undefined, fallback: number): number {
   }
 
   const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : fallback;
 }
 
 function resolveNonNegativeNumber(value: string | undefined, fallback: number): number {
@@ -33,11 +33,11 @@ function resolveNonNegativeNumber(value: string | undefined, fallback: number): 
   }
 
   const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : fallback;
 }
 
 async function writeJson(filePath: string, value: unknown) {
-  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  await writeFile(filePath, `${JSON.stringify(value)}\n`, "utf8");
 }
 
 function summarizeSnapshot(snapshot: FeedSnapshot) {
@@ -54,7 +54,7 @@ function summarizeSnapshot(snapshot: FeedSnapshot) {
 
 async function main() {
   const nodeMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS, 10);
-  const browserMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS, 5);
+  const browserMaxAttempts = resolveNonNegativeNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS, 5);
   const roundLimit = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_ROUND_LIMIT, 3);
   const retryDelayMs = resolveNonNegativeNumber(
     process.env.BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS,
@@ -92,7 +92,7 @@ async function main() {
     const fetchFn = snapshotFetch?.fetchFn ?? fetch;
 
     try {
-      return executeBrowserRefreshUntilStable({
+      return await executeBrowserRefreshUntilStable({
         sources,
         parserRegistry,
         normalizer,
@@ -144,6 +144,23 @@ async function main() {
           ...(unhealthySourceIds.length > 0 ? [`remainingSources=${formatSourceIds(unhealthySourceIds)}`] : []),
         ].join(" "),
       );
+
+      if (unhealthySourceIds.length > 0) {
+        console.log(JSON.stringify({
+          round,
+          unhealthySources: unhealthySourceIds.map((sourceId) => {
+            const health = snapshot.sourceHealth[sourceId];
+            return {
+              name: sourceById.get(sourceId)?.name ?? sourceId,
+              sourceId,
+              status: health?.status ?? "missing",
+              errorCode: health?.errorCode,
+              requestUrl: health?.requestUrl,
+              message: health?.message,
+            };
+          }),
+        }, null, 2));
+      }
     },
   });
 

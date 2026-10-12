@@ -1,7 +1,7 @@
 import {
   AggregationError,
   type FeedItem,
-  type BrowserWorkerRefreshOptions,
+  type BrowserRefreshOptions,
   type FeedSnapshot,
   type FetchTarget,
   type Normalizer,
@@ -12,7 +12,7 @@ import {
   type SourceHealthStatus,
   type SourceId,
 } from "@bnuz-feed/contracts";
-import { createSourceScopedItem, dedupeFeedItems, sumRawItemCounts } from "@bnuz-feed/core";
+import { dedupeFeedItems, splitFeedItemsBySource, sumRawItemCounts } from "@bnuz-feed/core";
 
 import { classifySourceError } from "./classifySourceError";
 
@@ -20,7 +20,7 @@ export interface ExecuteBrowserRefreshOptions {
   sources: SourceDescriptor[];
   parserRegistry: ParserRegistry;
   normalizer: Normalizer;
-  requestOptions: BrowserWorkerRefreshOptions;
+  requestOptions: BrowserRefreshOptions;
   fetchFn?: typeof fetch;
 }
 
@@ -80,7 +80,7 @@ function resolveConcurrency(value: number | undefined, fallback: number): number
   return Math.max(1, Math.floor(value));
 }
 
-function getTargetConcurrency(requestOptions: BrowserWorkerRefreshOptions): number {
+function getTargetConcurrency(requestOptions: BrowserRefreshOptions): number {
   return resolveConcurrency(requestOptions.targetConcurrency, requestOptions.concurrency);
 }
 
@@ -168,21 +168,6 @@ function getFetchTargets(source: SourceDescriptor): FetchTarget[] {
   }));
 }
 
-async function fetchSourcePages(
-  source: SourceDescriptor,
-  requestOptions: BrowserWorkerRefreshOptions,
-  fetchFn: typeof fetch,
-): Promise<RawPage[]> {
-  const pages = await mapWithConcurrency(
-    getFetchTargets(source),
-    getTargetConcurrency(requestOptions),
-    async (target) => fetchPage(source, target, requestOptions.timeoutMs, fetchFn),
-  );
-
-  await yieldToEventLoop();
-  return pages;
-}
-
 async function mapWithConcurrency<T, R>(
   items: T[],
   concurrency: number,
@@ -199,7 +184,7 @@ async function mapWithConcurrency<T, R>(
     }
   }
 
-  const size = Math.max(1, Math.min(concurrency, items.length || 1));
+  const size = Math.min(resolveConcurrency(concurrency, 1), items.length);
   await Promise.all(Array.from({ length: size }, () => worker()));
   return results;
 }
@@ -228,28 +213,12 @@ async function mapWithConcurrencySettled<T, R>(
   return results;
 }
 
-function explodeSnapshotItems(snapshot: FeedSnapshot): Map<SourceId, FeedItem[]> {
-  const itemsBySource = new Map<SourceId, FeedItem[]>();
-
-  for (const item of snapshot.items) {
-    const sourceIds = item.sourceIds.length > 0 ? item.sourceIds : [item.sourceId];
-
-    for (const sourceId of sourceIds) {
-      const sourceItems = itemsBySource.get(sourceId) ?? [];
-      sourceItems.push(createSourceScopedItem(item, sourceId));
-      itemsBySource.set(sourceId, sourceItems);
-    }
-  }
-
-  return itemsBySource;
-}
-
 function createRefreshAccumulator(snapshot: FeedSnapshot): RefreshAccumulator {
   return {
     sourceHealth: new Map(
       Object.entries(snapshot.sourceHealth).map(([sourceId, entry]) => [sourceId, { ...entry }]),
     ),
-    sourceItems: explodeSnapshotItems(snapshot),
+    sourceItems: splitFeedItemsBySource(snapshot.items),
     updatedAt: snapshot.updatedAt,
     version: snapshot.version,
   };
@@ -293,7 +262,7 @@ function mergeRefreshAttempt(
   snapshot: FeedSnapshot,
 ): SourceId[] {
   const recoveredSourceIds: SourceId[] = [];
-  const nextItemsBySource = explodeSnapshotItems(snapshot);
+  const nextItemsBySource = splitFeedItemsBySource(snapshot.items);
 
   for (const sourceId of attemptedSourceIds) {
     const nextHealth = snapshot.sourceHealth[sourceId];
@@ -307,7 +276,8 @@ function mergeRefreshAttempt(
     const hasUsableItems = nextItems.length > 0;
 
     if (hasUsableItems) {
-      const mergedItems = dedupeFeedItems([...previousItems, ...nextItems]);
+      // These are repeated observations, not new raw occurrences of the same record.
+      const mergedItems = dedupeFeedItems([...previousItems, ...nextItems], "max");
       accumulator.sourceItems.set(sourceId, mergedItems);
       accumulator.sourceHealth.set(sourceId, {
         ...nextHealth,
@@ -349,7 +319,12 @@ function summarizeSourceAttemptFailures(source: SourceDescriptor, failures: Sour
   status: SourceHealthStatus;
 } {
   const primaryFailure = failures[0];
-  const classified = classifySourceError(primaryFailure?.error);
+  const classified = primaryFailure?.stage === "parse"
+    ? classifySourceError(new AggregationError(
+        "PARSER_FAILED",
+        primaryFailure.error instanceof Error ? primaryFailure.error.message : "Parser failed.",
+      ))
+    : classifySourceError(primaryFailure?.error);
   const fetchFailures = failures.filter((failure) => failure.stage === "fetch").length;
   const parseFailures = failures.length - fetchFailures;
 
@@ -525,7 +500,8 @@ export async function executeBrowserRefreshUntilStable(
 ): Promise<FeedSnapshot> {
   const { stabilization, ...refreshOptions } = options;
   const maxAttempts = resolveConcurrency(stabilization?.maxAttempts, 3);
-  const retryDelayMs = Math.max(0, Math.floor(stabilization?.retryDelayMs ?? 1500));
+  const requestedDelay = stabilization?.retryDelayMs ?? 1500;
+  const retryDelayMs = Number.isFinite(requestedDelay) ? Math.max(0, Math.floor(requestedDelay)) : 1500;
   const retryableStatuses = new Set(
     stabilization?.retryableStatuses?.length
       ? stabilization.retryableStatuses

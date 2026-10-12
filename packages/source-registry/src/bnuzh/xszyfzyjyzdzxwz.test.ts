@@ -17,6 +17,34 @@ function createPage(
 }
 
 describe("xszyfzyjyzdzxwz", () => {
+  it("keeps card titles separate from event and recruitment details", async () => {
+    const cards = [
+      { requestId: "jobfair", container: "list-media-content", href: "jobfair-detail?id=40",
+        html: `<div class="detail"><div class="title">北京师范大学珠海校区2026年秋季学期综合类专场双选会</div>
+          <div class="release"><div class="text">举办时间：2026/10/25 14:00</div>
+          <div class="text">举办地点：珠海校区图书馆广场</div></div></div><div class="right">未开始</div>`,
+        title: "北京师范大学珠海校区2026年秋季学期综合类专场双选会",
+        summary: "举办时间：2026/10/25 14:00 · 举办地点：珠海校区图书馆广场 · 未开始" },
+      { requestId: "jobs-brief", container: "jobsbrief-lists", href: "jobs-brief-detail?id=SZUXSS4",
+        html: `<div class="top"><div class="title">宝姿(中国)2027届秋季校园招聘</div>
+          <div class="description"><div class="position-count">10个职位</div><div class="time">2026-10-11</div></div></div>
+          <div class="detail"><div class="companyname">学校发布</div><div class="job-count">10人</div></div>`,
+        title: "宝姿(中国)2027届秋季校园招聘", summary: "10个职位 · 学校发布 · 10人" },
+      { requestId: "job", container: "jobs-list", href: "job-detail?id=1110",
+        html: `<div class="job-name">厦门-网课班主任</div><div class="job-time">10/09 发布</div>
+          <div class="job-company">厦门新东方科技培训有限公司</div><div class="job-salary">6000～8000元/月</div>`,
+        title: "厦门-网课班主任", summary: "厦门新东方科技培训有限公司 · 6000～8000元/月" },
+    ];
+    for (const card of cards) {
+      const url = "https://career.bnuzh.edu.cn/index.php/web/Index/";
+      const records = await xszyfzyjyzdzxwzParser.parse(createPage({
+        requestId: card.requestId, requestUrl: url, finalUrl: url,
+        bodyText: `<div class="${card.container}"><a href="${card.href}">${card.html}</a></div>`,
+      }));
+      expect(records).toMatchObject([{ rawTitle: card.title, rawSummary: card.summary }]);
+    }
+  });
+
   it("declares the confirmed public list sources and corrects the dead alias routes", () => {
     expect(xszyfzyjyzdzxwzFetchTargets).toEqual([
       { id: "news", url: "https://career.bnuzh.edu.cn/index.php/web/Index/news-list", channel: "新闻资讯" },

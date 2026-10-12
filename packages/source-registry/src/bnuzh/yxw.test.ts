@@ -20,11 +20,9 @@ describe("yxw", () => {
   it("declares the confirmed welcome site message sources and paginated targets", () => {
     expect(yxwFetchTargets).toEqual([
       { id: "yxkx/index", url: "https://welcome.bnuzh.edu.cn/yxkx/index.htm", channel: "迎新快讯" },
-      { id: "yxkx/index1", url: "https://welcome.bnuzh.edu.cn/yxkx/index1.htm", channel: "迎新快讯" },
       { id: "yxzy/index", url: "https://welcome.bnuzh.edu.cn/yxzy/index.htm", channel: "迎新指引" },
       { id: "xzbsd/index", url: "https://welcome.bnuzh.edu.cn/xzbsd/index.htm", channel: "学在北师大" },
       { id: "zzbsd/index", url: "https://welcome.bnuzh.edu.cn/zzbsd/index.htm", channel: "住在北师大" },
-      { id: "lzbsd/index", url: "https://welcome.bnuzh.edu.cn/lzbsd/index.blk.htm", channel: "乐在北师大" },
     ]);
   });
 
@@ -104,9 +102,9 @@ describe("yxw", () => {
 
   it("parses the single-page guide and card-based sections with the same list skeleton", async () => {
     const page = createPage({
-      requestId: "lzbsd/index",
-      requestUrl: "https://welcome.bnuzh.edu.cn/lzbsd/index.blk.htm",
-      finalUrl: "https://welcome.bnuzh.edu.cn/lzbsd/index.blk.htm",
+      requestId: "zzbsd/index",
+      requestUrl: "https://welcome.bnuzh.edu.cn/zzbsd/index.htm",
+      finalUrl: "https://welcome.bnuzh.edu.cn/zzbsd/index.htm",
       bodyText: `
         <body>
           <article>
@@ -121,7 +119,7 @@ describe("yxw", () => {
                           <span class="year">2023-08</span>
                         </span>
                         <span class="artTxt">
-                          <a href="./01f6d20c4b674aef8405ca8cfed0fc26.blk.htm">校团委文化活动介绍</a>
+                          <a href="./01f6d20c4b674aef8405ca8cfed0fc26.blk.htm">住宿生活介绍</a>
                         </span>
                       </div>
                     </li>
@@ -138,13 +136,13 @@ describe("yxw", () => {
       {
         sourceId: "c5ba1fc8bc32462d9299d79a8d0d0ee1",
         rawId: "./01f6d20c4b674aef8405ca8cfed0fc26.blk.htm",
-        rawTitle: "校团委文化活动介绍",
-        rawUrl: "https://welcome.bnuzh.edu.cn/lzbsd/01f6d20c4b674aef8405ca8cfed0fc26.blk.htm",
+        rawTitle: "住宿生活介绍",
+        rawUrl: "https://welcome.bnuzh.edu.cn/zzbsd/01f6d20c4b674aef8405ca8cfed0fc26.blk.htm",
         rawPublishedAt: "2023-08-09",
-        rawChannel: "乐在北师大",
+        rawChannel: "住在北师大",
         rawSummary: undefined,
         extras: {
-          requestId: "lzbsd/index",
+          requestId: "zzbsd/index",
         },
       },
     ]);

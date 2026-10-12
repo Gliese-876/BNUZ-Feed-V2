@@ -1,27 +1,8 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+import { normalizeText } from "../parsers/html";
+import { targetSpecs } from "./targets/xddjjdgjztw";
+export { xddjjdgjztwFetchTargets } from "./targets/xddjjdgjztw";
 
 import { createConfiguredHtmlListParser, type HtmlListParserConfig } from "../parsers/configuredHtmlListParser";
-
-type TargetSpec = {
-  requestId: string;
-  path: string;
-  channel: string;
-};
-
-const baseUrl = "https://djjd.bnuzh.edu.cn";
-
-const targetSpecs: TargetSpec[] = [
-  { requestId: "zydt", path: "zydt/index.htm", channel: "\u91cd\u8981\u52a8\u6001" },
-  { requestId: "twdt", path: "twdt/index.htm", channel: "\u56fe\u6587\u52a8\u6001" },
-  { requestId: "gzdt", path: "gzdt/index.htm", channel: "\u5de5\u4f5c\u52a8\u6001" },
-  { requestId: "tzgg", path: "tzgg/index.htm", channel: "\u901a\u77e5\u516c\u544a" },
-  { requestId: "xxzl", path: "xxzl/index.htm", channel: "\u5b66\u4e60\u8d44\u6599" },
-];
-
-function normalizeText(value: string | null | undefined): string | undefined {
-  const normalized = value?.replace(/\s+/g, " ").trim();
-  return normalized ? normalized : undefined;
-}
 
 function normalizeDateToken(value: string): string {
   const compact = value.replace(/\s+/g, "");
@@ -115,11 +96,5 @@ const parserConfig: HtmlListParserConfig = {
     limit: 50,
   })),
 };
-
-export const xddjjdgjztwFetchTargets: FetchTarget[] = targetSpecs.map((target) => ({
-  id: target.requestId,
-  url: `${baseUrl}/${target.path}`,
-  channel: target.channel,
-}));
 
 export const xddjjdgjztwParser = createConfiguredHtmlListParser(parserConfig);

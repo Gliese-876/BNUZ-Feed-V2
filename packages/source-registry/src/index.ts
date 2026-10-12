@@ -1,7 +1,8 @@
 export { bnuzhSources, publicBnuzhSources } from "./bnuzhSources";
 export * from "./bnuzh";
 export { createParserRegistry } from "./parserRegistry";
-export { PlaceholderParser } from "./placeholderParser";
+export { officialBnuzhSites } from "./bnuzhSites";
+export type { OfficialBnuzhSite } from "./bnuzhSites";
 export { ConfiguredHtmlListParser, createConfiguredHtmlListParser } from "./parsers/configuredHtmlListParser";
 export type { ParserRegistryOptions } from "./parserRegistry";
 export type {

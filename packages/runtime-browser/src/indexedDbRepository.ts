@@ -9,33 +9,32 @@ export interface IndexedDbRepositoryOptions {
 function openDatabase(options: IndexedDbRepositoryOptions): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(options.dbName, 1);
-
     request.onupgradeneeded = () => {
       const database = request.result;
-
       if (!database.objectStoreNames.contains(options.storeName)) {
         database.createObjectStore(options.storeName);
       }
     };
-
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
 
-export function createIndexedDbRepository(
-  options: IndexedDbRepositoryOptions,
-): Repository {
+export function createIndexedDbRepository(options: IndexedDbRepositoryOptions): Repository {
   async function withStore<T>(
     mode: IDBTransactionMode,
-    callback: (store: IDBObjectStore) => Promise<T> | T,
+    makeRequest: (store: IDBObjectStore) => IDBRequest<T>,
   ): Promise<T> {
     const database = await openDatabase(options);
-    const transaction = database.transaction(options.storeName, mode);
-    const store = transaction.objectStore(options.storeName);
-
     try {
-      return await callback(store);
+      return await new Promise<T>((resolve, reject) => {
+        const transaction = database.transaction(options.storeName, mode);
+        const request = makeRequest(transaction.objectStore(options.storeName));
+        // Request success precedes commit; a later transaction abort must not report success.
+        transaction.oncomplete = () => resolve(request.result);
+        transaction.onabort = () => reject(transaction.error ?? new Error("Cache transaction aborted."));
+        transaction.onerror = () => reject(transaction.error ?? request.error);
+      });
     } finally {
       database.close();
     }
@@ -46,15 +45,10 @@ export function createIndexedDbRepository(
       if (typeof indexedDB === "undefined") {
         return null;
       }
-
       try {
-        return await withStore("readonly", (store) =>
-          new Promise<FeedSnapshot | null>((resolve, reject) => {
-            const request = store.get(options.snapshotKey);
-            request.onsuccess = () => resolve((request.result as FeedSnapshot | undefined) ?? null);
-            request.onerror = () => reject(request.error);
-          }),
-        );
+        return (await withStore<FeedSnapshot | undefined>("readonly", (store) =>
+          store.get(options.snapshotKey),
+        )) ?? null;
       } catch {
         return null;
       }
@@ -64,17 +58,10 @@ export function createIndexedDbRepository(
       if (typeof indexedDB === "undefined") {
         return;
       }
-
       try {
-        await withStore("readwrite", (store) =>
-          new Promise<void>((resolve, reject) => {
-            const request = store.put(snapshot, options.snapshotKey);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-          }),
-        );
+        await withStore("readwrite", (store) => store.put(snapshot, options.snapshotKey));
       } catch {
-        return;
+        // Cache storage is best effort (for example, private mode or an exhausted quota).
       }
     },
   };

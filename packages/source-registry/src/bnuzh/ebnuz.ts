@@ -1,28 +1,9 @@
-import { AggregationError, type FetchTarget, type Parser, type RawPage, type SourceRecord } from "@bnuz-feed/contracts";
+import { ebnuzFetchTargets } from "./targets/ebnuz";
+export { ebnuzFetchTargets } from "./targets/ebnuz";
 
-type TargetSpec = {
-  requestId: string;
-  path: string;
-  channel: string;
-  pages?: number;
-};
+import { AggregationError, type Parser, type RawPage, type SourceRecord } from "@bnuz-feed/contracts";
 
-const baseUrl = "https://english.bnuzh.edu.cn/";
-
-const targetSpecs: TargetSpec[] = [
-  { requestId: "news", path: "News/index.htm", channel: "News", pages: 5 },
-  { requestId: "events", path: "News/Events/index.htm", channel: "Events", pages: 2 },
-  { requestId: "bnuinhenews", path: "News/BNUinheNews/index.htm", channel: "BNU in the News", pages: 2 },
-  { requestId: "newsletters", path: "News/Newsletters/index.htm", channel: "Newsletters" },
-  { requestId: "admissions", path: "Admissions/index.htm", channel: "Admissions" },
-  { requestId: "campus", path: "Campus/index.htm", channel: "Student Life" },
-  { requestId: "campuslife", path: "CampusLife/index.htm", channel: "Campus Life" },
-  { requestId: "pictures", path: "CampusLife/Pictures/index.htm", channel: "Pictures", pages: 2 },
-  { requestId: "articles", path: "CampusLife/Articles/index.htm", channel: "Articles" },
-  { requestId: "videos", path: "CampusLife/Videos/index.htm", channel: "Videos" },
-  { requestId: "joinus", path: "JoinUs/index.htm", channel: "Join Us" },
-  { requestId: "students", path: "Students/index.htm", channel: "Students" },
-];
+const targets = new Map(ebnuzFetchTargets.map((target) => [target.id, target]));
 
 const titleSelectors = [".title", ".news-title", ".article-title"];
 const dateSelectors = [".time", ".date", "time"];
@@ -161,6 +142,11 @@ function scoreList(list: Element, page: RawPage, channel: string): SourceRecord[
 }
 
 function resolveBestRecords(document: Document, page: RawPage, channel: string): SourceRecord[] {
+  // News pages repeat featured stories above the actual paginated list. Prefer
+  // that list even when its last page contains fewer stories than the feature.
+  const paginatedList = document.querySelector(".sub_list05-12 > ul");
+  if (paginatedList) return scoreList(paginatedList, page, channel);
+
   let bestRecords: SourceRecord[] = [];
 
   for (const list of Array.from(document.querySelectorAll("ul"))) {
@@ -185,37 +171,11 @@ function getDocument(page: RawPage): Document {
   return new DOMParser().parseFromString(page.bodyText, "text/html");
 }
 
-function buildTargets(): FetchTarget[] {
-  return targetSpecs.flatMap((spec) =>
-    Array.from({ length: spec.pages ?? 1 }, (_, pageIndex) => {
-      const requestId = pageIndex === 0 ? spec.requestId : `${spec.requestId}/index${pageIndex}`;
-      const path = pageIndex === 0 ? spec.path : spec.path.replace("index.htm", `index${pageIndex}.htm`);
-
-      return {
-        id: requestId,
-        url: `${baseUrl}${path}`,
-        channel: spec.channel,
-      } satisfies FetchTarget;
-    }),
-  );
-}
-
-function getTarget(requestId: string): TargetSpec | undefined {
-  return targetSpecs.find((spec) => {
-    if (spec.requestId === requestId) {
-      return true;
-    }
-
-    const pageCount = spec.pages ?? 1;
-    return pageCount > 1 && requestId.startsWith(`${spec.requestId}/index`);
-  });
-}
-
 class EbnuzParser implements Parser {
   readonly parserKey = "bnuzh/ebnuz";
 
   async parse(page: RawPage): Promise<SourceRecord[]> {
-    const target = getTarget(page.requestId);
+    const target = targets.get(page.requestId);
 
     if (!target) {
       throw new AggregationError(
@@ -226,9 +186,7 @@ class EbnuzParser implements Parser {
     }
 
     const document = getDocument(page);
-    return resolveBestRecords(document, page, target.channel);
+    return resolveBestRecords(document, page, target.channel ?? page.channel ?? "");
   }
 }
-
-export const ebnuzFetchTargets = buildTargets();
 export const ebnuzParser: Parser = new EbnuzParser();

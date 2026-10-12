@@ -1,8 +1,6 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+export { wxmhFetchTargets } from "./targets/wxmh";
 
 import { createConfiguredHtmlListParser, type HtmlListParserConfig } from "../parsers/configuredHtmlListParser";
-
-const baseUrl = "https://wx.bnuzh.edu.cn/";
 const articleSelector = ".index_01.article > h2";
 
 function getSectionImageSources(item: Element): string[] {
@@ -56,13 +54,5 @@ const parserConfig: HtmlListParserConfig = {
     },
   ],
 };
-
-export const wxmhFetchTargets: FetchTarget[] = [
-  {
-    id: "index",
-    url: baseUrl,
-    channel: "微信门户",
-  },
-];
 
 export const wxmhParser = createConfiguredHtmlListParser(parserConfig);

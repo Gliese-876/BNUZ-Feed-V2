@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import type { FeedItem } from "@bnuz-feed/contracts";
 
-import { dedupeFeedItems } from "./dedupe";
+import { dedupeFeedItems, sortFeedItems } from "./dedupe";
+import { splitFeedItemsBySource } from "./rawOccurrences";
 
 function createItem(overrides: Partial<FeedItem>): FeedItem {
   return {
@@ -129,5 +130,65 @@ describe("dedupeFeedItems", () => {
     expect(items[0]?.rawOccurrences).toEqual([
       { sourceId: "source-a", channel: "閫氱煡鍏憡", count: 2 },
     ]);
+  });
+
+  it("does not downgrade live data when a cached duplicate has a later date", () => {
+    const items = dedupeFeedItems([
+      createItem({ freshness: "live", publishedAt: "2026-03-28" }),
+      createItem({ freshness: "cache", publishedAt: "2026-03-30" }),
+    ]);
+    expect(items[0]?.freshness).toBe("live");
+  });
+
+  it("merges retry revisions without recounting already observed occurrences", () => {
+    const items = dedupeFeedItems([
+      createItem({ rawOccurrences: [{ sourceId: "source-a", channel: "news", count: 2 }] }),
+      createItem({ rawOccurrences: [
+        { sourceId: "source-a", channel: "news", count: 1 },
+        { sourceId: "source-a", channel: "announcements", count: 1 },
+      ] }),
+    ], "max");
+    expect(items[0]?.rawCount).toBe(3);
+  });
+
+  it("keeps URL ports and escaped query values distinct", () => {
+    const items = dedupeFeedItems([
+      createItem({ id: "one", url: "https://example.com/story?a=x%26b%3Dy" }),
+      createItem({ id: "two", url: "https://example.com/story?a=x&b=y" }),
+      createItem({ id: "three", url: "https://example.com:8080/story?a=x&b=y" }),
+    ]);
+    expect(items).toHaveLength(3);
+  });
+
+  it("sorts invalid dates consistently without changing the input array", () => {
+    const items = [
+      createItem({ id: "invalid", publishedAt: "invalid" }),
+      createItem({ id: "valid", publishedAt: "2026-04-01" }),
+    ];
+    expect(sortFeedItems(items).map((item) => item.id)).toEqual(["valid", "invalid"]);
+    expect(items[0]?.id).toBe("invalid");
+  });
+
+  it("does not invent a year when sorting month-day dates", () => {
+    const items = [
+      createItem({ id: "partial", publishedAt: "12-30", fetchedAt: "2026-10-12T01:00:00Z" }),
+      createItem({ id: "undated", publishedAt: undefined, fetchedAt: "2026-10-12T02:00:00Z" }),
+      createItem({ id: "dated", publishedAt: "2000-01-01" }),
+    ];
+    expect(sortFeedItems(items).map((item) => item.id)).toEqual(["dated", "undated", "partial"]);
+  });
+
+  it("splits occurrences by their source and retains the source's channel", () => {
+    const item = createItem({
+      sourceIds: ["source-a", "source-b"],
+      rawOccurrences: [
+        { sourceId: "source-a", channel: "news", count: 2 },
+        { sourceId: "source-b", channel: "announcements", count: 1 },
+      ],
+    });
+    const grouped = splitFeedItemsBySource([item]);
+    expect(grouped.get("source-a")?.[0]).toMatchObject({ channel: "news", rawCount: 2 });
+    expect(grouped.get("source-b")?.[0]).toMatchObject({ channel: "announcements", rawCount: 1 });
+    expect(dedupeFeedItems([...grouped.values()].flat())[0]?.rawCount).toBe(3);
   });
 });

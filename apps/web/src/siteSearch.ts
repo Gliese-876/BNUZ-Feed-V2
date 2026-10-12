@@ -104,6 +104,7 @@ export function submitOfficialSiteSearch(params: OfficialSiteSearchParams): bool
   form.action = request.action;
   form.method = request.method;
   form.target = "_blank";
+  form.rel = "noopener noreferrer";
   form.acceptCharset = "utf-8";
   form.style.display = "none";
 
@@ -116,7 +117,10 @@ export function submitOfficialSiteSearch(params: OfficialSiteSearchParams): bool
   }
 
   document.body.append(form);
-  form.submit();
-  form.remove();
+  try {
+    form.submit();
+  } finally {
+    form.remove();
+  }
   return true;
 }

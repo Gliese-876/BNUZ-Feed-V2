@@ -19,11 +19,11 @@ function createPage(
 describe("ebnuz", () => {
   it("declares the confirmed public message sources", () => {
     expect(ebnuzFetchTargets).toEqual([
-      { id: "news", url: "https://english.bnuzh.edu.cn/News/index.htm", channel: "News" },
-      { id: "news/index1", url: "https://english.bnuzh.edu.cn/News/index1.htm", channel: "News" },
-      { id: "news/index2", url: "https://english.bnuzh.edu.cn/News/index2.htm", channel: "News" },
-      { id: "news/index3", url: "https://english.bnuzh.edu.cn/News/index3.htm", channel: "News" },
-      { id: "news/index4", url: "https://english.bnuzh.edu.cn/News/index4.htm", channel: "News" },
+      { id: "news", url: "https://english.bnuzh.edu.cn/News/News/index.htm", channel: "News" },
+      { id: "news/index1", url: "https://english.bnuzh.edu.cn/News/News/index1.htm", channel: "News" },
+      { id: "news/index2", url: "https://english.bnuzh.edu.cn/News/News/index2.htm", channel: "News" },
+      { id: "news/index3", url: "https://english.bnuzh.edu.cn/News/News/index3.htm", channel: "News" },
+      { id: "news/index4", url: "https://english.bnuzh.edu.cn/News/News/index4.htm", channel: "News" },
       { id: "events", url: "https://english.bnuzh.edu.cn/News/Events/index.htm", channel: "Events" },
       { id: "events/index1", url: "https://english.bnuzh.edu.cn/News/Events/index1.htm", channel: "Events" },
       {
@@ -42,7 +42,7 @@ describe("ebnuz", () => {
         channel: "Newsletters",
       },
       { id: "admissions", url: "https://english.bnuzh.edu.cn/Admissions/index.htm", channel: "Admissions" },
-      { id: "campus", url: "https://english.bnuzh.edu.cn/Campus/index.htm", channel: "Student Life" },
+      { id: "campus", url: "https://english.bnuzh.edu.cn/Campus/StudentLife/index.htm", channel: "Student Life" },
       { id: "campuslife", url: "https://english.bnuzh.edu.cn/CampusLife/index.htm", channel: "Campus Life" },
       { id: "pictures", url: "https://english.bnuzh.edu.cn/CampusLife/Pictures/index.htm", channel: "Pictures" },
       {
@@ -55,6 +55,47 @@ describe("ebnuz", () => {
       { id: "joinus", url: "https://english.bnuzh.edu.cn/JoinUs/index.htm", channel: "Join Us" },
       { id: "students", url: "https://english.bnuzh.edu.cn/Students/index.htm", channel: "Students" },
     ]);
+  });
+
+  it("parses the current nested news path and prefers pagination results over repeated featured stories", async () => {
+    const target = ebnuzFetchTargets.find((item) => item.id === "news/index4")!;
+    const page = createPage({
+      requestId: target.id,
+      requestUrl: target.url,
+      finalUrl: target.url,
+      bodyText: `
+        <div class="articlePage">
+          <div class="sub_list05-11 ul-inline"><ul>
+            <li><a href="e29824c1ddc64701a0d56bbf987b9727.htm">
+              <div class="title fs18">University of Bath Vice-Chancellor and President Phil Taylor Leads Delegation on Visit to Beijing Normal University</div>
+              <div class="time fs16">Oct.\n 08 , 2026</div>
+            </a></li>
+            <li><a href="featured.htm"><div class="title">Featured story</div><div class="time">Oct. 01 , 2026</div></a></li>
+          </ul></div>
+          <div class="sub_list05-12"><ul>
+            <li><a href="a4425e7a7cee4d92b18f11158a69797c.htm">
+              <div class="title fs18">BNU Zhuhai Held Activity of "Colorful Zhuhai · Appreciating the Culture"</div>
+              <div class="time fs16">MAR\n 10 , 2023</div>
+            </a></li>
+          </ul></div>
+        </div>`,
+    });
+    const records = await ebnuzParser.parse(page);
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      rawUrl: "https://english.bnuzh.edu.cn/News/News/a4425e7a7cee4d92b18f11158a69797c.htm",
+      rawPublishedAt: "2023-03-10",
+      rawChannel: "News",
+    });
+  });
+
+  it("rejects unconfigured pagination requests", async () => {
+    await expect(ebnuzParser.parse(createPage({
+      requestId: "news/index999",
+      requestUrl: "https://english.bnuzh.edu.cn/News/News/index999.htm",
+      finalUrl: "https://english.bnuzh.edu.cn/News/News/index999.htm",
+      bodyText: "",
+    }))).rejects.toMatchObject({ code: "PARSER_FAILED" });
   });
 
   it("parses the news list while ignoring navigation duplicates", async () => {

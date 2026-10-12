@@ -5,8 +5,8 @@ import { buildChannelKey, defaultChannelLabel } from "./sourceCatalog";
 
 export interface IndexedFeedItem {
   item: FeedItem;
-  channelLabel: string;
   searchableText: string;
+  selections: { sourceId: string; channelKey: string }[];
 }
 
 export function buildFeedIndex(
@@ -23,7 +23,6 @@ export function buildFeedIndex(
         rawOccurrences.map((occurrence) => sourceNamesById[occurrence.sourceId] ?? occurrence.sourceId),
       ),
     ].join(" ");
-    const channelLabel = channelLabels[0] ?? defaultChannelLabel;
     const searchableText = [item.title, item.summary, channelLabels.join(" "), sourceNames]
       .filter((value) => typeof value === "string" && value.trim().length > 0)
       .join(" ")
@@ -31,8 +30,11 @@ export function buildFeedIndex(
 
     return {
       item,
-      channelLabel,
       searchableText,
+      selections: rawOccurrences.map(({ sourceId, channel }) => ({
+        sourceId,
+        channelKey: buildChannelKey(sourceId, channel ?? defaultChannelLabel),
+      })),
     };
   });
 }
@@ -49,27 +51,12 @@ export function filterFeedIndex(
 
   const normalizedQuery = query.trim().toLowerCase();
 
-  return indexedItems
-    .filter((entry) => {
-      const selected = getRawOccurrences(entry.item).some((occurrence) => {
-        if (!selectedSourceSet.has(occurrence.sourceId)) {
-          return false;
-        }
-
-        return selectedChannelSet.has(
-          buildChannelKey(occurrence.sourceId, occurrence.channel ?? defaultChannelLabel),
-        );
-      });
-
-      if (!selected) {
-        return false;
-      }
-
-      if (!normalizedQuery) {
-        return true;
-      }
-
-      return entry.searchableText.includes(normalizedQuery);
-    })
-    .map((entry) => entry.item);
+  const result: FeedItem[] = [];
+  for (const entry of indexedItems) {
+    if (normalizedQuery && !entry.searchableText.includes(normalizedQuery)) continue;
+    if (entry.selections.some(({ sourceId, channelKey }) =>
+      selectedSourceSet.has(sourceId) && selectedChannelSet.has(channelKey),
+    )) result.push(entry.item);
+  }
+  return result;
 }

@@ -19,34 +19,34 @@ function createPage(
 describe("bjsfdxzxxyParser", () => {
   it("declares the expected public targets", () => {
     expect(bjsfdxzxxyFetchTargets).toEqual([
-      { id: "xwkx", url: "https://zhixing.bnuzh.edu.cn/xwkx/index.htm", channel: "新闻快讯" },
-      { id: "tzgg", url: "https://zhixing.bnuzh.edu.cn/xsyd/tzgg/index.htm", channel: "通知公告" },
-      { id: "stzz", url: "https://zhixing.bnuzh.edu.cn/xsyd/stzz/index.htm", channel: "组织团体" },
-      { id: "zyfz", url: "https://zhixing.bnuzh.edu.cn/xsyd/zyfz/index.htm", channel: "生涯发展" },
-      { id: "zxxw", url: "https://zhixing.bnuzh.edu.cn/xsyd/zxxw/index.htm", channel: "知心小屋" },
-      { id: "sdsf", url: "https://zhixing.bnuzh.edu.cn/djgh/sdsf/index.htm", channel: "师德师风" },
-      { id: "zxjt", url: "https://zhixing.bnuzh.edu.cn/zxsy/zxjt/index.htm", channel: "知行讲坛" },
-      { id: "zxdh", url: "https://zhixing.bnuzh.edu.cn/zxsy/zxdh/index.htm", channel: "知行导航" },
-      { id: "zxyx", url: "https://zhixing.bnuzh.edu.cn/zxsy/zxyx/index.htm", channel: "知行研习" },
-      { id: "zxsl", url: "https://zhixing.bnuzh.edu.cn/zxsy/zxsl/index.htm", channel: "知行沙龙" },
-      { id: "zxhy", url: "https://zhixing.bnuzh.edu.cn/zxsy/zxhy/index.htm", channel: "知行合一" },
-      { id: "zxwq", url: "https://zhixing.bnuzh.edu.cn/zxsy/zxwq/index.htm", channel: "知行湾区" },
-      { id: "gzzd", url: "https://zhixing.bnuzh.edu.cn/bszn/gzzd/index.htm", channel: "规章制度" },
-      { id: "bslc", url: "https://zhixing.bnuzh.edu.cn/bszn/bslc/index.htm", channel: "办事流程" },
-      { id: "xyfc", url: "https://zhixing.bnuzh.edu.cn/xyzj/xyfc/index.htm", channel: "校友风采" },
-      { id: "XWBD", url: "https://zhixing.bnuzh.edu.cn/mtzx/XWBD/index.htm", channel: "校外报道" },
-      { id: "xsfc", url: "https://zhixing.bnuzh.edu.cn/xsyd/xsfc/index.htm", channel: "学生风采" },
-      { id: "zbfc", url: "https://zhixing.bnuzh.edu.cn/djgh/zbfc/index.htm", channel: "支部风采" },
-      { id: "zthd", url: "https://zhixing.bnuzh.edu.cn/djgh/zthd/index.htm", channel: "专题活动" },
-      { id: "xwtj", url: "https://zhixing.bnuzh.edu.cn/xwtj/index.htm", channel: "新闻推荐" },
+      { id: "xwkx", url: "https://zhixing-old.bnuzh.edu.cn/xwkx/index.htm", channel: "新闻快讯" },
+      { id: "tzgg", url: "https://zhixing-old.bnuzh.edu.cn/xsyd/tzgg/index.htm", channel: "通知公告" },
+      { id: "stzz", url: "https://zhixing-old.bnuzh.edu.cn/xsyd/stzz/index.htm", channel: "组织团体" },
+      { id: "zyfz", url: "https://zhixing-old.bnuzh.edu.cn/xsyd/zyfz/index.htm", channel: "生涯发展" },
+      { id: "zxxw", url: "https://zhixing-old.bnuzh.edu.cn/xsyd/zxxw/index.htm", channel: "知心小屋" },
+      { id: "sdsf", url: "https://zhixing-old.bnuzh.edu.cn/djgh/sdsf/index.htm", channel: "师德师风" },
+      { id: "zxjt", url: "https://zhixing-old.bnuzh.edu.cn/zxsy/zxjt/index.htm", channel: "知行讲坛" },
+      { id: "zxdh", url: "https://zhixing-old.bnuzh.edu.cn/zxsy/zxdh/index.htm", channel: "知行导航" },
+      { id: "zxyx", url: "https://zhixing-old.bnuzh.edu.cn/zxsy/zxyx/index.htm", channel: "知行研习" },
+      { id: "zxsl", url: "https://zhixing-old.bnuzh.edu.cn/zxsy/zxsl/index.htm", channel: "知行沙龙" },
+      { id: "zxhy", url: "https://zhixing-old.bnuzh.edu.cn/zxsy/zxhy/index.htm", channel: "知行合一" },
+      { id: "zxwq", url: "https://zhixing-old.bnuzh.edu.cn/zxsy/zxwq/index.htm", channel: "知行湾区" },
+      { id: "gzzd", url: "https://zhixing-old.bnuzh.edu.cn/bszn/gzzd/index.htm", channel: "规章制度" },
+      { id: "bslc", url: "https://zhixing-old.bnuzh.edu.cn/bszn/bslc/index.htm", channel: "办事流程" },
+      { id: "xyfc", url: "https://zhixing-old.bnuzh.edu.cn/xyzj/xyfc/index.htm", channel: "校友风采" },
+      { id: "XWBD", url: "https://zhixing-old.bnuzh.edu.cn/mtzx/XWBD/index.htm", channel: "校外报道" },
+      { id: "xsfc", url: "https://zhixing-old.bnuzh.edu.cn/xsyd/xsfc/index.htm", channel: "学生风采" },
+      { id: "zbfc", url: "https://zhixing-old.bnuzh.edu.cn/djgh/zbfc/index.htm", channel: "支部风采" },
+      { id: "zthd", url: "https://zhixing-old.bnuzh.edu.cn/djgh/zthd/index.htm", channel: "专题活动" },
+      { id: "xwtj", url: "https://zhixing-old.bnuzh.edu.cn/xwtj/index.htm", channel: "新闻推荐" },
     ]);
   });
 
   it("parses standard article lists with stable relative links", async () => {
     const page = createPage({
       requestId: "tzgg",
-      requestUrl: "https://zhixing.bnuzh.edu.cn/xsyd/tzgg/index.htm",
-      finalUrl: "https://zhixing.bnuzh.edu.cn/xsyd/tzgg/index.htm",
+      requestUrl: "https://zhixing-old.bnuzh.edu.cn/xsyd/tzgg/index.htm",
+      finalUrl: "https://zhixing-old.bnuzh.edu.cn/xsyd/tzgg/index.htm",
       bodyText: `
         <main>
           <ul class="common-article-list">
@@ -74,7 +74,7 @@ describe("bjsfdxzxxyParser", () => {
         sourceId: "d0e8c9b742a9498ebeb52f76523f9771",
         rawId: "64a62a3776ee458e84c6008ccc4af313.htm",
         rawTitle: "关于申报知行书院2024年度大学生创新创业训练计划项目的通知",
-        rawUrl: "https://zhixing.bnuzh.edu.cn/xsyd/tzgg/64a62a3776ee458e84c6008ccc4af313.htm",
+        rawUrl: "https://zhixing-old.bnuzh.edu.cn/xsyd/tzgg/64a62a3776ee458e84c6008ccc4af313.htm",
         rawPublishedAt: "2024-10-25",
         rawChannel: "通知公告",
         rawSummary: undefined,
@@ -86,7 +86,7 @@ describe("bjsfdxzxxyParser", () => {
         sourceId: "d0e8c9b742a9498ebeb52f76523f9771",
         rawId: "f43d4ed6f50849bb915da97f10dadcc0.htm",
         rawTitle: "关于开展知行书院2024年第一期“校地合作赋能社区治理”社会调研活动的通知",
-        rawUrl: "https://zhixing.bnuzh.edu.cn/xsyd/tzgg/f43d4ed6f50849bb915da97f10dadcc0.htm",
+        rawUrl: "https://zhixing-old.bnuzh.edu.cn/xsyd/tzgg/f43d4ed6f50849bb915da97f10dadcc0.htm",
         rawPublishedAt: "2024-06-21",
         rawChannel: "通知公告",
         rawSummary: undefined,
@@ -100,8 +100,8 @@ describe("bjsfdxzxxyParser", () => {
   it("parses news cards with split calendar dates and summaries", async () => {
     const page = createPage({
       requestId: "xwkx",
-      requestUrl: "https://zhixing.bnuzh.edu.cn/xwkx/index.htm",
-      finalUrl: "https://zhixing.bnuzh.edu.cn/xwkx/index.htm",
+      requestUrl: "https://zhixing-old.bnuzh.edu.cn/xwkx/index.htm",
+      finalUrl: "https://zhixing-old.bnuzh.edu.cn/xwkx/index.htm",
       bodyText: `
         <main>
           <a class="article gap-3" href="33dc16fe643b445480c498af79b9c70a.htm">
@@ -130,7 +130,7 @@ describe("bjsfdxzxxyParser", () => {
         sourceId: "d0e8c9b742a9498ebeb52f76523f9771",
         rawId: "33dc16fe643b445480c498af79b9c70a.htm",
         rawTitle: "知行沙龙第49期回顾篇｜教师面试实战技巧",
-        rawUrl: "https://zhixing.bnuzh.edu.cn/xwkx/33dc16fe643b445480c498af79b9c70a.htm",
+        rawUrl: "https://zhixing-old.bnuzh.edu.cn/xwkx/33dc16fe643b445480c498af79b9c70a.htm",
         rawPublishedAt: "2025-11-19",
         rawChannel: "新闻快讯",
         rawSummary: "2025年11月13日，北京师范大学知行书院知行沙龙第49期顺利举办。",
@@ -144,8 +144,8 @@ describe("bjsfdxzxxyParser", () => {
   it("parses photo-card lists with split calendar dates and summaries", async () => {
     const page = createPage({
       requestId: "xwtj",
-      requestUrl: "https://zhixing.bnuzh.edu.cn/xwtj/index.htm",
-      finalUrl: "https://zhixing.bnuzh.edu.cn/xwtj/index.htm",
+      requestUrl: "https://zhixing-old.bnuzh.edu.cn/xwtj/index.htm",
+      finalUrl: "https://zhixing-old.bnuzh.edu.cn/xwtj/index.htm",
       bodyText: `
         <main>
           <div class="common-pic-article">
@@ -176,7 +176,7 @@ describe("bjsfdxzxxyParser", () => {
         sourceId: "d0e8c9b742a9498ebeb52f76523f9771",
         rawId: "../djgh/zthd/40679b141fd5414abfd144ca3c0e0494.htm",
         rawTitle: "凝聚思想共识 共话时代责任：知行书院组织师生收看全国两会开幕会",
-        rawUrl: "https://zhixing.bnuzh.edu.cn/djgh/zthd/40679b141fd5414abfd144ca3c0e0494.htm",
+        rawUrl: "https://zhixing-old.bnuzh.edu.cn/djgh/zthd/40679b141fd5414abfd144ca3c0e0494.htm",
         rawPublishedAt: "2026-03-05",
         rawChannel: "新闻推荐",
         rawSummary: "3月4日、5日，全国两会在北京隆重开幕。知行书院组织师生通过13个党支部、团支部分会场收听收看两会实况。",
@@ -190,8 +190,8 @@ describe("bjsfdxzxxyParser", () => {
   it("keeps external media links intact for 校外报道", async () => {
     const page = createPage({
       requestId: "XWBD",
-      requestUrl: "https://zhixing.bnuzh.edu.cn/mtzx/XWBD/index.htm",
-      finalUrl: "https://zhixing.bnuzh.edu.cn/mtzx/XWBD/index.htm",
+      requestUrl: "https://zhixing-old.bnuzh.edu.cn/mtzx/XWBD/index.htm",
+      finalUrl: "https://zhixing-old.bnuzh.edu.cn/mtzx/XWBD/index.htm",
       bodyText: `
         <main>
           <ul class="common-article-list">

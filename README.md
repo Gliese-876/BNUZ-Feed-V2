@@ -1,191 +1,82 @@
-# BNUZ Feed V2
+# BNUZ Feed
 
-BNUZ Feed V2 是一个面向北京师范大学珠海校区公开信息站点的聚合阅读项目。它会从多个公开网页中提取通知、新闻、活动和栏目内容，整理成统一的信息流，并通过静态 Web 站点提供浏览、筛选和搜索入口。
+北京师范大学珠海校区公开信息聚合阅读器。使用 React、TypeScript 和 Vite，提供站点与栏目筛选、本地搜索、官方全文检索及增量阅读。
 
-项目采用 `React + TypeScript + Vite` 的 monorepo 结构。线上默认使用“预生成快照 + 同源静态发布”模式，避免浏览器直接跨站抓取带来的 `CORS` 和稳定性问题。项目的需求梳理、实现迭代和文档维护主要在 `Codex` 协作下以 `Vibe Coding` 方式推进。
+- [在线访问](https://gliese-876.github.io/BNUZ-Feed-V2/)
+- [仓库](https://github.com/Gliese-876/BNUZ-Feed-V2)
+- [开发文档](docs/architecture.md)
+- [站点接入及复核记录](docs/site-structure.md)
 
-## 在线访问
-
-- GitHub Pages: [BNUZ Feed V2](https://gliese-876.github.io/BNUZ-Feed-V2/)
-- 仓库地址: [Gliese-876/BNUZ-Feed-V2](https://github.com/Gliese-876/BNUZ-Feed-V2)
-- 开发文档: [docs/architecture.md](docs/architecture.md)
-- 站点结构与接入记录: [docs/site-structure.md](docs/site-structure.md)
-
-## 功能概览
-
-- 聚合多个 BNUZH 公开站点的通知、新闻、活动和栏目内容
-- 按站点和栏目筛选内容
-- 对当前快照执行本地搜索
-- 在顶部显示“去重后条数（原始条数）”
-- 在“选择栏目”侧栏按去重前原始命中数显示站点和栏目计数
-- 提供校区官方全文搜索入口
-- 线上默认读取静态快照，浏览器直抓仅用于本地调试
-- 通过 GitHub Actions 按北京时间每日 `06:00` 至 `22:00` 每 `15` 分钟生成快照并部署到 GitHub Pages
-
-## 工作方式
-
-### 数据源口径
-
-源清单以校区官方全文搜索页的 `siteList` 为准：[全站搜索](https://www.bnuzh.edu.cn/cms/web/search/index.jsp)。当前官方列表与本地 `bnuzhSources` 均为 `46` 个站点，没有保留不在官方列表里的源。
-
-其中 `44` 个站点已经有可运行的 `fetchTargets` 与 parser，会进入静态快照；`党委保卫工作办公室` 与 `北京师范大学珠海校区实验室安全与设备管理办公室` 仍保留在源清单中，但它们当前公开域名在直接 HTTPS 抓取时不可稳定访问，官方搜索空查询也不会返回全量内容，因此暂不纳入快照抓取，避免生成偏置数据或拖垮部署。
-
-### 生产模式
-
-生产环境默认读取两个静态文件：
-
-- `/data/feed-snapshot.json`
-- `/data/source-health.json`
-
-这些文件由 `npm run snapshot` 预先生成，并随站点一同发布。前端会在运行时把结果缓存到 `IndexedDB`，用于启动加速和失败回退。
-
-### 快照生成
-
-当前快照脚本不是单轮全抓后直接结束，而是：
-
-1. 先跑 `node fetch` 阶段，对失败源做稳定化补抓。
-2. 如果仍有非 `live` 源，再只对这些源启用浏览器补全。
-3. 一整轮仍未收敛时，重新开启下一整轮。
-4. 超过整轮上限仍未收敛则直接失败，不部署坏快照。
-
-线上 GitHub Actions 还会在构建阶段执行健康检查；只要仍存在 `partial` 或其他非 `live` 源，就会中止部署。
-
-2026 年 5 月下旬开始的连续失败主要来自源站变化：原“新闻网”迁移为“党委宣传工作办公室(新闻中心)”并改用 `https://xcb.bnuzh.edu.cn`，未来设计学院硕士研究生毕业展也替换了栏目路径。源注册表已按最新页面位置更新，并补入官方列表中缺少的“珠海管委会”。
-
-### 调试模式
-
-把 `VITE_FEED_SOURCE_MODE` 设为 `browser` 后，前端会尝试在浏览器中直接抓取公开站点。这个模式适合本地调试 parser 或排查抓取问题，不建议作为线上默认模式。
-
-## 快速开始
-
-### 1. 安装依赖
+## 开发与验证
 
 ```bash
-npm install
-```
-
-### 2. 本地开发
-
-```bash
+npm ci
 npm run dev
 ```
 
-### 3. 生成快照
-
 ```bash
-npm run snapshot
+npm run check          # TypeScript 与未使用代码检查
+npm test               # 回归测试
+npm run check:sources  # 联网对比官方站点清单
+npm run snapshot       # 抓取并生成静态快照
+node scripts/check-snapshot-health.cjs
+npm run build          # 构建到 apps/web/dist
 ```
 
-### 4. 构建生产版本
+`npm run build:snapshot` 可以连续生成快照并构建。单独构建使用仓库中已有的快照；其数据时间显示在页面上。
 
-```bash
-npm run build
-```
+## 数据与运行方式
 
-## 常用命令
+站点清单以[校区官方全文搜索页](https://www.bnuzh.edu.cn/cms/web/search/index.jsp)的 `siteList` 为依据。可抓取来源、入口和解析器在 `packages/source-registry` 维护；暂无公开可抓内容的官方站点仍可从官方搜索入口访问。最新核验结果、站点结构变化和接入限制见 [站点文档](docs/site-structure.md)。
 
-| 命令 | 作用 |
-| --- | --- |
-| `npm run check` | TypeScript 类型检查 |
-| `npm test` | 运行测试 |
-| `npm run snapshot` | 抓取公开站点并生成快照文件 |
-| `npm run build` | 构建 Web 应用 |
-| `npm run build:snapshot` | 先生成快照，再构建生产包 |
+生产页面默认读取同源的 `data/feed-snapshot.json`，通过 IndexedDB 缓存。健康数据已嵌入快照，`source-health.json` 作为旧格式兼容文件。浏览器直抓调试模式按需载入解析器，跨站请求能否成功取决于源站的 CORS 配置。
 
-## 环境变量
+快照生成先运行 Node 抓取，再对未健康来源启用浏览器补抓。后续轮次只重试失败来源，保留成功结果。超过重试上限仍不健康时退出失败，并保留上次有效快照。发布健康检查拒绝空快照和非 `live` 状态。
 
-### Web 运行时
+列表按规范化 URL 与标题去重。界面采用瑞士国际主义排版；“当前结果”显示合并重复项后的内容数，“原始收录”显示筛选命中的原始记录数；筛选面板按原始命中数统计，跨来源文章仍可在相应来源和栏目下筛中。筛选和搜索在本地运行，官方全文检索通过 POST 打开官方结果页。
 
-| 变量名 | 默认值 | 说明 |
+## 配置
+
+| Web 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `VITE_FEED_SOURCE_MODE` | `snapshot` | 设为 `browser` 时启用浏览器直抓调试模式 |
-| `VITE_AUTO_REFRESH` | `true` | 页面进入后是否自动刷新当前数据源 |
+| `VITE_FEED_SOURCE_MODE` | `snapshot` | `browser` 启用浏览器直抓调试 |
+| `VITE_AUTO_REFRESH` | `true` | 启动后更新缓存数据 |
+| `VITE_BASE_PATH` | `/` | 静态站点资源基础路径，如 `/BNUZ-Feed-V2/` |
 
-### 快照脚本默认值
-
-以下默认值来自 [generate-snapshot.ts](scripts/generate-snapshot.ts)：
-
-| 变量名 | 默认值 | 说明 |
+| 快照变量（前缀 `BNUZ_FEED_SNAPSHOT_`） | 默认值 | 说明 |
 | --- | --- | --- |
-| `BNUZ_FEED_SNAPSHOT_CONCURRENCY` | `6` | 源级并发数 |
-| `BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY` | `3` | 源内抓取和解析并发数 |
-| `BNUZ_FEED_SNAPSHOT_TIMEOUT_MS` | `5000` | `node fetch` 单请求超时，单位毫秒 |
-| `BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS` | `5000` | 浏览器抓取单请求超时，默认与 `TIMEOUT_MS` 一致 |
-| `BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS` | `10` | 单轮 `node` 阶段内每个失败源的最大尝试次数 |
-| `BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS` | `5` | 单轮浏览器补全阶段内每个失败源的最大尝试次数 |
-| `BNUZ_FEED_SNAPSHOT_ROUND_LIMIT` | `3` | 整轮上限；超过后脚本失败 |
-| `BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS` | `1500` | 同一阶段内两次尝试之间的等待时间 |
-| `BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS` | 空 | 命中这些 host 时，浏览器阶段改用 Chromium 抓取 |
+| `CONCURRENCY` | `6` | 来源并发数 |
+| `TARGET_CONCURRENCY` | `3` | 每来源请求并发数 |
+| `TIMEOUT_MS` | `5000` | Node 请求超时 |
+| `BROWSER_TIMEOUT_MS` | 跟随 `TIMEOUT_MS` | 浏览器请求超时 |
+| `NODE_MAX_ATTEMPTS` | `10` | 每轮 Node 补抓上限 |
+| `BROWSER_MAX_ATTEMPTS` | `5` | 每轮浏览器补抓上限 |
+| `ROUND_LIMIT` | `3` | 总轮数上限 |
+| `RETRY_DELAY_MS` | `1500` | 同阶段补抓间隔 |
+| `BROWSER_HOSTS` | 空 | 逗号分隔，指定改用浏览器导航的域名 |
+| `BROWSER_CHANNEL` | 空 | Playwright 浏览器通道，如 `chrome` |
+| `BROWSER_EXECUTABLE_PATH` | 空 | 自定义浏览器可执行文件 |
 
-### GitHub Actions 当前覆盖值
-
-云端工作流目前会覆盖以下参数：
-
-- `BNUZ_FEED_SNAPSHOT_CONCURRENCY=3`
-- `BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY=2`
-- `BNUZ_FEED_SNAPSHOT_TIMEOUT_MS=5000`
-- `BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS=5000`
-- `BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS=10`
-- `BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS=5`
-- `BNUZ_FEED_SNAPSHOT_ROUND_LIMIT=2`
-- `BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS=5000`
-- `BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS=www.bnuzh.edu.cn`
-- `BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL=chrome`
-- `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`
-
-自动刷新计划当前为：北京时间每日 `06:00` 开始每 `15` 分钟执行一次，`22:00` 为最后一次触发。手动刷新已合并到同一个部署工作流的 `workflow_dispatch` 入口。
-
-失败路径保留单轮内的原有重试强度，但整轮上限从 `3` 轮收敛为 `2` 轮；同时 `Generate snapshot data` 步骤设置 `15` 分钟硬上限。按历史失败日志估算，两轮完整失败约 `13` 分钟，步骤超时确保重试预算不会超过一个定时周期。
-
-整个 `build` job 与 `Generate snapshot data` 步骤都保留 `15` 分钟硬上限，避免上一轮刷新拖到下一轮并形成连锁取消。`push`/手动触发的 `check` 与 `test` 被拆到独立 `validate` job，不再挤占定时刷新的 15 分钟构建预算。
-
-Playwright 仍用于 `www.bnuzh.edu.cn` 的浏览器兜底抓取，但 Actions 不再下载 Playwright 自带 Chromium，也不把浏览器二进制提交进仓库。GitHub hosted Ubuntu runner 预装了 Chrome/Chromium，工作流通过 `BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL=chrome` 让 Playwright 直接控制系统 Chrome。若将来迁移到没有预装 Chrome 的自托管 runner，可设置 `BNUZ_FEED_SNAPSHOT_BROWSER_EXECUTABLE_PATH` 指向本机浏览器。
+设置 `BROWSER_HOSTS` 后，本地需安装对应 Playwright 浏览器或指定系统 Chrome。没有匹配域名时不启动浏览器。
 
 ## 部署
 
-当前仓库默认使用“生成快照 + 构建静态站点 + GitHub Pages 发布”的方式部署：
+[GitHub Actions 工作流](.github/workflows/refresh-web.yml)按北京时间每日 06:00 至 22:00，每 15 分钟生成快照并发布到 GitHub Pages，也支持手动触发。推送和手动触发会运行类型检查及测试。
 
-1. 安装依赖。
-2. 在 `push` 或手动触发时并行执行 `npm run check` 与 `npm test`。
-3. 校验 runner 预装的系统 Chrome。
-4. 执行 `npm run snapshot`。
-5. 执行 `node scripts/check-snapshot-health.cjs`。
-6. 执行 `npm run build`。
-7. 发布 `apps/web/dist`。
+工作流使用 Node 24 和 runner 预装的 Chrome，Playwright 不下载浏览器。来源并发为 `3`、每来源请求并发为 `2`，总轮数上限为 `2`，构建及快照步骤上限均为 15 分钟。工作流根据仓库名设置资源基础路径；只有快照生成、健康检查和构建成功才会部署。
 
-工作流会根据仓库名自动设置 `VITE_BASE_PATH`，因此项目型 Pages 地址 `/<repo>/` 与根域名 Pages 地址 `/` 都可以正确生成资源路径。
-
-## 仓库结构
+## 目录
 
 ```text
-apps/
-  web/                  Web 应用、页面 UI、运行时装配
-packages/
-  contracts/            共享类型、错误模型、快照契约
-  core/                 聚合、去重、原始计数与快照处理
-  react-bindings/       FeedProvider 与 React Hooks
-  runtime-browser/      浏览器抓取、Worker、IndexedDB 存储
-  runtime-snapshot/     同源快照数据源
-  source-registry/      站点注册、fetchTargets、parser 实现
-scripts/
-  generate-snapshot.ts  快照生成入口
-  snapshotStrategy.ts   快照轮次策略
-docs/
-  architecture.md       开发文档
-  site-structure.md     站点结构、栏目口径、接入记录
-.github/workflows/
-  refresh-web.yml       按北京时间每日 06:00-22:00 每 15 分钟生成快照、构建并部署 Web
+apps/web/               WebUI、搜索索引、运行时装配
+packages/contracts/     共享接口
+packages/core/          标准化、去重、快照与聚合服务
+packages/source-registry/  官方来源、抓取入口与解析器
+packages/runtime-browser/ 浏览器抓取与 IndexedDB
+packages/runtime-snapshot/ 同源快照读取
+packages/react-bindings/  React 状态与订阅
+scripts/                站点核验、快照生成、健康检查
+docs/                   架构与站点记录
 ```
 
-## 进一步阅读
-
-- [docs/architecture.md](docs/architecture.md): 模块边界、运行链路、快照策略和前端约定
-- [docs/site-structure.md](docs/site-structure.md): 站点接入结构、栏目说明和复核记录
-- [scripts/generate-snapshot.ts](scripts/generate-snapshot.ts): 快照生成入口
-- [apps/web/src/runtime/createAggregationService.ts](apps/web/src/runtime/createAggregationService.ts): Web 端运行时装配
-
-## 免责声明
-
-本项目仅用于学习、研究与个人信息整理，展示内容均来自北京师范大学珠海校区各公开网页的公开信息。
-
-本项目不代表北京师范大学珠海校区及其下属单位的官方立场，也不构成任何官方发布渠道。具体通知、公告、时间安排与附件内容请以原始来源页面为准。
+本项目用于学习、研究与个人信息整理，不代表学校或下属单位。通知、时间安排与附件请以原始来源页面为准。

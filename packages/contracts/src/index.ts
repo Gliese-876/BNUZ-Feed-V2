@@ -23,7 +23,6 @@ export type AggregationErrorCode =
   | "PARSER_FAILED"
   | "PARSER_NOT_IMPLEMENTED"
   | "EMPTY_RESULT"
-  | "WORKER_FAILED"
   | "SNAPSHOT_FAILED";
 
 export interface FetchTarget {
@@ -107,10 +106,6 @@ export interface FeedSnapshot {
   sourceHealth: Record<SourceId, SourceHealth>;
 }
 
-export interface Fetcher {
-  fetch(source: SourceDescriptor): Promise<RawPage[]>;
-}
-
 export interface Parser {
   parse(page: RawPage): Promise<SourceRecord[]>;
 }
@@ -140,33 +135,11 @@ export interface FeedSource {
   refresh(sourceIds?: SourceId[]): Promise<FeedSnapshot>;
 }
 
-export interface BrowserWorkerRefreshOptions {
+export interface BrowserRefreshOptions {
   timeoutMs: number;
   concurrency: number;
   targetConcurrency?: number;
 }
-
-export interface BrowserWorkerRefreshRequest {
-  sources: SourceDescriptor[];
-  options: BrowserWorkerRefreshOptions;
-}
-
-export type BrowserWorkerCommand = {
-  type: "refresh";
-  payload: BrowserWorkerRefreshRequest;
-};
-
-export type BrowserWorkerResponse =
-  | {
-      type: "completed";
-      payload: FeedSnapshot;
-    }
-  | {
-      type: "failed";
-      payload: {
-        message: string;
-      };
-    };
 
 export class AggregationError extends Error {
   code: AggregationErrorCode;

@@ -8,6 +8,7 @@ export {
   getRawOccurrences,
   mergeRawOccurrences,
   normalizeOccurrenceChannel,
+  splitFeedItemsBySource,
   sumRawItemCounts,
 } from "./rawOccurrences";
 export { createLayeredAggregationService } from "./service";

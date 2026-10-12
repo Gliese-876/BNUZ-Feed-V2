@@ -1,4 +1,4 @@
-import type { Browser } from "playwright";
+import type { Browser, Page } from "playwright";
 
 type FetchFn = typeof fetch;
 
@@ -79,40 +79,63 @@ async function createPlaywrightFetch(options: {
   browserChannel?: string;
   browserExecutablePath?: string;
 }): Promise<FetchFn & { dispose(): Promise<void> }> {
-  let browser: Browser | null = null;
+  let browserPromise: Promise<Browser> | undefined;
+  let disposalPromise: Promise<void> | undefined;
+  let disposed = false;
   const browserChannel = normalizeOptionalValue(options.browserChannel);
   const browserExecutablePath = normalizeOptionalValue(options.browserExecutablePath);
 
-  async function getBrowser(): Promise<Browser> {
-    if (browser) {
-      return browser;
+  function getBrowser(): Promise<Browser> {
+    if (disposed) {
+      return Promise.reject(new Error("Snapshot fetcher has been disposed."));
     }
 
-    const { chromium } = await import("playwright");
-    browser = await chromium.launch({
-      headless: true,
-      args: ["--disable-dev-shm-usage"],
-      ...(browserChannel ? { channel: browserChannel } : {}),
-      ...(browserExecutablePath ? { executablePath: browserExecutablePath } : {}),
-    });
-    return browser;
+    browserPromise ??= import("playwright")
+      .then(({ chromium }) => chromium.launch({
+        headless: true,
+        args: ["--disable-dev-shm-usage"],
+        ...(browserChannel ? { channel: browserChannel } : {}),
+        ...(browserExecutablePath ? { executablePath: browserExecutablePath } : {}),
+      }))
+      .catch((error: unknown) => {
+        browserPromise = undefined;
+        throw error;
+      });
+    return browserPromise;
   }
 
   const fetchFn = (async (input, init) => {
     const url = input instanceof URL ? input.toString() : typeof input === "string" ? input : input.url;
-    const browserInstance = await getBrowser();
-    const page = await browserInstance.newPage();
-    const signal = init?.signal;
+    const signal = init?.signal === undefined && input instanceof Request ? input.signal : init?.signal;
 
     if (signal?.aborted) {
-      await page.close().catch(() => undefined);
       throw createAbortError();
     }
 
     let abortHandler: (() => void) | undefined;
+    let page: Page | undefined;
+    const abortPromise = signal ? new Promise<never>((_, reject) => {
+      abortHandler = () => {
+        void page?.close().catch(() => undefined);
+        reject(createAbortError());
+      };
+      signal.addEventListener("abort", abortHandler, { once: true });
+    }) : undefined;
 
     try {
       const navigationPromise = (async () => {
+        const browserInstance = await getBrowser();
+        if (signal?.aborted) {
+          throw createAbortError();
+        }
+        if (disposed) {
+          throw new Error("Snapshot fetcher has been disposed.");
+        }
+        page = await browserInstance.newPage();
+        if (signal?.aborted) {
+          await page.close().catch(() => undefined);
+          throw createAbortError();
+        }
         const response = await page.goto(url, {
           waitUntil: "domcontentloaded",
           timeout: options.browserTimeoutMs,
@@ -125,49 +148,28 @@ async function createPlaywrightFetch(options: {
         const bodyText = await page.content();
         const headers = new Headers(await response.allHeaders());
 
-        return {
-          ok: response.ok(),
-          status: response.status(),
-          url: response.url(),
-          headers: {
-            get(name: string) {
-              return headers.get(name);
-            },
-          },
-          text: async () => bodyText,
-        } as unknown as Response;
+        const status = response.status();
+        const result = new Response([204, 205, 304].includes(status) ? null : bodyText, { status, headers });
+        Object.defineProperty(result, "url", { value: response.url() });
+        return result;
       })();
 
-      if (!signal) {
-        return await navigationPromise;
-      }
-
-      return await new Promise<Response>((resolve, reject) => {
-        abortHandler = () => {
-          void page.close().catch(() => undefined);
-          reject(createAbortError());
-        };
-
-        signal.addEventListener("abort", abortHandler, { once: true });
-
-        void navigationPromise.then(resolve, reject);
-      });
+      return await (abortPromise ? Promise.race([navigationPromise, abortPromise]) : navigationPromise);
     } finally {
       if (signal && abortHandler) {
         signal.removeEventListener("abort", abortHandler);
       }
 
-      await page.close().catch(() => undefined);
+      await page?.close().catch(() => undefined);
     }
   }) as FetchFn & { dispose(): Promise<void> };
 
-  fetchFn.dispose = async () => {
-    if (!browser) {
-      return;
-    }
-
-    await browser.close();
-    browser = null;
+  fetchFn.dispose = () => {
+    disposed = true;
+    disposalPromise ??= browserPromise
+      ? browserPromise.then((browser) => browser.close(), () => undefined)
+      : Promise.resolve();
+    return disposalPromise;
   };
 
   return fetchFn;

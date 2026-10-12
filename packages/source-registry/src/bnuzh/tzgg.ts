@@ -1,14 +1,6 @@
-import type { FetchTarget } from "@bnuz-feed/contracts";
+export { tzggFetchTargets } from "./targets/tzgg";
 
 import { createConfiguredHtmlListParser } from "../parsers/configuredHtmlListParser";
-
-export const tzggFetchTargets: FetchTarget[] = [
-  {
-    id: "sdyp",
-    url: "https://notice.bnuzh.edu.cn/sdyp/index.htm",
-    channel: "师大云盘",
-  },
-];
 
 export const tzggParser = createConfiguredHtmlListParser({
   parserKey: "bnuzh/tzgg",

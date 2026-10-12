@@ -25,20 +25,6 @@ export function createRawOccurrence(
   };
 }
 
-export function cloneRawOccurrences(
-  occurrences: FeedItemOccurrence[] | undefined,
-): FeedItemOccurrence[] | undefined {
-  if (!occurrences || occurrences.length === 0) {
-    return undefined;
-  }
-
-  return occurrences.map((occurrence) => ({
-    sourceId: occurrence.sourceId,
-    channel: normalizeOccurrenceChannel(occurrence.channel),
-    count: normalizeOccurrenceCount(occurrence.count),
-  }));
-}
-
 export function mergeRawOccurrences(
   ...occurrenceGroups: Array<FeedItemOccurrence[] | undefined>
 ): FeedItemOccurrence[] {
@@ -93,15 +79,44 @@ export function sumRawItemCounts(items: FeedItem[]): number {
 }
 
 export function createSourceScopedItem(item: FeedItem, sourceId: SourceId): FeedItem {
-  const rawOccurrences = getRawOccurrences(item).filter(
+  return scopeItem(item, sourceId, getRawOccurrences(item).filter(
     (occurrence) => occurrence.sourceId === sourceId,
-  );
+  ));
+}
 
+function scopeItem(
+  item: FeedItem,
+  sourceId: SourceId,
+  rawOccurrences: FeedItemOccurrence[],
+): FeedItem {
   return {
     ...item,
     sourceId,
     sourceIds: [sourceId],
+    channel: rawOccurrences[0]?.channel ?? item.channel,
     rawCount: rawOccurrences.reduce((total, occurrence) => total + occurrence.count, 0),
     rawOccurrences,
   };
+}
+
+/** Split deduplicated items without copying another source's occurrence counts. */
+export function splitFeedItemsBySource(items: FeedItem[]): Map<SourceId, FeedItem[]> {
+  const itemsBySource = new Map<SourceId, FeedItem[]>();
+
+  for (const item of items) {
+    const occurrencesBySource = new Map<SourceId, FeedItemOccurrence[]>();
+    for (const occurrence of getRawOccurrences(item)) {
+      const occurrences = occurrencesBySource.get(occurrence.sourceId) ?? [];
+      occurrences.push(occurrence);
+      occurrencesBySource.set(occurrence.sourceId, occurrences);
+    }
+
+    for (const [sourceId, occurrences] of occurrencesBySource) {
+      const sourceItems = itemsBySource.get(sourceId) ?? [];
+      sourceItems.push(scopeItem(item, sourceId, occurrences));
+      itemsBySource.set(sourceId, sourceItems);
+    }
+  }
+
+  return itemsBySource;
 }

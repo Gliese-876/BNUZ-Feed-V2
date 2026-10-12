@@ -1,7 +1,7 @@
-import { createLayeredAggregationService, createDefaultNormalizer } from "@bnuz-feed/core";
-import { createIndexedDbRepository, createBrowserLiveSource } from "@bnuz-feed/runtime-browser";
+import type { FeedSource } from "@bnuz-feed/contracts";
+import { createLayeredAggregationService } from "@bnuz-feed/core";
+import { createIndexedDbRepository } from "@bnuz-feed/runtime-browser";
 import { createSnapshotSource } from "@bnuz-feed/runtime-snapshot";
-import { createParserRegistry, publicBnuzhSources } from "@bnuz-feed/source-registry";
 
 import { resolvePublicAssetUrl, resolveRuntimeConfig } from "./config";
 
@@ -16,16 +16,19 @@ const snapshotSource = createSnapshotSource({
   sourceHealthUrl: resolvePublicAssetUrl("data/source-health.json"),
 });
 
-const browserSource = createBrowserLiveSource({
-  sources: publicBnuzhSources,
-  parserRegistry: createParserRegistry(),
-  normalizer: createDefaultNormalizer(),
-  requestOptions: {
-    concurrency: 4,
-    targetConcurrency: 2,
-    timeoutMs: 8000,
+// Keep parsers and worker setup off the production snapshot path.
+let browserSourcePromise: Promise<FeedSource> | undefined;
+const browserSource: FeedSource = {
+  async refresh(sourceIds) {
+    browserSourcePromise ??= import("./browserSource").then(({ createDebugBrowserSource }) =>
+      createDebugBrowserSource(),
+    ).catch((error) => {
+      browserSourcePromise = undefined;
+      throw error;
+    });
+    return (await browserSourcePromise).refresh(sourceIds);
   },
-});
+};
 
 export const appRuntimeConfig = resolveRuntimeConfig();
 

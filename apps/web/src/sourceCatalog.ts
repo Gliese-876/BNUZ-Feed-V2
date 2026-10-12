@@ -1,22 +1,17 @@
 import type { FeedItem, SourceDescriptor } from "@bnuz-feed/contracts";
 import { getRawOccurrences } from "@bnuz-feed/core";
-import { publicBnuzhSources } from "@bnuz-feed/source-registry";
+import { publicBnuzhSources } from "@bnuz-feed/source-registry/catalog";
 
 export const defaultChannelLabel = "全部内容";
 
 export interface SourceChannelNode {
   label: string;
-  targetCount: number;
 }
 
 export interface SourceCatalogNode {
   id: string;
   name: string;
-  parserKey: string;
-  entryUrl: string;
   fetchTargetCount: number;
-  browserFetch: boolean;
-  snapshotFallback: boolean;
   searchText: string;
   channels: SourceChannelNode[];
 }
@@ -31,24 +26,10 @@ function normalizeChannelLabel(value: string | undefined): string {
 }
 
 function buildSourceChannels(source: SourceDescriptor): SourceChannelNode[] {
-  const channelCounts = new Map<string, number>();
-  const targets =
-    source.fetchTargets && source.fetchTargets.length > 0
-      ? source.fetchTargets
-      : source.entryUrls.map((url, index): { id: string; url: string; channel?: string } => ({
-          id: `entry-${index}`,
-          url,
-        }));
-
-  for (const target of targets) {
-    const label = normalizeChannelLabel(target.channel);
-    channelCounts.set(label, (channelCounts.get(label) ?? 0) + 1);
-  }
-
-  return [...channelCounts.entries()].map(([label, targetCount]) => ({
-    label,
-    targetCount,
-  }));
+  const labels = new Set((source.fetchTargets ?? []).map((target) =>
+    normalizeChannelLabel(target.channel),
+  ));
+  return [...labels].map((label) => ({ label }));
 }
 
 export function buildChannelKey(sourceId: string, channelLabel: string): string {
@@ -108,11 +89,7 @@ export const sourceCatalog: SourceCatalogNode[] = publicBnuzhSources.map((source
   return {
     id: source.id,
     name: source.name,
-    parserKey: source.parserKey,
-    entryUrl: source.entryUrls[0] ?? "",
     fetchTargetCount: source.fetchTargets?.length ?? source.entryUrls.length,
-    browserFetch: source.capabilities.browserFetch,
-    snapshotFallback: source.capabilities.snapshotFallback,
     searchText: [source.name, channels.map((channel) => channel.label).join(" ")]
       .join(" ")
       .toLowerCase(),

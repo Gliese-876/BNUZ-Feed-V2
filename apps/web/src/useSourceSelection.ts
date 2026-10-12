@@ -102,7 +102,11 @@ export function useSourceSelection(catalog: SourceCatalogNode[]) {
     }
 
     const persist = () => {
-      localStorage.setItem(storageKey, JSON.stringify(selection));
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(selection));
+      } catch {
+        // Reading remains usable when private browsing or a full quota blocks persistence.
+      }
     };
 
     if (typeof requestIdleCallback === "function") {

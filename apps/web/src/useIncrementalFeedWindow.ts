@@ -1,10 +1,11 @@
-import { useEffect, useEffectEvent, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 
 const initialRenderCount = 48;
 const renderStep = 36;
 
 interface UseIncrementalFeedWindowResult {
   canLoadMore: boolean;
+  loadMore: () => void;
   renderedCount: number;
   sentinelRef: RefObject<HTMLDivElement | null>;
 }
@@ -18,9 +19,9 @@ export function useIncrementalFeedWindow(
     Math.min(totalCount, initialRenderCount),
   );
 
-  const loadMore = useEffectEvent(() => {
+  const loadMore = useCallback(() => {
     setRenderedCount((current) => Math.min(totalCount, current + renderStep));
-  });
+  }, [totalCount]);
 
   useEffect(() => {
     setRenderedCount(Math.min(totalCount, initialRenderCount));
@@ -54,6 +55,7 @@ export function useIncrementalFeedWindow(
 
   return {
     canLoadMore: renderedCount < totalCount,
+    loadMore,
     renderedCount,
     sentinelRef,
   };

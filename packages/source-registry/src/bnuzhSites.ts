@@ -1,0 +1,61 @@
+export interface OfficialBnuzhSite {
+  id: string;
+  name: string;
+  pubUrl?: string;
+  path?: string;
+  smartGet: 0 | 1;
+}
+
+// Official search-page siteList, verified on 2026-10-12. The id=0 entry is the aggregate option.
+export const officialBnuzhSites: OfficialBnuzhSite[] = [
+  {"id":"0","name":"所有站点","smartGet":0},
+  {"id":"49ac3a42639b473cb87c06478ffcfad6","name":"国际交流与合作办公室英文网","pubUrl":"https://io.bnuzh.edu.cn","path":"gjjlyhzbgsyww","smartGet":1},
+  {"id":"87aa44758c0c48bb956bdae3bc09c3ad","name":"新知行书院","pubUrl":"https://zhixing.bnuzh.edu.cn","path":"xzxsy","smartGet":1},
+  {"id":"cededbda72044b06bea8893d2c43c8c7","name":"珠海管委会","pubUrl":"https://zhb.bnu.edu.cn","path":"zhb","smartGet":1},
+  {"id":"26a599f2bce14c728cc87ac0f05c8236","name":"用户指引专题网","pubUrl":"https://fwzn.bnuzh.edu.cn","path":"yhzyztw","smartGet":1},
+  {"id":"9f333a97019248b0bf8f48b232397257","name":"党委保卫工作办公室","pubUrl":"https://dwbw.bnuzh.edu.cn","path":"dwbwgzbgs","smartGet":1},
+  {"id":"0eb7d5617b434e70baf90c78007fbe01","name":"北京师范大学珠海校区实验室安全与设备管理办公室","pubUrl":"https://ssb.bnuzh.edu.cn","path":"bjsfdxzhxqsysaqysbglbgs","smartGet":1},
+  {"id":"1f38a8b49b964025b9b187440ba345d0","name":"北京师范大学儿童博物馆线上馆","pubUrl":"http://childrensmuseum.bnuzh.edu.cn","path":"bjsfdxetbwg","smartGet":1},
+  {"id":"f1dfc3dc45e84156b470f7b860ea9956","name":"地理实验教学中心","pubUrl":"https://sczx.bnuzh.edu.cn/dlsyjxzx","path":"dlsyjxzx","smartGet":0},
+  {"id":"87fb9d8daa5d4b4ab7c9f5efe8dfd5cc","name":"通知公告","pubUrl":"https://notice.bnuzh.edu.cn","path":"tzgg","smartGet":1},
+  {"id":"d0cbeecb90a14a169dfe9cdb2c97c270","name":"北师大未来设计学院硕士研究生毕业展","pubUrl":"https://sfd-degreeshow.bnuzh.edu.cn","path":"bsdwlsjxyssyjsbyz","smartGet":1},
+  {"id":"55cf70db9df5483eb0a88ff3cf3eab54","name":"图书馆","pubUrl":"https://library.bnuzh.edu.cn","path":"tsg","smartGet":1},
+  {"id":"86753130ceb542929a38b9d9319e9372","name":"后勤办公室","pubUrl":"https://hqb.bnuzh.edu.cn","path":"hqbwz","smartGet":1},
+  {"id":"d524eba4e8d744d58ce18fabec140359","name":"校史馆网站","pubUrl":"https://xiaoshi.bnuzh.edu.cn","path":"xsgwz","smartGet":1},
+  {"id":"def14df8e70e46fbb1bc9e78159aa9fb","name":"砺行书院","pubUrl":"https://lixing.bnuzh.edu.cn/","path":"lxsy","smartGet":1},
+  {"id":"c9f778e52e5f43808a1a89b836c6be4f","name":"微信门户","pubUrl":"https://wx.bnuzh.edu.cn","path":"wxmh","smartGet":1},
+  {"id":"eb20cbad5a894fc9aee0de698ef38038","name":"北京中心","pubUrl":"https://zhbjzx.bnuzh.edu.cn","path":"bjzx","smartGet":1},
+  {"id":"d0e8c9b742a9498ebeb52f76523f9771","name":"北京师范大学知行书院","pubUrl":"https://zhixing-old.bnuzh.edu.cn","path":"bjsfdxzxxy","smartGet":1},
+  {"id":"09acfd3aeff34c479786499b7d8b0b7a","name":"物理实验教学中心","pubUrl":"https://sczx.bnuzh.edu.cn/wlsyjxzx","path":"wlsyjxzx","smartGet":0},
+  {"id":"01e60809114c446dad43a679c9573fe7","name":"党委组织工作办公室","pubUrl":"https://dwzgb.bnuzh.edu.cn","path":"dwzzgzbgs","smartGet":1},
+  {"id":"70981c669ee748c4ba5dcd4022a42f58","name":"资产管理办公室","pubUrl":"https://oam.bnuzh.edu.cn","path":"zcglbgs","smartGet":1},
+  {"id":"71c3567220ec405ab75c90983f9822af","name":"校区发展基金会网站","pubUrl":"https://edf.bnuzh.edu.cn","path":"xqfzjjhwz","smartGet":1},
+  {"id":"8f2630501d2b497b93b895da12d0903a","name":"校地党建结对共建专题网","pubUrl":"https://djjd.bnuzh.edu.cn","path":"xddjjdgjztw","smartGet":1},
+  {"id":"947b53536cf848cb93793fed0af208dc","name":"文理学院地理系网站","pubUrl":"https://geo.bnuzh.edu.cn","path":"wlxydlxwz","smartGet":1},
+  {"id":"a100866175714d5782818c210cec8060","name":"党委教师工作办公室","pubUrl":"https://dwjgb.bnuzh.edu.cn/","path":"dwjsgzbgs","smartGet":1},
+  {"id":"a26211ac66e84356ae7726f5ceb8deb3","name":"教师教育实践网","pubUrl":"https://jwb.bnuzh.edu.cn/jsjysjw","path":"jsjysjw","smartGet":0},
+  {"id":"31631a3717734412baa24e2d6706961f","name":"动植物图鉴录入网站","pubUrl":"https://ihap.bnuzh.edu.cn","path":"dzwtjlrwz","smartGet":1},
+  {"id":"c00aa4c1b0f64acb9a70432cec15c71c","name":"档案馆网站","pubUrl":"https://dangan.bnuzh.edu.cn","path":"dagwz","smartGet":1},
+  {"id":"15f56dbc97ec445e95f40ceed144be2a","name":"弘文书院网站","pubUrl":"https://hongwen.bnuzh.edu.cn","path":"hwsywz","smartGet":1},
+  {"id":"c252f4c7e0324913b6defd418af12cbd","name":"珠海校区实验教学平台","pubUrl":"https://sczx.bnuzh.edu.cn","path":"jwbsyysjcxjyzxwz","smartGet":1},
+  {"id":"16e7de8fdc4a47cfbbcfd69bad3087b8","name":"理工实验平台网站","pubUrl":"https://iscst.bnuzh.edu.cn/","path":"lgsyptwz","smartGet":1},
+  {"id":"7b06ff51eebb4ac9973b2bd4821d25cb","name":"会同书院网站","pubUrl":"https://ht.bnuzh.edu.cn/","path":"htsywz","smartGet":1},
+  {"id":"b1b34f8f364948dd870d0b08f0c7b0a2","name":"地表过程与资源生态国家重点实验室珠海基地","pubUrl":"https://espre.bnuzh.edu.cn/","path":"dbgcyzystgjzdsyszhjd","smartGet":1},
+  {"id":"9193b9297fc840aaaac832f8a8a2c6c3","name":"科研办公室网站","pubUrl":"https://kyb.bnuzh.edu.cn/","path":"kybgswz","smartGet":1},
+  {"id":"5624a6f0b836401d8e9b6459da95b24e","name":"校区团委网站","pubUrl":"https://youth.bnuzh.edu.cn/","path":"xqtwwz","smartGet":1},
+  {"id":"cc95de40844b45e8b14870dbf3d358cd","name":"乐育书院网站","pubUrl":"https://leyu.bnuzh.edu.cn/","path":"lysywz","smartGet":1},
+  {"id":"9e442f682ee94c92a56260b87daadd3d","name":"学生职业发展与就业指导中心网站","pubUrl":"https://career.bnuzh.edu.cn/","path":"xszyfzyjyzdzxwz","smartGet":1},
+  {"id":"9e48dbe870a04ac5aefbefff5aeb68e1","name":"网络信息中心","pubUrl":"http://nic.bnuzh.edu.cn/","path":"wlxxzx","smartGet":1},
+  {"id":"20a9c6f38cf246239bc912fec4be08b6","name":"中国教育会计学会会议","pubUrl":"https://easc.bnuzh.edu.cn/","path":"zgjykjxhhy","smartGet":1},
+  {"id":"e0c5a11a3fec4476b4c24202ff6820ab","name":"党委学生工作办公室","pubUrl":"https://dwxgb.bnuzh.edu.cn/","path":"dwxsgzbgs","smartGet":1},
+  {"id":"f8b68f1c9a724254a4feb6285bb8cef3","name":"国际交流与合作办公室","pubUrl":"https://io.bnuzh.edu.cn","path":"gjjlyhzbgs","smartGet":1},
+  {"id":"944f1df5c6ed4ef8a94db5d8f6f72aa9","name":"乡长学院","pubUrl":"https://tcc.bnuzh.edu.cn","path":"xcxy","smartGet":1},
+  {"id":"c5ba1fc8bc32462d9299d79a8d0d0ee1","name":"迎新网","pubUrl":"https://welcome.bnuzh.edu.cn/","path":"yxw","smartGet":1},
+  {"id":"75e9fe7e62fb4d13a04c54339b880077","name":"教务部","pubUrl":"https://jwb.bnuzh.edu.cn/","path":"jwb","smartGet":1},
+  {"id":"57c21fb282a442bc936ce7188d98ed82","name":"凤凰书院英文网","pubUrl":"https://phs.bnuzh.edu.cn/English/","path":"fhsyyww","smartGet":1},
+  {"id":"7de05bfb07b44620b482d189a2d7cc44","name":"凤凰书院","pubUrl":"https://phs.bnuzh.edu.cn/","path":"fhsy","smartGet":1},
+  {"id":"b3e7c5f24a434f788257a698f79c37ff","name":"党委宣传工作办公室(新闻中心)","pubUrl":"https://xcb.bnuzh.edu.cn","path":"zhxqxww","smartGet":1},
+  {"id":"bfa3769881d248c5a8c379f84ba47149","name":"人才办","pubUrl":"http://hr.bnuzh.edu.cn/","path":"rcb","smartGet":1},
+  {"id":"1bd3af39c2cf4c2bbe07a1c2bc12e76b","name":"珠海校区英文网","pubUrl":"http://english.bnuzh.edu.cn/","path":"ebnuz","smartGet":1},
+  {"id":"f018e769b2bd4733a968e902befe7e17","name":"北京师范大学珠海校区主站","pubUrl":"http://www.bnuzh.edu.cn","path":"bnuz","smartGet":1},
+];

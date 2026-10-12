@@ -24,7 +24,6 @@ describe("zcglbgsParser", () => {
       { id: "gjflfg", url: "https://oam.bnuzh.edu.cn/zcfg/gdzcgl/gjflfg/index.htm", channel: "国家法律法规" },
       { id: "bwgzzd", url: "https://oam.bnuzh.edu.cn/zcfg/gdzcgl/bwgzzd/index.htm", channel: "部委规章制度" },
       { id: "xxgzzd", url: "https://oam.bnuzh.edu.cn/zcfg/gdzcgl/xxgzzd/index.htm", channel: "学校规章制度" },
-      { id: "xyzhgl", url: "https://oam.bnuzh.edu.cn/zcfg/xyzhgl/index.htm", channel: "校园综合管理" },
       { id: "zbgz", url: "https://oam.bnuzh.edu.cn/dqjs/zbgz/index.htm", channel: "支部工作" },
       { id: "ghhd", url: "https://oam.bnuzh.edu.cn/dqjs/ghhd/index.htm", channel: "工会活动" },
       { id: "xzzq", url: "https://oam.bnuzh.edu.cn/xzzq/index.htm", channel: "下载专区" },

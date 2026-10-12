@@ -1,15 +1,9 @@
-import { useEffect, useEffectEvent, useRef, useState } from "react";
-
+import { useCallback, useEffect, useRef } from "react";
 import type { FeedSnapshot, SourceHealthStatus } from "@bnuz-feed/contracts";
 
-const maxRetryAttempts = 2;
-const retryDelayMs = [3000, 9000];
+const retryDelays = [3000, 9000];
 const retryableStatuses = new Set<SourceHealthStatus>([
-  "partial",
-  "timeout",
-  "network_error",
-  "parser_error",
-  "empty",
+  "partial", "timeout", "network_error", "parser_error", "empty",
 ]);
 
 interface UseRefreshControllerOptions {
@@ -19,136 +13,67 @@ interface UseRefreshControllerOptions {
   sourceMode: "browser" | "snapshot";
 }
 
-export function useRefreshController({
-  autoRefresh,
-  refresh,
-  snapshot,
-  sourceMode,
-}: UseRefreshControllerOptions) {
-  const [lastCompletedAt, setLastCompletedAt] = useState<string | null>(null);
-  const [retryAttempts, setRetryAttempts] = useState<Record<string, number>>({});
-  const [retryingSourceIds, setRetryingSourceIds] = useState<string[]>([]);
+export function useRefreshController(options: UseRefreshControllerOptions) {
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+  const mountedRef = useRef(true);
+  const startedRef = useRef(false);
+  const attemptsRef = useRef(new Map<string, number>());
+  const timersRef = useRef(new Map<string, number>());
+  const queueRef = useRef(Promise.resolve<FeedSnapshot | null>(null));
 
-  const hasStartedRef = useRef(false);
-  const retryAttemptsRef = useRef<Record<string, number>>({});
-  const retryTimersRef = useRef(new Map<string, number>());
-  const refreshQueueRef = useRef(Promise.resolve<FeedSnapshot | null>(null));
-
-  const removeRetryTimer = useEffectEvent((sourceId: string) => {
-    const timer = retryTimersRef.current.get(sourceId);
-    if (timer !== undefined) {
-      window.clearTimeout(timer);
-      retryTimersRef.current.delete(sourceId);
+  const runRefresh = useCallback(async (sourceIds?: string[], resetRetries = true): Promise<FeedSnapshot | null> => {
+    if (resetRetries) {
+      const targets = sourceIds ?? [...new Set([...timersRef.current.keys(), ...attemptsRef.current.keys()])];
+      for (const id of targets) {
+        window.clearTimeout(timersRef.current.get(id));
+        timersRef.current.delete(id);
+        attemptsRef.current.delete(id);
+      }
     }
 
-    setRetryingSourceIds((current) => current.filter((value) => value !== sourceId));
-  });
+    const pending = queueRef.current.catch(() => null).then(() => mountedRef.current ? optionsRef.current.refresh(sourceIds) : null);
+    queueRef.current = pending;
+    const snapshot = await pending;
+    if (!snapshot || !mountedRef.current || optionsRef.current.sourceMode !== "browser") return snapshot;
 
-  const setAttemptValue = useEffectEvent((sourceId: string, value: number | undefined) => {
-    const nextAttempts = { ...retryAttemptsRef.current };
-
-    if (value === undefined) {
-      delete nextAttempts[sourceId];
-    } else {
-      nextAttempts[sourceId] = value;
-    }
-
-    retryAttemptsRef.current = nextAttempts;
-    setRetryAttempts(nextAttempts);
-  });
-
-  const resetRetryState = useEffectEvent((sourceIds?: string[]) => {
-    const targets =
-      sourceIds && sourceIds.length > 0
-        ? sourceIds
-        : [...new Set([...retryTimersRef.current.keys(), ...Object.keys(retryAttemptsRef.current)])];
-
-    for (const sourceId of targets) {
-      removeRetryTimer(sourceId);
-      setAttemptValue(sourceId, undefined);
-    }
-  });
-
-  const enqueueRefresh = useEffectEvent((sourceIds?: string[]) => {
-    const nextPromise = refreshQueueRef.current
-      .catch(() => null)
-      .then(() => refresh(sourceIds));
-
-    refreshQueueRef.current = nextPromise;
-    return nextPromise;
-  });
-
-  const processRetryTargets = useEffectEvent((nextSnapshot: FeedSnapshot | null, sourceIds?: string[]) => {
-    if (!nextSnapshot || sourceMode !== "browser") {
-      return;
-    }
-
-    const targetSourceIds =
-      sourceIds && sourceIds.length > 0 ? sourceIds : Object.keys(nextSnapshot.sourceHealth);
-
-    for (const sourceId of targetSourceIds) {
-      const health = nextSnapshot.sourceHealth[sourceId];
-      const attempt = retryAttemptsRef.current[sourceId] ?? 0;
-
+    for (const id of sourceIds ?? Object.keys(snapshot.sourceHealth)) {
+      const health = snapshot.sourceHealth[id];
+      const attempt = attemptsRef.current.get(id) ?? 0;
       if (!health || !retryableStatuses.has(health.status)) {
-        removeRetryTimer(sourceId);
-        setAttemptValue(sourceId, undefined);
+        window.clearTimeout(timersRef.current.get(id));
+        timersRef.current.delete(id);
+        attemptsRef.current.delete(id);
         continue;
       }
-
-      if (attempt >= maxRetryAttempts || retryTimersRef.current.has(sourceId)) {
-        continue;
-      }
-
-      const delay = retryDelayMs[Math.min(attempt, retryDelayMs.length - 1)] ?? retryDelayMs[0];
-      setRetryingSourceIds((current) =>
-        current.includes(sourceId) ? current : [...current, sourceId],
-      );
-
-      const timer = window.setTimeout(() => {
-        retryTimersRef.current.delete(sourceId);
-        setRetryingSourceIds((current) => current.filter((value) => value !== sourceId));
-        setAttemptValue(sourceId, attempt + 1);
-
-        void enqueueRefresh([sourceId]).then((retrySnapshot) => {
-          processRetryTargets(retrySnapshot, [sourceId]);
-        });
-      }, delay);
-
-      retryTimersRef.current.set(sourceId, timer);
+      const delay = retryDelays[attempt];
+      if (delay === undefined || timersRef.current.has(id)) continue;
+      timersRef.current.set(id, window.setTimeout(() => {
+        timersRef.current.delete(id);
+        attemptsRef.current.set(id, attempt + 1);
+        void runRefresh([id], false);
+      }, delay));
     }
-  });
-
-  const runRefresh = useEffectEvent(async (sourceIds?: string[]) => {
-    resetRetryState(sourceIds);
-    const nextSnapshot = await enqueueRefresh(sourceIds);
-    setLastCompletedAt(nextSnapshot?.updatedAt ?? null);
-    processRetryTargets(nextSnapshot, sourceIds);
-    return nextSnapshot;
-  });
+    return snapshot;
+  }, []);
 
   useEffect(() => {
-    if (!autoRefresh || hasStartedRef.current || snapshot === null) {
-      return;
-    }
-
-    hasStartedRef.current = true;
-    void runRefresh();
-  }, [autoRefresh, runRefresh, snapshot]);
-
-  useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      for (const timer of retryTimersRef.current.values()) {
-        window.clearTimeout(timer);
-      }
+      mountedRef.current = false;
+      for (const timer of timersRef.current.values()) window.clearTimeout(timer);
+      timersRef.current.clear();
     };
   }, []);
 
-  return {
-    lastCompletedAt,
-    refreshAll: () => runRefresh(),
-    refreshSelected: (sourceIds: string[]) => runRefresh(sourceIds),
-    retryAttempts,
-    retryingSourceIds,
-  };
+  useEffect(() => {
+    if (!options.autoRefresh || startedRef.current || !options.snapshot) return;
+    startedRef.current = true;
+    // A freshly downloaded snapshot already is current. Cached snapshots still need an update.
+    if (options.sourceMode !== "snapshot" || options.snapshot.origin !== "snapshot") {
+      void runRefresh();
+    }
+  }, [options.autoRefresh, options.snapshot, options.sourceMode, runRefresh]);
+
+  return { refreshAll: useCallback(() => runRefresh(), [runRefresh]) };
 }

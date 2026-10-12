@@ -1,38 +1,62 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
-const snapshotPath = process.argv[2]
-  ? path.resolve(process.argv[2])
-  : path.resolve("apps/web/public/data/feed-snapshot.json");
+function assessSnapshotHealth(snapshot) {
+  const errors = [];
+  const health = snapshot?.sourceHealth;
+  const entries = health && typeof health === "object" && !Array.isArray(health)
+    ? Object.entries(health)
+    : [];
+  const items = Array.isArray(snapshot?.items) ? snapshot.items : [];
 
-const rawSnapshot = fs.readFileSync(snapshotPath, "utf8");
-const snapshot = JSON.parse(rawSnapshot);
-const sourceHealth = Object.values(snapshot.sourceHealth ?? {});
+  if (entries.length === 0) errors.push("Snapshot has no source health entries.");
+  if (items.length === 0) errors.push("Snapshot has no feed items.");
 
-const partialSources = sourceHealth.filter((entry) => entry.status === "partial");
-const degradedSources = sourceHealth.filter((entry) => entry.status === "degraded");
+  const partialSources = [];
+  const degradedSources = [];
+  for (const [sourceId, entry] of entries) {
+    if (entry?.sourceId !== sourceId) {
+      errors.push(`Source health key ${sourceId} does not match its sourceId.`);
+    }
+    if (!Number.isInteger(entry?.itemCount) || entry.itemCount < 0) {
+      errors.push(`Source ${sourceId} has an invalid itemCount.`);
+    } else if (entry.status === "live" && entry.itemCount === 0) {
+      errors.push(`Live source ${sourceId} has no items.`);
+    }
 
-const summary = {
-  updatedAt: snapshot.updatedAt,
-  totalItems: Array.isArray(snapshot.items) ? snapshot.items.length : 0,
-  partialCount: partialSources.length,
-  degradedCount: degradedSources.length,
-  partialSources: partialSources.map((entry) => ({
-    sourceId: entry.sourceId,
-    itemCount: entry.itemCount,
-    errorCode: entry.errorCode,
-    requestUrl: entry.requestUrl,
-  })),
-  degradedSources: degradedSources.map((entry) => ({
-    sourceId: entry.sourceId,
-    itemCount: entry.itemCount,
-    errorCode: entry.errorCode,
-    requestUrl: entry.requestUrl,
-  })),
-};
+    if (entry?.status !== "live") {
+      const sources = entry?.status === "partial" ? partialSources : degradedSources;
+      sources.push({
+        sourceId,
+        status: entry?.status ?? "invalid",
+        itemCount: entry?.itemCount,
+        errorCode: entry?.errorCode,
+        requestUrl: entry?.requestUrl,
+      });
+    }
+  }
 
-console.log(JSON.stringify(summary, null, 2));
+  return {
+    updatedAt: snapshot?.updatedAt,
+    totalItems: items.length,
+    partialCount: partialSources.length,
+    degradedCount: degradedSources.length,
+    partialSources,
+    degradedSources,
+    errors,
+  };
+}
 
-if (partialSources.length > 0 || degradedSources.length > 0) {
-  process.exit(1);
+module.exports = { assessSnapshotHealth };
+
+if (require.main === module) {
+  try {
+    const snapshotPath = path.resolve(process.argv[2] ?? "apps/web/public/data/feed-snapshot.json");
+    const summary = assessSnapshotHealth(JSON.parse(fs.readFileSync(snapshotPath, "utf8")));
+    console.log(JSON.stringify(summary, null, 2));
+    process.exitCode = summary.errors.length + summary.partialCount + summary.degradedCount > 0 ? 1 : 0;
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  }
 }

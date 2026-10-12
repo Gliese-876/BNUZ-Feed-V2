@@ -1,4 +1,8 @@
-import type { FetchTarget, Parser } from "@bnuz-feed/contracts";
+import { bjsfdxzhxqsysaqysbglbgsFetchTargets, bjsfdxzhxqsysaqysbglbgsParser } from "./bjsfdxzhxqsysaqysbglbgs";
+import { dwbwgzbgsFetchTargets, dwbwgzbgsParser } from "./dwbwgzbgs";
+import { yhzyztwFetchTargets, yhzyztwParser } from "./yhzyztw";
+import { xzxsyFetchTargets, xzxsyParser } from "./xzxsy";
+import type { Parser } from "@bnuz-feed/contracts";
 
 import { bjzxFetchTargets, bjzxParser } from "./bjzx";
 import { bjsfdxzxxyFetchTargets, bjsfdxzxxyParser } from "./bjsfdxzxxy";
@@ -46,6 +50,14 @@ import { zhxqxwwFetchTargets, zhxqxwwParser } from "./zhxqxww";
 import { zgjykjxhhyFetchTargets, zgjykjxhhyParser } from "./zgjykjxhhy";
 
 export {
+  bjsfdxzhxqsysaqysbglbgsFetchTargets,
+  bjsfdxzhxqsysaqysbglbgsParser,
+  dwbwgzbgsFetchTargets,
+  dwbwgzbgsParser,
+  yhzyztwFetchTargets,
+  yhzyztwParser,
+  xzxsyFetchTargets,
+  xzxsyParser,
   bjzxFetchTargets,
   bjzxParser,
   bjsfdxzxxyFetchTargets,
@@ -136,54 +148,13 @@ export {
   zgjykjxhhyParser,
 };
 
-export const implementedBnuzhFetchTargets: Record<string, FetchTarget[]> = {
-  "bnuzh/zhgwh": zhgwhFetchTargets,
-  "bnuzh/bjzx": bjzxFetchTargets,
-  "bnuzh/bjsfdxzxxy": bjsfdxzxxyFetchTargets,
-  "bnuzh/bjsfdxetbwg": bjsfdxetbwgFetchTargets,
-  "bnuzh/bsdwlsjxyssyjsbyz": bsdwlsjxyssyjsbyzFetchTargets,
-  "bnuzh/bnuz": bnuzFetchTargets,
-  "bnuzh/dagwz": dagwzFetchTargets,
-  "bnuzh/dbgcyzystgjzdsyszhjd": dbgcyzystgjzdsyszhjdFetchTargets,
-  "bnuzh/ebnuz": ebnuzFetchTargets,
-  "bnuzh/dlsyjxzx": dlsyjxzxFetchTargets,
-  "bnuzh/dwjsgzbgs": dwjsgzbgsFetchTargets,
-  "bnuzh/dwxsgzbgs": dwxsgzbgsFetchTargets,
-  "bnuzh/dwzzgzbgs": dwzzgzbgsFetchTargets,
-  "bnuzh/dzwtjlrwz": dzwtjlrwzFetchTargets,
-  "bnuzh/fhsy": fhsyFetchTargets,
-  "bnuzh/fhsyyww": fhsyywwFetchTargets,
-  "bnuzh/gjjlyhzbgs": gjjlyhzbgsFetchTargets,
-  "bnuzh/htsywz": htsywzFetchTargets,
-  "bnuzh/hqbwz": hqbwzFetchTargets,
-  "bnuzh/hwsywz": hwsywzFetchTargets,
-  "bnuzh/jsjysjw": jsjysjwFetchTargets,
-  "bnuzh/jwb": jwbFetchTargets,
-  "bnuzh/jwbsyysjcxjyzxwz": jwbsyysjcxjyzxwzFetchTargets,
-  "bnuzh/kybgswz": kybgswzFetchTargets,
-  "bnuzh/lgsyptwz": lgsyptwzFetchTargets,
-  "bnuzh/lxsy": lxsyFetchTargets,
-  "bnuzh/rcb": rcbFetchTargets,
-  "bnuzh/lysywz": lysywzFetchTargets,
-  "bnuzh/tsg": tsgFetchTargets,
-  "bnuzh/tzgg": tzggFetchTargets,
-  "bnuzh/wlxydlxwz": wlxydlxwzFetchTargets,
-  "bnuzh/wlxxzx": wlxxzxFetchTargets,
-  "bnuzh/wxmh": wxmhFetchTargets,
-  "bnuzh/wlsyjxzx": wlsyjxzxFetchTargets,
-  "bnuzh/xcxy": xcxyFetchTargets,
-  "bnuzh/xddjjdgjztw": xddjjdgjztwFetchTargets,
-  "bnuzh/xsgwz": xsgwzFetchTargets,
-  "bnuzh/xqfzjjhwz": xqfzjjhwzFetchTargets,
-  "bnuzh/xqtwwz": xqtwwzFetchTargets,
-  "bnuzh/xszyfzyjyzdzxwz": xszyfzyjyzdzxwzFetchTargets,
-  "bnuzh/yxw": yxwFetchTargets,
-  "bnuzh/zcglbgs": zcglbgsFetchTargets,
-  "bnuzh/zhxqxww": zhxqxwwFetchTargets,
-  "bnuzh/zgjykjxhhy": zgjykjxhhyFetchTargets,
-};
+export { implementedBnuzhFetchTargets } from "./targets";
 
 export const implementedBnuzhParsers: Record<string, Parser> = {
+  "bnuzh/bjsfdxzhxqsysaqysbglbgs": bjsfdxzhxqsysaqysbglbgsParser,
+  "bnuzh/dwbwgzbgs": dwbwgzbgsParser,
+  "bnuzh/yhzyztw": yhzyztwParser,
+  "bnuzh/xzxsy": xzxsyParser,
   "bnuzh/zhgwh": zhgwhParser,
   "bnuzh/bjzx": bjzxParser,
   "bnuzh/bjsfdxzxxy": bjsfdxzxxyParser,

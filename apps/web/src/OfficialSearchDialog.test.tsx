@@ -1,316 +1,172 @@
 // @vitest-environment jsdom
 
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { createRef } from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { submitOfficialSiteSearchMock } = vi.hoisted(() => ({
   submitOfficialSiteSearchMock: vi.fn(() => true),
 }));
 
-vi.mock("./siteSearch", async () => {
-  const actual = await vi.importActual<typeof import("./siteSearch")>("./siteSearch");
-
-  return {
-    ...actual,
-    submitOfficialSiteSearch: submitOfficialSiteSearchMock,
-  };
-});
+vi.mock("./siteSearch", async () => ({
+  ...await vi.importActual<typeof import("./siteSearch")>("./siteSearch"),
+  submitOfficialSiteSearch: submitOfficialSiteSearchMock,
+}));
 
 import { OfficialSearchDialog } from "./OfficialSearchDialog";
 
-function setViewport(width: number, height: number) {
-  Object.defineProperty(window, "innerWidth", {
-    configurable: true,
-    value: width,
-    writable: true,
-  });
-  Object.defineProperty(window, "innerHeight", {
-    configurable: true,
-    value: height,
-    writable: true,
-  });
+const defaultProps = {
+  dialogId: "official-search-dialog",
+  initialQuery: "seed",
+  onClose: vi.fn(),
+  open: true,
+  scopeOptions: [
+    { id: "0", name: "全部站点" },
+    { id: "notice", name: "通知公告" },
+  ],
+  triggerRef: createRef<HTMLButtonElement>(),
+};
+
+function openAdvancedSearch() {
+  fireEvent.click(screen.getByText("复合检索", { selector: "summary" }));
 }
 
-function createTriggerRef() {
-  const trigger = document.createElement("button");
-  Object.defineProperty(trigger, "getBoundingClientRect", {
-    value: () => ({
-      bottom: 68,
-      height: 44,
-      left: 900,
-      right: 1020,
-      top: 24,
-      width: 120,
-      x: 900,
-      y: 24,
-      toJSON: () => undefined,
-    }),
-  });
-  document.body.append(trigger);
-
-  return {
-    trigger,
-    triggerRef: { current: trigger },
-  };
+function submitSearch() {
+  fireEvent.click(screen.getByRole("button", { name: "开始检索" }));
 }
-
-const defaultScopeOptions = [
-  { id: "0", name: "All sites" },
-  { id: "notice", name: "Notice" },
-];
 
 describe("OfficialSearchDialog", () => {
   beforeEach(() => {
-    submitOfficialSiteSearchMock.mockClear();
+    submitOfficialSiteSearchMock.mockReset().mockReturnValue(true);
+    defaultProps.onClose.mockReset();
   });
 
-  it("renders as a fixed body portal with visible select controls", async () => {
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
+  it("renders an accessible modal portal with native form controls", () => {
+    render(<OfficialSearchDialog {...defaultProps} />);
 
-    const { unmount } = render(
-      <OfficialSearchDialog
-        dialogId="official-search-dialog"
-        initialQuery="seed"
-        onClose={() => undefined}
-        open
-        scopeOptions={defaultScopeOptions}
-        triggerRef={triggerRef}
-      />,
-    );
-
-    const dialog = await screen.findByRole("dialog");
-
-    await waitFor(() => {
-      expect(dialog).toHaveStyle({
-        left: "300px",
-        maxHeight: "800px",
-        top: "80px",
-        width: "720px",
-      });
-    });
-
+    const dialog = screen.getByRole("dialog", { name: "搜索全站或单个站点" });
     expect(dialog.parentElement).toBe(document.body);
-    expect(screen.getAllByRole("searchbox")[0]).toBeInTheDocument();
-    expect(screen.getAllByRole("combobox").length).toBeGreaterThan(1);
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog).toHaveAccessibleDescription(/官方搜索/);
+    expect(screen.getByRole("searchbox", { name: "搜索词" })).toHaveValue("seed");
+    expect(screen.getByRole("combobox", { name: "站点范围" }).tagName).toBe("SELECT");
 
-    unmount();
-    trigger.remove();
+    openAdvancedSearch();
+    expect(screen.getByLabelText("开始时间")).toHaveAttribute("type", "date");
+    expect(screen.getByLabelText("关键词", { exact: true })).toHaveAttribute("type", "search");
   });
 
-  it("submits a regular query without forcing default rows into compound search", () => {
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
+  it("submits a regular query and selected scope without forcing compound rows", () => {
+    render(<OfficialSearchDialog {...defaultProps} />);
 
-    render(
-      <OfficialSearchDialog
-        dialogId="official-search-dialog"
-        initialQuery=""
-        onClose={() => undefined}
-        open
-        scopeOptions={defaultScopeOptions}
-        triggerRef={triggerRef}
-      />,
-    );
-
-    fireEvent.change(screen.getAllByRole("searchbox")[0] as HTMLInputElement, {
-      target: { value: "scholarship" },
+    fireEvent.change(screen.getByRole("searchbox", { name: "搜索词" }), {
+      target: { value: "奖学金" },
     });
-    fireEvent.click(document.querySelector('button[type="submit"]') as HTMLButtonElement);
-
-    expect(submitOfficialSiteSearchMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query: "scholarship",
-        rows: undefined,
-      }),
-    );
-
-    trigger.remove();
-  });
-
-  it("binds the advanced keyword label to its own input id", () => {
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
-
-    render(
-      <OfficialSearchDialog
-        dialogId="official-search-dialog"
-        initialQuery=""
-        onClose={() => undefined}
-        open
-        scopeOptions={defaultScopeOptions}
-        triggerRef={triggerRef}
-      />,
-    );
-
-    fireEvent.click(document.querySelector(".search-dialog__advanced summary") as HTMLElement);
-
-    const keywordInput = document.querySelector(
-      '.search-dialog__advanced-grid input[type="search"]',
-    ) as HTMLInputElement;
-    const keywordLabel = document.querySelector(`label[for="${keywordInput.id}"]`);
-
-    expect(keywordInput.id).not.toBe("");
-    expect(keywordLabel).not.toBeNull();
-    expect(keywordLabel).toHaveAttribute("for", keywordInput.id);
-
-    trigger.remove();
-  });
-
-  it("opens the scope menu and applies the selected site option", () => {
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
-
-    render(
-      <OfficialSearchDialog
-        dialogId="official-search-dialog"
-        initialQuery=""
-        onClose={() => undefined}
-        open
-        scopeOptions={defaultScopeOptions}
-        triggerRef={triggerRef}
-      />,
-    );
-
-    const scopeCombobox = screen.getAllByRole("combobox")[0] as HTMLElement;
-
-    fireEvent.click(scopeCombobox);
-    fireEvent.click(screen.getAllByRole("option")[1] as HTMLElement);
-
-    expect(scopeCombobox).toHaveTextContent("Notice");
-
-    trigger.remove();
-  });
-
-  it("keeps the dialog mounted long enough to play its exit animation", () => {
-    vi.useFakeTimers();
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
-
-    try {
-      const { rerender } = render(
-        <OfficialSearchDialog
-          dialogId="official-search-dialog"
-          initialQuery=""
-          onClose={() => undefined}
-          open
-          scopeOptions={defaultScopeOptions}
-          triggerRef={triggerRef}
-        />,
-      );
-
-      expect(screen.getByRole("dialog")).toBeInTheDocument();
-
-      rerender(
-        <OfficialSearchDialog
-          dialogId="official-search-dialog"
-          initialQuery=""
-          onClose={() => undefined}
-          open={false}
-          scopeOptions={defaultScopeOptions}
-          triggerRef={triggerRef}
-        />,
-      );
-
-      expect(screen.getByRole("dialog")).toHaveClass("is-closing");
-      expect(document.querySelector(".search-dialog__backdrop")).toHaveClass("is-closing");
-
-      act(() => {
-        vi.advanceTimersByTime(240);
-      });
-
-      expect(screen.queryByRole("dialog")).toBeNull();
-      expect(document.querySelector(".search-dialog__backdrop")).toBeNull();
-    } finally {
-      vi.useRealTimers();
-      trigger.remove();
-    }
-  });
-
-  it("keeps the custom select menu mounted long enough to play its exit animation", () => {
-    vi.useFakeTimers();
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
-
-    try {
-      render(
-        <OfficialSearchDialog
-          dialogId="official-search-dialog"
-          initialQuery=""
-          onClose={() => undefined}
-          open
-          scopeOptions={defaultScopeOptions}
-          triggerRef={triggerRef}
-        />,
-      );
-
-      fireEvent.click(screen.getAllByRole("combobox")[0] as HTMLElement);
-      expect(document.querySelector(".field__select-menu")).toHaveClass("is-open");
-
-      fireEvent.pointerDown(document.body);
-      expect(document.querySelector(".field__select-menu")).toHaveClass("is-closing");
-
-      act(() => {
-        vi.advanceTimersByTime(200);
-      });
-
-      expect(document.querySelector(".field__select-menu")).toBeNull();
-    } finally {
-      vi.useRealTimers();
-      trigger.remove();
-    }
-  });
-
-  it("toggles the native start date picker from the date trigger", () => {
-    setViewport(1280, 900);
-    const { trigger, triggerRef } = createTriggerRef();
-    const inputPrototype = HTMLInputElement.prototype as HTMLInputElement & {
-      showPicker?: () => void;
-    };
-    const originalShowPicker = inputPrototype.showPicker;
-    const showPickerMock = vi.fn();
-    const blurSpy = vi.spyOn(HTMLInputElement.prototype, "blur");
-
-    Object.defineProperty(inputPrototype, "showPicker", {
-      configurable: true,
-      value: showPickerMock,
+    fireEvent.change(screen.getByRole("combobox", { name: "站点范围" }), {
+      target: { value: "notice" },
     });
+    fireEvent.change(screen.getByRole("combobox", { name: "搜索词匹配" }), {
+      target: { value: "fuzzy" },
+    });
+    submitSearch();
 
-    try {
-      render(
-        <OfficialSearchDialog
-          dialogId="official-search-dialog"
-          initialQuery=""
-          onClose={() => undefined}
-          open
-          scopeOptions={defaultScopeOptions}
-          triggerRef={triggerRef}
-        />,
-      );
+    expect(submitOfficialSiteSearchMock).toHaveBeenCalledWith(expect.objectContaining({
+      query: "奖学金",
+      queryMatchMode: "fuzzy",
+      rows: undefined,
+      siteId: "notice",
+    }));
+    expect(defaultProps.onClose).toHaveBeenCalledOnce();
+  });
 
-      fireEvent.click(document.querySelector(".search-dialog__advanced summary") as HTMLElement);
+  it("preserves all compound fields, matching modes and default row count", () => {
+    render(<OfficialSearchDialog {...defaultProps} initialQuery="" />);
+    openAdvancedSearch();
 
-      const startDateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
-      const startDateButton = document.querySelector(".field__date-trigger") as HTMLButtonElement;
-
-      fireEvent.click(startDateButton);
-      expect(showPickerMock).toHaveBeenCalledTimes(1);
-      expect(startDateInput).not.toHaveFocus();
-
-      fireEvent.click(startDateButton);
-      expect(blurSpy).toHaveBeenCalled();
-      expect(startDateInput).not.toHaveFocus();
-    } finally {
-      blurSpy.mockRestore();
-      if (originalShowPicker) {
-        Object.defineProperty(inputPrototype, "showPicker", {
-          configurable: true,
-          value: originalShowPicker,
-        });
-      } else {
-        Reflect.deleteProperty(inputPrototype, "showPicker");
-      }
-      trigger.remove();
+    for (const [label, value] of [
+      ["关键词", "交流"],
+      ["标题", "公告"],
+      ["正文", "申请"],
+      ["开始时间", "2026-01-01"],
+      ["结束时间", "2026-10-12"],
+    ] as const) {
+      fireEvent.change(screen.getByLabelText(label, { exact: true }), { target: { value } });
     }
+    for (const label of ["关键词匹配", "标题匹配", "正文匹配"]) {
+      fireEvent.change(screen.getByRole("combobox", { name: label }), {
+        target: { value: "fuzzy" },
+      });
+    }
+    submitSearch();
+
+    expect(submitOfficialSiteSearchMock).toHaveBeenCalledWith({
+      content: "申请",
+      contentMatchMode: "fuzzy",
+      endDate: "2026-10-12",
+      keyword: "交流",
+      keywordMatchMode: "fuzzy",
+      query: "",
+      queryMatchMode: "exact",
+      rows: 10,
+      siteId: "0",
+      startDate: "2026-01-01",
+      title: "公告",
+      titleMatchMode: "fuzzy",
+    });
+  });
+
+  it.each([
+    ["25", 25],
+    ["", undefined],
+  ])("submits a custom or empty row count (%s)", (value, expectedRows) => {
+    render(<OfficialSearchDialog {...defaultProps} />);
+    openAdvancedSearch();
+    fireEvent.change(screen.getByLabelText("每页条数"), { target: { value } });
+    submitSearch();
+
+    expect(submitOfficialSiteSearchMock).toHaveBeenCalledWith(expect.objectContaining({
+      rows: expectedRows,
+    }));
+  });
+
+  it("reports an unsuccessful submission and keeps the modal open", () => {
+    submitOfficialSiteSearchMock.mockReturnValue(false);
+    render(<OfficialSearchDialog {...defaultProps} initialQuery="" />);
+    submitSearch();
+
+    expect(screen.getByRole("alert")).toHaveTextContent("请至少填写搜索词");
+    expect(defaultProps.onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("resets edited fields and errors when reopened with a new query", () => {
+    const { rerender } = render(<OfficialSearchDialog {...defaultProps} />);
+    openAdvancedSearch();
+    fireEvent.change(screen.getByLabelText("关键词", { exact: true }), {
+      target: { value: "旧关键词" },
+    });
+    submitOfficialSiteSearchMock.mockReturnValue(false);
+    submitSearch();
+
+    rerender(<OfficialSearchDialog {...defaultProps} open={false} />);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    rerender(<OfficialSearchDialog {...defaultProps} initialQuery="  新搜索  " />);
+
+    expect(screen.getByRole("searchbox", { name: "搜索词" })).toHaveValue("新搜索");
+    expect(screen.queryByRole("alert")).toBeNull();
+    openAdvancedSearch();
+    expect(screen.getByLabelText("关键词", { exact: true })).toHaveValue("");
+    expect(screen.getByLabelText("每页条数")).toHaveValue(10);
+  });
+
+  it("closes from Escape, close, cancel, and the backdrop", () => {
+    render(<OfficialSearchDialog {...defaultProps} />);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(defaultProps.onClose).toHaveBeenCalledOnce();
+
+    fireEvent.click(screen.getByRole("button", { name: "关闭" }));
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
+    fireEvent.click(document.querySelector("[data-modal-backdrop]") as HTMLElement);
+    expect(defaultProps.onClose).toHaveBeenCalledTimes(4);
   });
 });

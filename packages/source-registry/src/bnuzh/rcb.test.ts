@@ -37,6 +37,31 @@ describe("rcbFetchTargets", () => {
 });
 
 describe("rcbParser", () => {
+  it("parses the current notice list class and avoids duplicates on service lists with both classes", async () => {
+    const page = createPage({
+      requestId: "tzgg",
+      requestUrl: "https://hr.bnuzh.edu.cn/tzgg/index.htm",
+      finalUrl: "https://hr.bnuzh.edu.cn/tzgg/index.htm",
+      bodyText: `<ul class="listpt-ul"><li>
+        <span>2026-06-09</span>
+        <a href="../docs/2026-06/1fbcd7aae2874a318f89905ead8692d1.pdf">
+          广东省人力资源和社会保障厅关于举办第三届粤港澳大湾区博士博士后创新创业大赛的通知
+        </a>
+      </li></ul>
+      <ul class="listpt-ul listpt-ul2"><li>
+        <span>2025-11-10</span><a href="4e6a4b92.htm">关于启用“教师校外兼职”线上申请流程的通知</a>
+      </li></ul>`,
+    });
+    const records = await rcbParser.parse(page);
+    expect(records).toHaveLength(2);
+    expect(records[0]).toMatchObject({
+      rawPublishedAt: "2026-06-09",
+      rawUrl: "https://hr.bnuzh.edu.cn/docs/2026-06/1fbcd7aae2874a318f89905ead8692d1.pdf",
+      rawChannel: "通知公告",
+    });
+    expect(records[1]?.rawPublishedAt).toBe("2025-11-10");
+  });
+
   it("parses notice pages with mixed relative and absolute links", async () => {
     const page = createPage({
       requestId: "tzgg/index1",
