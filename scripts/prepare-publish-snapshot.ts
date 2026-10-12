@@ -19,7 +19,7 @@ function validateSnapshot(value: unknown, sourceIds: string[]): FeedSnapshot {
   if (typeof snapshot?.updatedAt !== "string" || !Number.isFinite(Date.parse(snapshot.updatedAt))) {
     throw new Error("Snapshot has no valid update time.");
   }
-  if (sourceIds.some((id) => snapshot.sourceHealth?.[id]?.status !== "live")) {
+  if (sourceIds.some((id) => !snapshot.sourceHealth?.[id])) {
     throw new Error("Snapshot does not cover the current source catalog.");
   }
   if (snapshot.items?.some((item) => !item || typeof item.id !== "string" || !item.id ||
@@ -74,13 +74,23 @@ async function main() {
   const { snapshot, source, warnings } = selection;
   const ageHours = Math.max(0, (Date.now() - Date.parse(snapshot.updatedAt)) / 3_600_000);
   if (ageHours > 24) warnings.push(`Retained snapshot is ${Math.floor(ageHours)} hours old; source refresh needs attention.`);
+  const retainedSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "snapshot");
+  for (const entry of retainedSources) {
+    if (Date.now() - Date.parse(entry.lastSuccessAt!) > 24 * 3_600_000) {
+      warnings.push(`Campus source ${entry.sourceId} last succeeded at ${entry.lastSuccessAt}; refresh it from the campus network.`);
+    }
+  }
   await writeFile(snapshotPath, `${JSON.stringify(snapshot)}\n`, "utf8");
   await writeFile(resolve("apps/web/public/data/source-health.json"), `${JSON.stringify(snapshot.sourceHealth)}\n`, "utf8");
   for (const warning of warnings) console.warn(`::warning::${warning.replace(/[\r\n]+/g, " ")}`);
-  console.log(JSON.stringify({ source, updatedAt: snapshot.updatedAt, items: snapshot.items.length, warnings }, null, 2));
+  console.log(JSON.stringify({ source, updatedAt: snapshot.updatedAt, items: snapshot.items.length, retainedSources, warnings }, null, 2));
   if (process.env.GITHUB_STEP_SUMMARY) {
     await appendFile(process.env.GITHUB_STEP_SUMMARY,
       `### Published data\n\nSource: ${source}\n\nUpdated: ${snapshot.updatedAt}\n\nItems: ${snapshot.items.length}\n\n`, "utf8");
+    if (retainedSources.length) {
+      await appendFile(process.env.GITHUB_STEP_SUMMARY,
+        `Campus-only data retained:\n${retainedSources.map((entry) => `- ${entry.sourceId}: ${entry.lastSuccessAt}`).join("\n")}\n\n`, "utf8");
+    }
   }
 }
 

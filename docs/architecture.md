@@ -34,9 +34,9 @@ Web 默认只读取 `data/feed-snapshot.json`，优先使用其中同版本的�
 
 默认参数和环境变量见 [README](../README.md)。GitHub Actions 使用两轮上限、10 分钟抓取步骤及 14 分钟构建超时，系统 Chrome 由 Playwright 控制。自动调度按北京时间每日 06:00 至 22:00，每 15 分钟触发。
 
-只有全部预期抓取来源均为 `live`，生成器才会写入快照。JSON 使用紧凑格式。发布前 [check-snapshot-health.cjs](../scripts/check-snapshot-health.cjs) 再检查数据与健康状态，拒绝空快照和非 `live` 状态。
+只有全部预期抓取来源均为 `live`，生成器才会写入快照。JSON 使用紧凑格式。公开 CI 设置 `BNUZ_FEED_SNAPSHOT_PUBLIC_ONLY=true`，只抓取 45 个公网来源；保卫办、实设办保留上次有效条目和成功时间，并标记为 `snapshot`。合并按来源拆分去重记录，避免重复累计其他来源的命中数。发布前 [check-snapshot-health.cjs](../scripts/check-snapshot-health.cjs) 拒绝空快照、无效校内基线和任何公网来源失败。校内本地生成仍抓取全部 47 个来源。
 
-代码发布与全量抓取分开：`push` 通过 `prepare-publish-snapshot.ts` 在仓库和已发布数据间选择较新的健康快照，核对当前来源覆盖；定时或手动刷新仍需抓取成功。所有事件共用串行队列，部署前核对 main 的最新 SHA，避免旧任务覆盖新版本。详见 [deployment.md](deployment.md)。
+代码发布与抓取分开：`prepare-publish-snapshot.ts` 在仓库和已发布数据间选择较新的健康快照，核对当前来源覆盖；`push` 直接发布，定时或手动刷新使用它作为校内数据基线并抓取公网来源。所有事件共用串行队列，部署前核对 main 的最新 SHA，避免旧任务覆盖新版本。详见 [deployment.md](deployment.md)。
 
 ## 去重与统计
 

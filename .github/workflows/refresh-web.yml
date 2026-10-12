@@ -72,7 +72,7 @@ jobs:
       BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 2000
       BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 10000
       BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS: 15000
-      BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS: www.bnuzh.edu.cn,zhb.bnu.edu.cn,dwbw.bnuzh.edu.cn,ssb.bnuzh.edu.cn
+      BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS: www.bnuzh.edu.cn,zhb.bnu.edu.cn
       BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL: chrome
       BNUZ_FEED_SNAPSHOT_CONCURRENCY: 3
       BNUZ_FEED_SNAPSHOT_TARGET_CONCURRENCY: 2
@@ -95,6 +95,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Select latest healthy snapshot
+        env:
+          BNUZ_FEED_PUBLISHED_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: npm run snapshot:publish
+
       - name: Verify system Chrome
         if: env.REFRESH_DATA == 'true'
         timeout-minutes: 1
@@ -103,13 +108,9 @@ jobs:
       - name: Generate snapshot data
         if: env.REFRESH_DATA == 'true'
         timeout-minutes: 10
-        run: npm run snapshot 2>&1 | tee snapshot.log
-
-      - name: Select latest healthy snapshot for code release
-        if: env.REFRESH_DATA != 'true'
         env:
-          BNUZ_FEED_PUBLISHED_BASE_URL: ${{ steps.pages.outputs.base_url }}
-        run: npm run snapshot:publish
+          BNUZ_FEED_SNAPSHOT_PUBLIC_ONLY: 'true'
+        run: npm run snapshot 2>&1 | tee snapshot.log
 
       - name: Verify snapshot health
         run: node scripts/check-snapshot-health.cjs

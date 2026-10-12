@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { JSDOM } from "jsdom";
@@ -7,9 +7,11 @@ import type { FeedSnapshot, SourceDescriptor, SourceId } from "@bnuz-feed/contra
 import { createDefaultNormalizer } from "@bnuz-feed/core";
 import { executeBrowserRefreshUntilStable } from "@bnuz-feed/runtime-browser";
 import { createParserRegistry, publicBnuzhSources } from "@bnuz-feed/source-registry";
+import { campusOnlySourceIds } from "@bnuz-feed/source-registry/catalog";
 
 import { createSnapshotFetch, parseBrowserHostList } from "./snapshotFetch";
 import { executeSnapshotStrategy, type SnapshotPhase } from "./snapshotStrategy";
+import { retainCampusSources } from "./retain-campus-sources";
 
 const outputDir = resolve(process.cwd(), "apps/web/public/data");
 const domParser = new JSDOM("").window.DOMParser;
@@ -53,6 +55,13 @@ function summarizeSnapshot(snapshot: FeedSnapshot) {
 }
 
 async function main() {
+  const publicOnly = process.env.BNUZ_FEED_SNAPSHOT_PUBLIC_ONLY === "true";
+  const sources = publicOnly
+    ? publicBnuzhSources.filter((source) => !campusOnlySourceIds.includes(source.id))
+    : publicBnuzhSources;
+  const previous = publicOnly
+    ? JSON.parse(await readFile(resolve(outputDir, "feed-snapshot.json"), "utf8")) as FeedSnapshot
+    : undefined;
   const nodeMaxAttempts = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS, 10);
   const browserMaxAttempts = resolveNonNegativeNumber(process.env.BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS, 5);
   const roundLimit = resolveNumber(process.env.BNUZ_FEED_SNAPSHOT_ROUND_LIMIT, 3);
@@ -124,8 +133,8 @@ async function main() {
     }
   }
 
-  const snapshot = await executeSnapshotStrategy({
-    sources: publicBnuzhSources,
+  let snapshot = await executeSnapshotStrategy({
+    sources,
     nodeMaxAttempts,
     browserMaxAttempts,
     roundLimit,
@@ -163,6 +172,13 @@ async function main() {
       }
     },
   });
+
+  if (previous) {
+    snapshot = retainCampusSources(snapshot, previous, campusOnlySourceIds);
+    for (const sourceId of campusOnlySourceIds) {
+      console.log(`[snapshot:campus] source=${sourceId} retainedFrom=${snapshot.sourceHealth[sourceId]?.lastSuccessAt}`);
+    }
+  }
 
   await mkdir(outputDir, { recursive: true });
 

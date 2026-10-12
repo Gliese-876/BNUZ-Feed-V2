@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const { campusOnlySourceIds } = require("../packages/source-registry/src/networkPolicy.json");
 
 function assessSnapshotHealth(snapshot) {
   const errors = [];
@@ -14,6 +15,7 @@ function assessSnapshotHealth(snapshot) {
 
   const partialSources = [];
   const degradedSources = [];
+  const retainedSources = [];
   for (const [sourceId, entry] of entries) {
     if (entry?.sourceId !== sourceId) {
       errors.push(`Source health key ${sourceId} does not match its sourceId.`);
@@ -24,7 +26,13 @@ function assessSnapshotHealth(snapshot) {
       errors.push(`Live source ${sourceId} has no items.`);
     }
 
-    if (entry?.status !== "live") {
+    if (entry?.status === "snapshot" && campusOnlySourceIds.includes(sourceId)) {
+      const hasItems = items.some((item) => item?.sourceId === sourceId || item?.sourceIds?.includes(sourceId));
+      if (!entry.itemCount || !hasItems || typeof entry.lastSuccessAt !== "string" || !Number.isFinite(Date.parse(entry.lastSuccessAt))) {
+        errors.push(`Campus source ${sourceId} has no valid retained data or success time.`);
+      }
+      retainedSources.push({ sourceId, lastSuccessAt: entry.lastSuccessAt, itemCount: entry.itemCount });
+    } else if (entry?.status !== "live") {
       const sources = entry?.status === "partial" ? partialSources : degradedSources;
       sources.push({
         sourceId,
@@ -43,6 +51,7 @@ function assessSnapshotHealth(snapshot) {
     degradedCount: degradedSources.length,
     partialSources,
     degradedSources,
+    retainedSources,
     errors,
   };
 }

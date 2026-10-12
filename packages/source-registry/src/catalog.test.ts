@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { bnuzhSources, officialBnuzhSites, publicBnuzhSources } from "./catalog";
+import { bnuzhSources, campusOnlySourceIds, officialBnuzhSites, publicBnuzhSources } from "./catalog";
 import { createParserRegistry } from "./parserRegistry";
 
 describe("official catalog", () => {
@@ -27,6 +27,9 @@ describe("official catalog", () => {
     }
     expect(bnuzhSources.filter((source) => !source.enabled).map((source) => source.parserKey).sort()).toEqual([
       "bnuzh/bjsfdxzxxy", "bnuzh/gjjlyhzbgsyww",
+    ]);
+    expect(publicBnuzhSources.filter((source) => campusOnlySourceIds.includes(source.id)).map((source) => source.parserKey)).toEqual([
+      "bnuzh/dwbwgzbgs", "bnuzh/bjsfdxzhxqsysaqysbglbgs",
     ]);
   });
 
@@ -57,6 +60,10 @@ describe("official catalog", () => {
         }
         if (!specifier?.startsWith(".")) continue;
         const base = resolve(dirname(file), specifier);
+        if (specifier.endsWith(".json")) {
+          expect(() => JSON.parse(readFileSync(base, "utf8"))).not.toThrow();
+          continue;
+        }
         inspect(existsSync(`${base}.ts`) ? `${base}.ts` : resolve(base, "index.ts"));
       }
     }

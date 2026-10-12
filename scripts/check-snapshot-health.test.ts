@@ -19,6 +19,24 @@ function snapshot(status = "live", itemCount = 1) {
 }
 
 describe("snapshot health check", () => {
+  const campusId = "9f333a97019248b0bf8f48b232397257";
+  function retained(lastSuccessAt: unknown = "2026-10-12T00:00:00Z") {
+    return { items: [{ id: "campus-1", sourceId: campusId }], sourceHealth: {
+      [campusId]: { sourceId: campusId, status: "snapshot", itemCount: 1, lastSuccessAt },
+    } };
+  }
+
+  it("allows retained data only for documented campus-only sources", () => {
+    expect(assessSnapshotHealth(retained())).toMatchObject({ errors: [], partialCount: 0, degradedCount: 0 });
+    expect(assessSnapshotHealth(snapshot("snapshot"))).toMatchObject({ degradedCount: 1 });
+  });
+
+  it("rejects campus metadata without actual retained items or a valid timestamp", () => {
+    for (const value of [retained("invalid"), retained(null), { ...retained(), items: [{ id: "public", sourceId: "public" }] }]) {
+      expect(assessSnapshotHealth(value).errors).toHaveLength(1);
+    }
+  });
+
   it("accepts a populated snapshot with live sources", () => {
     expect(assessSnapshotHealth(snapshot())).toMatchObject({ errors: [], partialCount: 0, degradedCount: 0 });
   });
