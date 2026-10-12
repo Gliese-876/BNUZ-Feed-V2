@@ -65,7 +65,9 @@ async function main() {
     repositorySnapshot,
     sourceIds: publicBnuzhSources.map((source) => source.id),
     loadPublishedSnapshot: baseUrl ? async () => {
-      const url = `${baseUrl.replace(/\/+$/, "")}/data/feed-snapshot.json`;
+      const url = new URL(`${baseUrl.replace(/\/+$/, "")}/data/feed-snapshot.json`);
+      // Pages CDN can return the previous deployment even for a no-store request.
+      url.searchParams.set("release", process.env.GITHUB_RUN_ID ?? String(Date.now()));
       const response = await fetch(url, { signal: AbortSignal.timeout(15000), cache: "no-store" });
       if (!response.ok) throw new Error(`Published snapshot returned HTTP ${response.status}.`);
       return response.json();

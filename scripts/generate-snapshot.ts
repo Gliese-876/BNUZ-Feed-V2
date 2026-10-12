@@ -45,11 +45,13 @@ async function writeJson(filePath: string, value: unknown) {
 function summarizeSnapshot(snapshot: FeedSnapshot) {
   const liveSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "live").length;
   const partialSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "partial").length;
-  const degradedSources = Object.values(snapshot.sourceHealth).length - liveSources;
+  const retainedSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "snapshot").length;
+  const degradedSources = Object.values(snapshot.sourceHealth).length - liveSources - retainedSources;
 
   return {
     liveSources,
     partialSources,
+    retainedSources,
     degradedSources,
   };
 }
@@ -187,7 +189,7 @@ async function main() {
     writeJson(resolve(outputDir, "source-health.json"), snapshot.sourceHealth),
   ]);
 
-  const { liveSources, partialSources, degradedSources } = summarizeSnapshot(snapshot);
+  const { liveSources, partialSources, retainedSources, degradedSources } = summarizeSnapshot(snapshot);
 
   console.log(
     [
@@ -196,6 +198,7 @@ async function main() {
       `items=${snapshot.items.length}`,
       `liveSources=${liveSources}`,
       `partialSources=${partialSources}`,
+      `retainedSources=${retainedSources}`,
       `degradedSources=${degradedSources}`,
     ].join(" "),
   );
