@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
       },
       workbox: {
         cacheId: "bnuz-feed",
-        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest}"],
+        globPatterns: ["**/*.{js,css,html,png,svg,webmanifest,txt}"],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         navigateFallback: "index.html",

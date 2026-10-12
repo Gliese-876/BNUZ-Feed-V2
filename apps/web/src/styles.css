@@ -137,8 +137,11 @@ button, input, select, a { -webkit-tap-highlight-color: transparent; }
 .empty-state__symbol { color: var(--primary); font-size: 2.6rem; line-height: 1; }
 .empty-state strong { font-size: 1rem; font-weight: 600; }
 .empty-state > span:not(.empty-state__symbol) { color: var(--muted); font-size: .8rem; }
-.app-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 32px; padding: 24px 0; border-top: 2px solid var(--text); color: var(--muted); font-size: .65rem; }
+.app-footer { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: baseline; gap: 16px; margin-top: 32px; padding: 24px 0; border-top: 2px solid var(--text); color: var(--muted); font-size: .65rem; }
 .app-footer strong { color: var(--text); font-size: 1rem; letter-spacing: -.055em; }
+.app-footer__legal { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.app-footer__legal a { text-underline-offset: .2em; }
+.app-footer__legal a:hover { text-decoration: underline; }
 .pwa-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 
 .app__scrim, .search-dialog__backdrop { position: fixed; inset: 0; z-index: 50; background: #0007; }

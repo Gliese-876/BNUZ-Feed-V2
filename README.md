@@ -6,6 +6,7 @@
 - [仓库](https://github.com/Gliese-876/BNUZ-Feed-V2)
 - [开发文档](docs/architecture.md)
 - [站点接入及复核记录](docs/site-structure.md)
+- [MIT 许可证](LICENSE) · [许可范围](NOTICE.md) · [第三方软件许可](THIRD_PARTY_NOTICES.txt)
 
 ## 开发与验证
 
@@ -22,6 +23,7 @@ npm run snapshot       # 抓取并生成静态快照
 npm run snapshot:publish # 为代码发布选择较新的健康快照
 node scripts/check-snapshot-health.cjs
 npm run build          # 构建到 apps/web/dist
+npm run licenses:check # 核对网页随附的第三方许可声明
 ```
 
 `npm run build:snapshot` 可以连续生成快照并构建。单独构建使用仓库中已有的快照；其数据时间显示在页面上。
@@ -90,4 +92,12 @@ scripts/                站点核验、快照生成、健康检查
 docs/                   架构与站点记录
 ```
 
-本项目用于学习、研究与个人信息整理，不代表学校或下属单位。通知、时间安排与附件请以原始来源页面为准。
+本项目为独立的信息聚合工具，不代表学校或下属单位。通知、时间安排与附件请以原始来源页面为准。
+
+## 许可证
+
+本项目原创程序代码、文档、WebUI 图形及应用图标采用 [MIT 许可证](LICENSE)，允许商业使用、修改与再分发，并要求保留版权和许可声明。
+
+第三方依赖保留各自许可；抓取的学校站点内容及第三方名称、标识不包含在本项目 MIT 授权范围中，具体见 [许可范围](NOTICE.md) 和 [数据内容说明](apps/web/public/data/NOTICE.txt)。公开访问原文不等于获得其内容的再利用授权。
+
+`npm run licenses:generate` 根据当前锁定的网页依赖生成 [第三方许可文本](THIRD_PARTY_NOTICES.txt)。网页开发与构建均自动准备许可文件；构建产物中的 `legal/` 和 `data/NOTICE.txt` 随网站一同发布，页脚可直接访问。更新依赖后运行生成命令并提交变更；CI 会检查许可文件是否同步。更多实现说明见 [开源许可维护](docs/licensing.md)。

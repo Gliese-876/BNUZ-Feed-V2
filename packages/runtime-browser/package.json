@@ -10,5 +10,6 @@
     "@bnuz-feed/contracts": "0.1.0",
     "@bnuz-feed/core": "0.1.0",
     "@bnuz-feed/source-registry": "0.1.0"
-  }
+  },
+  "license": "MIT"
 }

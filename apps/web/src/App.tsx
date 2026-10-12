@@ -148,7 +148,15 @@ function RuntimeShell() {
           </div>
         )}
       </section>
-      <footer className="app-footer"><strong>BNUZ Feed</strong><span>公开信息聚合 · 以官方站点原文为准</span></footer>
+      <footer className="app-footer">
+        <strong>BNUZ Feed</strong>
+        <span>公开信息聚合 · 以官方站点原文为准</span>
+        <nav aria-label="开源许可" className="app-footer__legal">
+          <a href={`${import.meta.env.BASE_URL}legal/LICENSE.txt`}>MIT 许可</a>
+          <a href={`${import.meta.env.BASE_URL}legal/THIRD_PARTY_NOTICES.txt`}>第三方许可</a>
+          <a href={`${import.meta.env.BASE_URL}legal/NOTICE.txt`}>内容说明</a>
+        </nav>
+      </footer>
       <SourcePanel id={sourceDrawerId} itemStats={itemStats} onClose={() => setDrawerOpen(false)} open={drawerOpen} selection={selection} triggerRef={sourceButtonRef} />
       <OfficialSearchDialog dialogId={searchDialogId} initialQuery={feedQuery} onClose={() => setSearchDialogOpen(false)} open={searchDialogOpen} scopeOptions={officialSearchScopeOptions} triggerRef={searchButtonRef} />
     </main>

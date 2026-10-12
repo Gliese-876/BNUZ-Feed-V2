@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predev": "node ../../scripts/generate-license-notices.cjs",
+    "prebuild": "node ../../scripts/generate-license-notices.cjs"
   },
   "dependencies": {
     "@bnuz-feed/contracts": "0.1.0",
@@ -17,5 +19,6 @@
     "@bnuz-feed/source-registry": "0.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
-  }
+  },
+  "license": "MIT"
 }

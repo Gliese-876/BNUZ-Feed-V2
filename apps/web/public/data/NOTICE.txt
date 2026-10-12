@@ -1,0 +1,20 @@
+第三方内容说明 / Third-party content notice
+
+feed-snapshot.json 中来自校园站点的标题、摘要和其他原文内容，不包含在
+本项目原创程序代码的 MIT 授权中。依法受保护内容的权利归原权利人所有。
+项目不授予对这些内容进行转载、改编、商业使用或其他再利用的许可。
+每个条目保留原文 URL；使用相关内容应另行遵守适用法律和来源站点规则或授权。
+单纯事实信息等依法不受著作权保护的材料，不因本说明增加著作权限制。
+
+Third-party titles, summaries, and other source content in feed-snapshot.json
+are excluded from the MIT license for this project's original software.
+Rights in protected content remain with the respective rights holders.
+Source URLs are retained. This project grants no permission to reproduce,
+adapt, commercially use, or otherwise reuse protected source content.
+Material not protected by copyright is not made subject to additional
+copyright restrictions by this notice.
+
+项目许可范围及第三方软件声明 / Project licensing and third-party software:
+../legal/NOTICE.txt
+../legal/LICENSE.txt
+../legal/THIRD_PARTY_NOTICES.txt

@@ -1,5 +1,7 @@
 node_modules/
 apps/web/dist/
+apps/web/public/legal/
+/design/posters/
 tmp/
 
 *.log

@@ -54,6 +54,7 @@ jobs:
 
       - name: Validate source registry
         run: |
+          npm run licenses:check
           npm run check
           npm test -- --maxWorkers=2
 
