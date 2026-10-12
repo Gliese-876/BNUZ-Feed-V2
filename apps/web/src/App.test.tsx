@@ -17,16 +17,16 @@ vi.mock("./runtime/createAggregationService", () => ({
 }));
 vi.mock("./sourceCatalog", async () => ({
   ...await vi.importActual<typeof import("./sourceCatalog")>("./sourceCatalog"),
-  sourceCatalog: [{ channels: [{ label: "Announcements" }], fetchTargetCount: 1, id: "notice", name: "Notice Board", searchText: "notice board announcements" }],
-  sourceCatalogById: { notice: { id: "notice", name: "Notice Board" } },
-  totalSourceChannelCount: 1,
+  sourceCatalog: [{ channels: [{ label: "通知公告" }, { label: "综合新闻" }], fetchTargetCount: 2, id: "75e9fe7e62fb4d13a04c54339b880077", name: "教务部", searchText: "教务部 通知公告 综合新闻" }],
+  sourceCatalogById: { "75e9fe7e62fb4d13a04c54339b880077": { id: "75e9fe7e62fb4d13a04c54339b880077", name: "教务部" } },
+  totalSourceChannelCount: 2,
 }));
 vi.mock("./useRefreshController", () => ({ useRefreshController: () => ({ refreshAll: state.refreshAll }) }));
 
 import App from "./App";
 
 function createItem(overrides: Partial<FeedItem> = {}): FeedItem {
-  return { id: "one", title: "Scholarship applications", sourceId: "notice", sourceIds: ["notice"], channel: "Announcements", url: "https://www.bnuzh.edu.cn/example.html", fetchedAt: "2026-10-12T01:00:00Z", freshness: "snapshot", ...overrides };
+  return { id: "one", title: "Scholarship applications", sourceId: "75e9fe7e62fb4d13a04c54339b880077", sourceIds: ["75e9fe7e62fb4d13a04c54339b880077"], channel: "通知公告", url: "https://www.bnuzh.edu.cn/example.html", fetchedAt: "2026-10-12T01:00:00Z", freshness: "snapshot", ...overrides };
 }
 
 describe("App reading and filtering", () => {
@@ -71,7 +71,7 @@ describe("App reading and filtering", () => {
   });
 
   it("keeps deduplicated and raw counts and opens feed entries with native links", () => {
-    state.items = [createItem({ rawCount: 3, rawOccurrences: [{ sourceId: "notice", channel: "Announcements", count: 3 }] })];
+    state.items = [createItem({ rawCount: 3, rawOccurrences: [{ sourceId: "75e9fe7e62fb4d13a04c54339b880077", channel: "通知公告", count: 3 }] })];
     render(<App />);
     expect(document.querySelector(".content__count")).toHaveTextContent("当前结果 1 条");
     expect(screen.getByText("原始收录 3 条 · 重复条目已合并")).toBeInTheDocument();
@@ -79,6 +79,25 @@ describe("App reading and filtering", () => {
     expect(link).toHaveAttribute("href", state.items[0]?.url);
     expect(link).toHaveAttribute("target", "_blank");
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("defaults to student channels and lets readers switch to all information", () => {
+    state.items = [createItem(), createItem({ id: "news", title: "Department meeting", channel: "综合新闻" })];
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "学生精选", level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /学生精选.*默认推荐/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("link", { name: /Scholarship applications/ })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Department meeting/ })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "全部信息" }));
+    expect(screen.getByRole("heading", { name: "全部公开信息", level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Department meeting/ })).toBeInTheDocument();
+    expect(document.querySelector(".content__count")).toHaveTextContent("当前结果 2 条");
+
+    fireEvent.click(screen.getByRole("button", { name: /学生精选.*默认推荐/ }));
+    expect(screen.queryByRole("link", { name: /Department meeting/ })).toBeNull();
+    expect(document.querySelector(".content__count")).toHaveTextContent("当前结果 1 条");
   });
 
   it("searches locally, filters a channel, and restores default selection", () => {
@@ -90,7 +109,7 @@ describe("App reading and filtering", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /选择栏目/ }));
     const dialog = screen.getByRole("dialog");
-    fireEvent.click(within(dialog).getByRole("checkbox", { name: /Announcements/ }));
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: /通知公告/ }));
     fireEvent.click(within(dialog).getByRole("button", { name: "完成筛选" }));
     expect(screen.getByText("当前没有可显示的内容")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "恢复默认筛选" }));
@@ -104,6 +123,22 @@ describe("App reading and filtering", () => {
     expect(screen.queryByRole("link", { name: /Scholarship applications/ })).toBeNull();
     expect(document.querySelector(".content__count")).toHaveTextContent("当前结果 0 条");
     expect(screen.getByText("原始收录 0 条 · 重复条目已合并")).toBeInTheDocument();
+  });
+
+  it("labels a merged article using the source and channel selected by the reader", () => {
+    state.items = [createItem({
+      sourceId: "other-source", sourceIds: ["other-source", "75e9fe7e62fb4d13a04c54339b880077"], channel: "综合新闻",
+      rawOccurrences: [
+        { sourceId: "other-source", channel: "综合新闻", count: 1 },
+        { sourceId: "75e9fe7e62fb4d13a04c54339b880077", channel: "通知公告", count: 1 },
+      ],
+    })];
+    render(<App />);
+    const link = screen.getByRole("link", { name: /Scholarship applications/ });
+    expect(link).toHaveTextContent("教务部");
+    expect(link).toHaveTextContent("通知公告");
+    expect(link).not.toHaveTextContent("other-source");
+    expect(document.querySelector(".content__count")).toHaveTextContent("当前结果 1 条");
   });
 
   it("offers a retry after a failed update", () => {

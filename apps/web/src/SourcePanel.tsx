@@ -56,7 +56,7 @@ export function SourcePanel({ id, itemStats, onClose, open, selection, triggerRe
               <SelectionCheckbox checked={selection.allSelected} indeterminate={!selection.allSelected && selection.selectedSourceIds.length > 0} onChange={(event) => selection.toggleAll(event.target.checked)} />
               <span>全选站点</span>
             </label>
-            <button className="button button--text" onClick={() => selection.toggleAll(true)} type="button">恢复默认</button>
+            <button className="button button--text" onClick={selection.resetDefault} type="button">恢复学生精选</button>
           </div>
           <p className="source-panel__summary">{selection.selectedSourceIds.length} / {sourceCatalog.length} 个站点已启用 · 数字为原始条数</p>
           <div className="source-tree">
