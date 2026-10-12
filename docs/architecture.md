@@ -32,9 +32,11 @@ Web 默认只读取 `data/feed-snapshot.json`，优先使用其中同版本的�
 
 入口为 [generate-snapshot.ts](../scripts/generate-snapshot.ts)。每轮先执行 Node 抓取，再对未健康来源执行浏览器补抓；之后的轮次保留成功来源，只重试未健康来源。浏览器实例由一轮补抓共享，并在全部任务结束后关闭。
 
-默认参数和环境变量见 [README](../README.md)。GitHub Actions 使用两轮上限及 15 分钟构建超时，系统 Chrome 由 Playwright 控制。自动调度按北京时间每日 06:00 至 22:00，每 15 分钟触发。
+默认参数和环境变量见 [README](../README.md)。GitHub Actions 使用两轮上限、10 分钟抓取步骤及 14 分钟构建超时，系统 Chrome 由 Playwright 控制。自动调度按北京时间每日 06:00 至 22:00，每 15 分钟触发。
 
 只有全部预期抓取来源均为 `live`，生成器才会写入快照。JSON 使用紧凑格式。发布前 [check-snapshot-health.cjs](../scripts/check-snapshot-health.cjs) 再检查数据与健康状态，拒绝空快照和非 `live` 状态。
+
+代码发布与全量抓取分开：`push` 通过 `prepare-publish-snapshot.ts` 在仓库和已发布数据间选择较新的健康快照，核对当前来源覆盖；定时或手动刷新仍需抓取成功。所有事件共用串行队列，部署前核对 main 的最新 SHA，避免旧任务覆盖新版本。详见 [deployment.md](deployment.md)。
 
 ## 去重与统计
 

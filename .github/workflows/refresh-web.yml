@@ -10,18 +10,28 @@ on:
     # Beijing time final run at 22:00 => UTC 14:00
     - cron: "0 14 * * *"
   workflow_dispatch:
+    inputs:
+      refresh_data:
+        description: Refresh all source data before publishing
+        type: boolean
+        default: true
   push:
     branches:
       - main
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  REFRESH_DATA: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_data) }}
 
 concurrency:
-  group: pages-refresh-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  group: pages-refresh-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   validate:
@@ -45,18 +55,23 @@ jobs:
       - name: Validate source registry
         run: |
           npm run check
-          npm test
+          npm test -- --maxWorkers=2
 
   build:
+    needs: validate
+    if: ${{ !cancelled() && (needs.validate.result == 'success' || needs.validate.result == 'skipped') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 14
+    permissions:
+      contents: read
+      pages: read
     env:
-      BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS: 10
-      BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS: 5
+      BNUZ_FEED_SNAPSHOT_NODE_MAX_ATTEMPTS: 3
+      BNUZ_FEED_SNAPSHOT_BROWSER_MAX_ATTEMPTS: 2
       BNUZ_FEED_SNAPSHOT_ROUND_LIMIT: 2
-      BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 5000
-      BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 5000
-      BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS: 5000
+      BNUZ_FEED_SNAPSHOT_RETRY_DELAY_MS: 2000
+      BNUZ_FEED_SNAPSHOT_TIMEOUT_MS: 10000
+      BNUZ_FEED_SNAPSHOT_BROWSER_TIMEOUT_MS: 15000
       BNUZ_FEED_SNAPSHOT_BROWSER_HOSTS: www.bnuzh.edu.cn
       BNUZ_FEED_SNAPSHOT_BROWSER_CHANNEL: chrome
       BNUZ_FEED_SNAPSHOT_CONCURRENCY: 3
@@ -74,33 +89,43 @@ jobs:
           cache: npm
 
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
-
-      - name: Resolve Vite base path
-        shell: bash
-        run: |
-          repo_name="${GITHUB_REPOSITORY#*/}"
-          if [ "$repo_name" = "${GITHUB_REPOSITORY_OWNER}.github.io" ]; then
-            echo "VITE_BASE_PATH=/" >> "$GITHUB_ENV"
-          else
-            echo "VITE_BASE_PATH=/${repo_name}/" >> "$GITHUB_ENV"
-          fi
 
       - name: Install dependencies
         run: npm ci
 
       - name: Verify system Chrome
+        if: env.REFRESH_DATA == 'true'
         timeout-minutes: 1
         run: google-chrome --version
 
       - name: Generate snapshot data
-        timeout-minutes: 15
-        run: npm run snapshot
+        if: env.REFRESH_DATA == 'true'
+        timeout-minutes: 10
+        run: npm run snapshot 2>&1 | tee snapshot.log
+
+      - name: Select latest healthy snapshot for code release
+        if: env.REFRESH_DATA != 'true'
+        env:
+          BNUZ_FEED_PUBLISHED_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: npm run snapshot:publish
 
       - name: Verify snapshot health
         run: node scripts/check-snapshot-health.cjs
 
+      - name: Preserve refresh diagnostics
+        if: failure() && env.REFRESH_DATA == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot-diagnostics-${{ github.run_id }}
+          path: snapshot.log
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Build web app
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}/
         run: npm run build
 
       - name: Upload Pages artifact
@@ -109,19 +134,33 @@ jobs:
           path: apps/web/dist
 
   deploy:
-    needs:
-      - validate
-      - build
-    if: always() && needs.build.result == 'success' && (needs.validate.result == 'success' || needs.validate.result == 'skipped')
+    needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    concurrency:
-      group: pages-deploy
-      cancel-in-progress: true
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Check that this is still the latest commit
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_sha="$(gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq .sha)"
+          if [ "$current_sha" = "$GITHUB_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::A newer commit is available; skip this outdated deployment."
+          fi
+
       - name: Deploy to GitHub Pages
+        if: steps.latest.outputs.deploy == 'true'
         id: deployment
         uses: actions/deploy-pages@v4

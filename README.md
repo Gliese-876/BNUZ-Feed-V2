@@ -19,6 +19,7 @@ npm run check          # TypeScript 与未使用代码检查
 npm test               # 回归测试
 npm run check:sources  # 联网对比官方站点清单
 npm run snapshot       # 抓取并生成静态快照
+npm run snapshot:publish # 为代码发布选择较新的健康快照
 node scripts/check-snapshot-health.cjs
 npm run build          # 构建到 apps/web/dist
 ```
@@ -65,7 +66,11 @@ npm run build          # 构建到 apps/web/dist
 
 [GitHub Actions 工作流](.github/workflows/refresh-web.yml)按北京时间每日 06:00 至 22:00，每 15 分钟生成快照并发布到 GitHub Pages，也支持手动触发。推送和手动触发会运行类型检查及测试。
 
-工作流使用 Node 24 和 runner 预装的 Chrome，Playwright 不下载浏览器。来源并发为 `3`、每来源请求并发为 `2`，总轮数上限为 `2`，构建及快照步骤上限均为 15 分钟。工作流根据仓库名设置资源基础路径；只有快照生成、健康检查和构建成功才会部署。
+推送代码时不抓取外部源站，而是从仓库与线上发布的数据中选择较新的健康快照；线上副本不可用或不匹配当前来源目录时保留仓库副本，避免回退有效数据。定时运行及手动默认模式执行全量刷新；未收敛到全健康时保留上次线上版本并上传失败日志。手动运行取消 `refresh_data` 可只发布代码。
+
+工作流使用 Node 24 和 runner 预装的 Chrome，Playwright 不下载浏览器。来源并发为 `3`、每来源请求并发为 `2`，Node/浏览器阶段最多尝试 `3`/`2` 次，总轮数上限为 `2`；快照步骤上限 10 分钟，构建 job 上限 14 分钟。资源基础路径直接取 Pages 元数据。工作流串行执行、不取消正在发布的版本，并在部署前检查提交仍为最新。
+
+GitHub 公共仓库长期无活动时可能自动停用定时工作流。本次已遇到该状态；恢复方式为 `gh workflow enable refresh-web.yml --repo Gliese-876/BNUZ-Feed-V2`。详细流程见 [部署说明](docs/deployment.md)。
 
 ## 目录
 
