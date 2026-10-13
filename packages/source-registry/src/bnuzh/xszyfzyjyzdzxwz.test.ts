@@ -11,7 +11,7 @@ function createPage(
 ): RawPage {
   return {
     sourceId: "9e442f682ee94c92a56260b87daadd3d",
-    fetchedAt: "2026-03-21T00:00:00.000Z",
+    fetchedAt: "2026-10-13T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -23,17 +23,21 @@ describe("xszyfzyjyzdzxwz", () => {
         html: `<div class="detail"><div class="title">北京师范大学珠海校区2026年秋季学期综合类专场双选会</div>
           <div class="release"><div class="text">举办时间：2026/10/25 14:00</div>
           <div class="text">举办地点：珠海校区图书馆广场</div></div></div><div class="right">未开始</div>`,
-        title: "北京师范大学珠海校区2026年秋季学期综合类专场双选会",
+        publishedAt: undefined, title: "北京师范大学珠海校区2026年秋季学期综合类专场双选会",
         summary: "举办时间：2026/10/25 14:00 · 举办地点：珠海校区图书馆广场 · 未开始" },
       { requestId: "jobs-brief", container: "jobsbrief-lists", href: "jobs-brief-detail?id=SZUXSS4",
         html: `<div class="top"><div class="title">宝姿(中国)2027届秋季校园招聘</div>
           <div class="description"><div class="position-count">10个职位</div><div class="time">2026-10-11</div></div></div>
           <div class="detail"><div class="companyname">学校发布</div><div class="job-count">10人</div></div>`,
-        title: "宝姿(中国)2027届秋季校园招聘", summary: "10个职位 · 学校发布 · 10人" },
+        publishedAt: "2026-10-11", title: "宝姿(中国)2027届秋季校园招聘", summary: "10个职位 · 学校发布 · 10人" },
       { requestId: "job", container: "jobs-list", href: "job-detail?id=1110",
         html: `<div class="job-name">厦门-网课班主任</div><div class="job-time">10/09 发布</div>
           <div class="job-company">厦门新东方科技培训有限公司</div><div class="job-salary">6000～8000元/月</div>`,
-        title: "厦门-网课班主任", summary: "厦门新东方科技培训有限公司 · 6000～8000元/月" },
+        publishedAt: "10-09", title: "厦门-网课班主任", summary: "厦门新东方科技培训有限公司 · 6000～8000元/月" },
+      { requestId: "jiuyehuodong", container: "content-list", href: "employment-detail?id=25",
+        html: `<div class="item-left"><div class="content">简历工作坊</div></div>
+          <div class="item-time">2026-10-25 15:00 - 2026-10-25 16:00</div>`,
+        publishedAt: undefined, title: "简历工作坊", summary: "活动时间：2026-10-25 15:00 - 2026-10-25 16:00" },
     ];
     for (const card of cards) {
       const url = "https://career.bnuzh.edu.cn/index.php/web/Index/";
@@ -41,8 +45,52 @@ describe("xszyfzyjyzdzxwz", () => {
         requestId: card.requestId, requestUrl: url, finalUrl: url,
         bodyText: `<div class="${card.container}"><a href="${card.href}">${card.html}</a></div>`,
       }));
-      expect(records).toMatchObject([{ rawTitle: card.title, rawSummary: card.summary }]);
+      expect(records).toMatchObject([{ rawTitle: card.title, rawSummary: card.summary, rawPublishedAt: card.publishedAt }]);
     }
+  });
+
+  it.each(["jobfair", "preach", "jiuyehuodong"])("keeps both past and upcoming event schedules out of publishedAt for %s", async (requestId) => {
+    for (const date of ["2026-10-25", "2026-02-12"]) {
+      const [year, month, day] = date.split("-");
+      const eventCard = requestId !== "jiuyehuodong";
+      const html = eventCard
+        ? `<div class="time"><div class="day">${month}/${day}</div><div class="date">${year}</div></div>
+          <div class="detail"><div class="title">校园招聘活动</div><div class="release"><div class="text">举办时间：${date} 14:00</div></div></div>`
+        : `<div class="item-left"><div class="content">校园招聘活动</div></div><div class="item-time">${date} 14:00 - ${date} 16:00</div>`;
+      const url = "https://career.bnuzh.edu.cn/index.php/web/Index/";
+      const records = await xszyfzyjyzdzxwzParser.parse(createPage({
+        requestId, requestUrl: url, finalUrl: url,
+        bodyText: `<div class="${eventCard ? "list-media-content" : "content-list"}"><a href="${eventCard ? requestId : "employment"}-detail?id=40">${html}</a></div>`,
+      }));
+      expect(records).toHaveLength(1);
+      expect(records[0]?.rawPublishedAt).toBeUndefined();
+      expect(records[0]?.rawSummary).toContain(date);
+    }
+  });
+
+  it.each(["news", "notice", "jianlizhizuo"])("uses the publication field instead of a date in the title for %s", async (requestId) => {
+    const url = "https://career.bnuzh.edu.cn/index.php/web/Index/";
+    const records = await xszyfzyjyzdzxwzParser.parse(createPage({
+      requestId, requestUrl: url, finalUrl: url,
+      bodyText: `<div class="content-list"><li><a href="article-detail?id=335">
+        <div class="item-left"><div class="content">2026-10-25 简历工作坊报名通知</div></div>
+        <div class="item-time">2026-10-12</div></a></li></div>`,
+    }));
+    expect(records).toMatchObject([{ rawTitle: "2026-10-25 简历工作坊报名通知", rawPublishedAt: "2026-10-12" }]);
+  });
+
+  it("does not infer missing publication dates from deadlines, article titles or neighbouring rows", async () => {
+    const url = "https://career.bnuzh.edu.cn/index.php/web/Index/notice-list";
+    const records = await xszyfzyjyzdzxwzParser.parse(createPage({
+      requestId: "notice", requestUrl: url, finalUrl: url,
+      bodyText: `<div class="content-list"><ul><li><a href="notice-detail?id=1">
+        <div class="item-left"><div class="content">2026-10-25 讲座预告</div></div></a>
+        <p>报名截止：2026-10-20</p></li><li><a href="notice-detail?id=2">另一则通知</a><span class="date">2026-10-12</span></li></ul></div>`,
+    }));
+    expect(records).toMatchObject([
+      { rawTitle: "2026-10-25 讲座预告", rawPublishedAt: undefined },
+      { rawTitle: "另一则通知", rawPublishedAt: "2026-10-12" },
+    ]);
   });
 
   it("declares the confirmed public list sources and corrects the dead alias routes", () => {
@@ -221,7 +269,8 @@ describe("xszyfzyjyzdzxwz", () => {
           <div class="jobsbrief-lists">
             <ul>
               <li>
-                <a href="jobs-brief-detail?id=STUXSQ1">国家发展和改革委员会直属单位2026年度第二批公开招聘公告 2026-03-19 学校发布 若干人</a>
+                <a href="jobs-brief-detail?id=STUXSQ1"><div class="top"><div class="title">国家发展和改革委员会直属单位2026年度第二批公开招聘公告</div>
+                  <div class="description"><div class="time">2026-03-19</div></div></div></a>
               </li>
             </ul>
           </div>
@@ -233,7 +282,7 @@ describe("xszyfzyjyzdzxwz", () => {
       {
         sourceId: "9e442f682ee94c92a56260b87daadd3d",
         rawId: "jobs-brief-detail?id=STUXSQ1",
-        rawTitle: "国家发展和改革委员会直属单位2026年度第二批公开招聘公告 2026-03-19 学校发布 若干人",
+        rawTitle: "国家发展和改革委员会直属单位2026年度第二批公开招聘公告",
         rawUrl: "https://career.bnuzh.edu.cn/index.php/web/Index/jobs-brief-detail?id=STUXSQ1",
         rawPublishedAt: "2026-03-19",
         rawChannel: "公职就业",
@@ -255,7 +304,8 @@ describe("xszyfzyjyzdzxwz", () => {
           <div class="jobs-list">
             <div class="row mg-b-20">
               <div class="col-xs-6">
-                <a href="job-detail?id=860">理财顾问 03/18 发布 国金证券股份有限公司珠海前河北路证券营业部 8000～10000元/月</a>
+                <a href="job-detail?id=860"><div class="job-name">理财顾问</div><div class="job-time">03/18 发布</div>
+                  <div class="job-company">国金证券股份有限公司珠海前河北路证券营业部</div><div class="job-salary">8000～10000元/月</div></a>
               </div>
             </div>
           </div>
@@ -267,11 +317,11 @@ describe("xszyfzyjyzdzxwz", () => {
       {
         sourceId: "9e442f682ee94c92a56260b87daadd3d",
         rawId: "job-detail?id=860",
-        rawTitle: "理财顾问 03/18 发布 国金证券股份有限公司珠海前河北路证券营业部 8000～10000元/月",
+        rawTitle: "理财顾问",
         rawUrl: "https://career.bnuzh.edu.cn/index.php/web/Index/job-detail?id=860",
         rawPublishedAt: "03-18",
         rawChannel: "职位信息",
-        rawSummary: undefined,
+        rawSummary: "国金证券股份有限公司珠海前河北路证券营业部 · 8000～10000元/月",
         extras: {
           requestId: "job",
         },

@@ -52,12 +52,9 @@ function shouldIncludeNewsItem(item: Element): boolean {
   return Boolean(resolveNewsTitle(item) && resolveNewsUrl(item));
 }
 
-function resolveSchedulePublishedAt(item: Element): string | undefined {
-  return normalizeText(item.getAttribute("day"));
-}
-
 function resolveScheduleSummary(item: Element): string | undefined {
-  return normalizeText(item.getAttribute("time"));
+  const schedule = normalizeText([item.getAttribute("day"), item.getAttribute("time")].filter(Boolean).join(" "));
+  return schedule ? `会议时间：${schedule}` : undefined;
 }
 
 const parserConfig: HtmlListParserConfig = {
@@ -79,7 +76,6 @@ const parserConfig: HtmlListParserConfig = {
       channel: "会议安排",
       title: { attr: "title" },
       url: { attr: "url" },
-      publishedAt: resolveSchedulePublishedAt,
       summary: resolveScheduleSummary,
       rawId: { attr: "url" },
     },

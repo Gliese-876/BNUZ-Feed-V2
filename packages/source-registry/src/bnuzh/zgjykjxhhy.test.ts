@@ -102,7 +102,7 @@ describe("zgjykjxhhyParser", () => {
     ]);
   });
 
-  it("parses the meeting schedule cards with relative-link normalization and time fields", async () => {
+  it("keeps meeting dates and times in summaries instead of treating them as publication dates", async () => {
     const page = createPage({
       requestId: "schedule",
       requestUrl: "https://easc.bnuzh.edu.cn/",
@@ -126,9 +126,9 @@ describe("zgjykjxhhyParser", () => {
         rawId: "../hyap/5368c72dc2dd4a64999941fa73257fb6.htm",
         rawTitle: "中国教育会计学会第八届理事会第四次常务理事会",
         rawUrl: "https://easc.bnuzh.edu.cn/hyap/5368c72dc2dd4a64999941fa73257fb6.htm",
-        rawPublishedAt: "2023-04-16",
+        rawPublishedAt: undefined,
         rawChannel: "会议安排",
-        rawSummary: "16:20",
+        rawSummary: "会议时间：2023-04-16 16:20",
         extras: {
           requestId: "schedule",
         },
@@ -138,9 +138,9 @@ describe("zgjykjxhhyParser", () => {
         rawId: "hyap/b4875f8363e4466595ac7b4257284593.htm",
         rawTitle: "中国教育会计学会第八届第二次理事会",
         rawUrl: "https://easc.bnuzh.edu.cn/hyap/b4875f8363e4466595ac7b4257284593.htm",
-        rawPublishedAt: "2023-04-16",
+        rawPublishedAt: undefined,
         rawChannel: "会议安排",
-        rawSummary: "17:00",
+        rawSummary: "会议时间：2023-04-16 17:00",
         extras: {
           requestId: "schedule",
         },
@@ -150,9 +150,9 @@ describe("zgjykjxhhyParser", () => {
         rawId: "hyap/7170957754c741f9bef71f2999874d5b.htm",
         rawTitle: "中国教育会计学会学术年会（2023）",
         rawUrl: "https://easc.bnuzh.edu.cn/hyap/7170957754c741f9bef71f2999874d5b.htm",
-        rawPublishedAt: "2023-04-17",
+        rawPublishedAt: undefined,
         rawChannel: "会议安排",
-        rawSummary: "全天",
+        rawSummary: "会议时间：2023-04-17 全天",
         extras: {
           requestId: "schedule",
         },

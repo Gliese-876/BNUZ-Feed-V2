@@ -12,14 +12,6 @@ afterEach(() => {
   else Reflect.deleteProperty(navigator, "serviceWorker");
 });
 
-function installEvent() {
-  const event = new Event("beforeinstallprompt", { cancelable: true });
-  const prompt = vi.fn().mockResolvedValue(undefined);
-  Object.assign(event, { prompt });
-  fireEvent(window, event);
-  return { event, prompt };
-}
-
 function serviceWorker(waiting: object | null = null, controller: object | null = {}) {
   vi.stubEnv("PROD", true);
   vi.spyOn(document, "readyState", "get").mockReturnValue("complete");
@@ -39,20 +31,14 @@ describe("PWA controls", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("only opens the native install prompt after an explicit click and consumes it once", () => {
+  it("leaves installation to the browser without intercepting its event or adding page controls", () => {
     render(<PwaControls />);
-    const { event, prompt } = installEvent();
-    expect(event.defaultPrevented).toBe(true);
+    const event = new Event("beforeinstallprompt", { cancelable: true });
+    const prompt = vi.fn().mockResolvedValue(undefined);
+    Object.assign(event, { prompt });
+    fireEvent(window, event);
+    expect(event.defaultPrevented).toBe(false);
     expect(prompt).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "安装应用" }));
-    expect(prompt).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("button", { name: "安装应用" })).toBeNull();
-  });
-
-  it("removes installation controls when the browser reports a successful installation", () => {
-    render(<PwaControls />);
-    installEvent();
-    fireEvent(window, new Event("appinstalled"));
     expect(screen.queryByRole("button", { name: "安装应用" })).toBeNull();
   });
 

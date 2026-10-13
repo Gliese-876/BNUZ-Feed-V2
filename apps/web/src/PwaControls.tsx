@@ -1,30 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { resolvePublicAssetUrl } from "./runtime/config";
 
-interface InstallPromptEvent extends Event {
-  prompt(): Promise<unknown>;
-}
-
 export function PwaControls() {
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
   const [offline, setOffline] = useState(!navigator.onLine);
   const reloadRequested = useRef(false);
 
   useEffect(() => {
-    const offerInstall = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as InstallPromptEvent);
-    };
-    const installed = () => setInstallPrompt(null);
     const updateConnection = () => setOffline(!navigator.onLine);
-    window.addEventListener("beforeinstallprompt", offerInstall);
-    window.addEventListener("appinstalled", installed);
     window.addEventListener("online", updateConnection);
     window.addEventListener("offline", updateConnection);
     return () => {
-      window.removeEventListener("beforeinstallprompt", offerInstall);
-      window.removeEventListener("appinstalled", installed);
       window.removeEventListener("online", updateConnection);
       window.removeEventListener("offline", updateConnection);
     };
@@ -81,14 +67,9 @@ export function PwaControls() {
     };
   }, []);
 
-  if (!offline && !installPrompt && !waitingWorker) return null;
+  if (!offline && !waitingWorker) return null;
   return <div className="pwa-actions">
     {offline ? <span role="status">离线浏览 · 显示上次缓存的内容</span> : null}
-    {installPrompt ? <button className="button button--outline" type="button" onClick={() => {
-      const prompt = installPrompt;
-      setInstallPrompt(null);
-      void prompt.prompt().catch(() => undefined);
-    }}>安装应用 <span aria-hidden="true">↗</span></button> : null}
     {waitingWorker ? <button className="button button--outline" type="button" onClick={() => {
       reloadRequested.current = true;
       waitingWorker.postMessage({ type: "SKIP_WAITING" });
