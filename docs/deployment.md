@@ -3,8 +3,9 @@
 ## 触发方式
 
 - 推送 main：运行类型检查与测试，选择健康快照，构建并发布。代码更新不依赖校园源站此刻是否可访问。
-- 定时运行：北京时间 06:00—22:00 每 15 分钟刷新公网来源，全部抓取成功后发布。
-- 手动运行：默认与定时刷新相同；取消 `refresh_data` 可只发布代码。
+- 手动运行：默认刷新 45 个公网来源，全部健康后发布；取消 `refresh_data` 可只发布代码。
+
+原 GitHub Actions 定时触发已移除，工作流保持启用，仅保留推送 main 与手动触发。没有新增定时任务。客户端每 15 分钟同步读取已发布数据，不会触发服务器抓取或 Pages 发布。
 
 代码发布会比较仓库与已发布快照的更新时间，选取满足当前来源目录、健康状态与条目格式要求的较新数据。读取线上副本时使用本次运行编号作为查询参数，避开 Pages CDN 沿用上一版缓存。线上副本读取失败时使用仓库副本；两个候选都无效时中止发布。保留旧数据时不修改其更新时间，超过 24 小时会输出诊断提示。
 
@@ -16,9 +17,9 @@
 
 每次刷新先在仓库和线上数据中选择有效基线，避免将较新的校内数据回退到旧仓库副本。在校内运行 `npm run snapshot` 仍会抓取全部 47 个来源；提交生成的两个数据文件即可更新校内来源基线。
 
-所有触发共用工作流并发组，运行中的任务不被下一次定时器取消。新任务可以替换等待中的旧任务；部署前再次核对 main 最新 SHA，旧提交跳过发布。Pages 资源路径及公开数据 URL 使用 configure-pages 的元数据，支持项目路径和根域名。
+推送与手动触发共用工作流并发组，运行中的任务不被后续触发取消。新任务可以替换等待中的旧任务；部署前再次核对 main 最新 SHA，旧提交跳过发布。Pages 资源路径及公开数据 URL 使用 configure-pages 的元数据，支持项目路径和根域名。
 
-定时刷新按设计跳过 `validate`。部署 job 显式使用 `!cancelled()` 和 `needs.build.result == 'success'`，使验证 job 的跳过状态不阻止成功构建的部署，同时阻止失败构建或已取消任务发布。仅判断分支会受到隐式 `success()` 和依赖链跳过状态的影响。
+推送与手动触发都会运行 `validate`。部署 job 显式使用 `!cancelled()` 和 `needs.build.result == 'success'`，阻止失败构建或已取消任务发布。
 
 运行镜像固定为 Ubuntu 24.04，避免 `ubuntu-latest` 的系统迁移改变浏览器环境。Node 安装、Pages 与 artifact 操作使用已确认的 Node 24 原生 Actions 版本，避免依赖已弃用的 Node 20 强制兼容运行。
 
@@ -26,7 +27,7 @@
 
 推送和手动触发时，验证 job 先检查第三方许可声明是否与锁文件同步。Web 构建自动准备 `legal/` 下的完整许可文件，并和 `data/NOTICE.txt` 一起上传 Pages artifact；PWA 同时缓存这些文本。缺少运行时许可正文或出现尚未审查的许可时中止构建。维护方式见 [开源许可说明](licensing.md)。
 
-## 本次故障依据
+## 历史故障记录
 
 [定时运行 38246651911](https://github.com/Gliese-876/BNUZ-Feed-V2/actions/runs/38246651911) 于 2026-10-12 北京时间 20:03 启动，生成了更新时间为 20:05:53 的健康快照并上传 artifact，但 `deploy` 被跳过，整个运行仍显示成功。修正部署条件后，应同时核对部署 job、线上快照更新时间，不能只依据运行的绿色状态判断自动刷新完成。
 
@@ -34,7 +35,7 @@
 
 本次云端实测 [38203953637](https://github.com/Gliese-876/BNUZ-Feed-V2/actions/runs/38203953637) 已恢复 45 个公网来源；保卫办、实设办的 Chromium 导航明确返回 `ERR_NAME_NOT_RESOLVED`，本机校内 DNS 则返回内网地址，据此加入上述网络范围策略。
 
-工作流另被标记为 `disabled_inactivity`。[GitHub 的规则](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows)会在公共仓库 60 天无活动时自动停用定时工作流。恢复命令：
+当时工作流还曾被标记为 `disabled_inactivity`。[GitHub 的规则](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/disable-and-enable-workflows)会在公共仓库 60 天无活动时自动停用定时工作流。当时使用以下命令恢复并发布；这段记录不表示当前仍有定时触发，现有工作流已移除 `on.schedule`：
 
 ```bash
 gh workflow enable refresh-web.yml --repo Gliese-876/BNUZ-Feed-V2
