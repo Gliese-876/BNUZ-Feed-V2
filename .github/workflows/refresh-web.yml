@@ -33,12 +33,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: 26.12.1
           cache: npm
 
       - name: Install dependencies
@@ -73,12 +73,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node
         uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: 26.12.1
           cache: npm
 
       - name: Setup Pages
