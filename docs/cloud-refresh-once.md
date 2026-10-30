@@ -36,6 +36,8 @@ BNUZ_FEED_RUNTIME_DIR=/workspace/scratch/25c5eeba4bb1/bnuz-runtime \
 
 用户允许当前来源列表的公开通知抓取；这不授权登录或绕过校园网、安全限制。
 若某个来源收到明确权限拒绝，调用方应停止该次受拒绝操作、保留拒绝证据，并确认没有仍在运行的刷新进程。
+运行器通过 `BNUZ_FEED_SOURCE_SKIP_IDS` 传递非秘密的公开来源 ID 策略；凭据脱敏规则保持不变。
+
 只对能准确归属到现有公网来源的授权问题，在运行目录的 `source-authorization-blocks.json` 写入该来源 ID 的 JSON 数组，例如：
 
 ```json

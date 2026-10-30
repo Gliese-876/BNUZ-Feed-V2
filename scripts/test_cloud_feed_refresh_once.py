@@ -102,7 +102,7 @@ class RefreshOnceTests(unittest.TestCase):
         (self.root / "source-authorization-blocks.json").write_text(json.dumps(blocked))
         code, result = self.run_once()
         self.assertEqual(code, 0)
-        self.assertEqual(json.loads(self.env["BNUZ_FEED_AUTHORIZATION_SKIP_IDS"]), blocked)
+        self.assertEqual(json.loads(self.env["BNUZ_FEED_SOURCE_SKIP_IDS"]), blocked)
         self.assertEqual(result["authorizationSkippedSourceIds"], blocked)
         self.assertFalse((self.root / "HALTED.json").exists())
 

@@ -73,6 +73,28 @@ class FailureTests(unittest.TestCase):
             self.assertTrue(scheduler.access_denied(refusal), refusal)
         self.assertFalse(scheduler.access_denied("fetch timeout; HTTP 502"))
 
+    def test_public_source_policy_proof_survives_existing_redactor(self):
+        ids = ["70981c669ee748c4ba5dcd4022a42f58"]
+        env = os.environ.copy()
+        env.update(BNUZ_FEED_SOURCE_SKIP_IDS=json.dumps(ids),
+                   GH_TOKEN="sensitive-test-token", OTHER_AUTH="other-sensitive-value")
+        log = io.StringIO()
+        runner = scheduler.Commands(env, log, time.monotonic() + 5, threading.Event())
+        code = ("import os,json; print(os.environ['GH_TOKEN']); "
+                "print(os.environ['OTHER_AUTH']); "
+                "print(json.dumps({'authorizationSkippedSourceIds': "
+                "json.loads(os.environ['BNUZ_FEED_SOURCE_SKIP_IDS'])}))")
+        output = runner.run([sys.executable, "-c", code], Path.cwd())
+        self.assertEqual(json.loads(output.splitlines()[-1])["authorizationSkippedSourceIds"], ids)
+        self.assertIn(json.dumps(ids), log.getvalue())
+        for value in ["sensitive-test-token", "other-sensitive-value"]:
+            self.assertNotIn(value, output)
+            self.assertNotIn(value, log.getvalue())
+        # Existing AUTH-name heuristics remain unchanged, even for ID arrays.
+        policy = json.dumps(ids)
+        self.assertEqual(scheduler.Redactor({"BNUZ_FEED_AUTHORIZATION_SKIP_IDS": policy}).clean(policy),
+                         "[REDACTED]")
+
     def test_command_timeout_terminates_its_process(self):
         output = io.StringIO()
         runner = scheduler.Commands(os.environ.copy(), output, time.monotonic() + 0.15, threading.Event())

@@ -59,7 +59,7 @@ def run(args):
         blocked = helpers.read_json(ROOT / "source-authorization-blocks.json", [])
         if not isinstance(blocked, list) or any(not isinstance(value, str) for value in blocked):
             raise helpers.Failed("Source authorization blocks must be a JSON array of source IDs")
-        env["BNUZ_FEED_AUTHORIZATION_SKIP_IDS"] = json.dumps(blocked)
+        env["BNUZ_FEED_SOURCE_SKIP_IDS"] = json.dumps(blocked)
         result["authorizationSkippedSourceIds"] = blocked
         with open(out / "refresh.log", "w", encoding="utf8") as log:
             command = helpers.Commands(env, log, time.monotonic() + args.timeout)

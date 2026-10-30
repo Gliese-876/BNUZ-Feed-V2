@@ -16,7 +16,7 @@ const publicSources = publicBnuzhSources.filter((source) => !campusOnlySourceIds
 assert.equal(publicSources.length, 45);
 assert.equal(campusOnlySourceIds.length, 2);
 assert.deepEqual(Object.keys(current.sourceHealth).sort(), publicBnuzhSources.map((source) => source.id).sort());
-const skippedIds = authorizationSkippedIds(process.env.BNUZ_FEED_AUTHORIZATION_SKIP_IDS, publicBnuzhSources, campusOnlySourceIds);
+const skippedIds = authorizationSkippedIds(process.env.BNUZ_FEED_SOURCE_SKIP_IDS, publicBnuzhSources, campusOnlySourceIds);
 const retainedIds = [...campusOnlySourceIds, ...skippedIds];
 for (const source of publicSources.filter((source) => !skippedIds.includes(source.id))) {
   assert.equal(current.sourceHealth[source.id]?.status, "live", source.id);

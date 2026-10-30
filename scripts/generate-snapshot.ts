@@ -59,7 +59,7 @@ function summarizeSnapshot(snapshot: FeedSnapshot) {
 
 async function main() {
   const publicOnly = process.env.BNUZ_FEED_SNAPSHOT_PUBLIC_ONLY === "true";
-  const skippedIds = authorizationSkippedIds(process.env.BNUZ_FEED_AUTHORIZATION_SKIP_IDS, publicBnuzhSources, campusOnlySourceIds);
+  const skippedIds = authorizationSkippedIds(process.env.BNUZ_FEED_SOURCE_SKIP_IDS, publicBnuzhSources, campusOnlySourceIds);
   const sources = selectRefreshSources(publicBnuzhSources, campusOnlySourceIds, skippedIds, publicOnly);
   const previous = publicOnly
     ? JSON.parse(await readFile(resolve(outputDir, "feed-snapshot.json"), "utf8")) as FeedSnapshot
