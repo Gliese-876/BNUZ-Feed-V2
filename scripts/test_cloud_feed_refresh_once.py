@@ -97,6 +97,24 @@ class RefreshOnceTests(unittest.TestCase):
         self.assertEqual(self.env["VITE_BASE_PATH"], "/BNUZ-Feed-V2/")
         self.assert_no_publication()
 
+    def test_authorization_blocks_are_explicit_and_propagated(self):
+        blocked = ["70981c669ee748c4ba5dcd4022a42f58"]
+        (self.root / "source-authorization-blocks.json").write_text(json.dumps(blocked))
+        code, result = self.run_once()
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(self.env["BNUZ_FEED_AUTHORIZATION_SKIP_IDS"]), blocked)
+        self.assertEqual(result["authorizationSkippedSourceIds"], blocked)
+        self.assertFalse((self.root / "HALTED.json").exists())
+
+    def test_malformed_authorization_policy_fails_before_commands(self):
+        for raw in ["{", "{}", "[123]"]:
+            (self.root / "source-authorization-blocks.json").write_text(raw)
+            self.calls.clear()
+            code, result = self.run_once()
+            self.assertEqual(code, 1)
+            self.assertEqual(result["result"], "failed")
+            self.assertEqual(self.calls, [])
+
     def test_build_only_is_not_a_refreshed_candidate(self):
         code, result = self.run_once(build_only=True)
         self.assertEqual(code, 0)

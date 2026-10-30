@@ -79,7 +79,9 @@ async function main() {
   const retainedSources = Object.values(snapshot.sourceHealth).filter((entry) => entry.status === "snapshot");
   for (const entry of retainedSources) {
     if (Date.now() - Date.parse(entry.lastSuccessAt!) > 24 * 3_600_000) {
-      warnings.push(`Campus source ${entry.sourceId} last succeeded at ${entry.lastSuccessAt}; refresh it from the campus network.`);
+      warnings.push(entry.retentionReason === "authorization_required"
+        ? `Source ${entry.sourceId} awaits authorization; retained public data last succeeded at ${entry.lastSuccessAt}.`
+        : `Campus source ${entry.sourceId} last succeeded at ${entry.lastSuccessAt}; refresh it from the campus network.`);
     }
   }
   await writeFile(snapshotPath, `${JSON.stringify(snapshot)}\n`, "utf8");
@@ -91,7 +93,7 @@ async function main() {
       `### Published data\n\nSource: ${source}\n\nUpdated: ${snapshot.updatedAt}\n\nItems: ${snapshot.items.length}\n\n`, "utf8");
     if (retainedSources.length) {
       await appendFile(process.env.GITHUB_STEP_SUMMARY,
-        `Campus-only data retained:\n${retainedSources.map((entry) => `- ${entry.sourceId}: ${entry.lastSuccessAt}`).join("\n")}\n\n`, "utf8");
+        `Source data retained:\n${retainedSources.map((entry) => `- ${entry.sourceId}: ${entry.lastSuccessAt}`).join("\n")}\n\n`, "utf8");
     }
   }
 }

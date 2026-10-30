@@ -12,6 +12,7 @@ import { campusOnlySourceIds } from "@bnuz-feed/source-registry/catalog";
 import { createSnapshotFetch, parseBrowserHostList } from "./snapshotFetch";
 import { executeSnapshotStrategy, type SnapshotPhase } from "./snapshotStrategy";
 import { retainCampusSources } from "./retain-campus-sources";
+import { authorizationSkippedIds, retainAuthorizationSources, selectRefreshSources } from "./authorization-retention";
 
 const outputDir = resolve(process.cwd(), "apps/web/public/data");
 const domParser = new JSDOM("").window.DOMParser;
@@ -58,9 +59,8 @@ function summarizeSnapshot(snapshot: FeedSnapshot) {
 
 async function main() {
   const publicOnly = process.env.BNUZ_FEED_SNAPSHOT_PUBLIC_ONLY === "true";
-  const sources = publicOnly
-    ? publicBnuzhSources.filter((source) => !campusOnlySourceIds.includes(source.id))
-    : publicBnuzhSources;
+  const skippedIds = authorizationSkippedIds(process.env.BNUZ_FEED_AUTHORIZATION_SKIP_IDS, publicBnuzhSources, campusOnlySourceIds);
+  const sources = selectRefreshSources(publicBnuzhSources, campusOnlySourceIds, skippedIds, publicOnly);
   const previous = publicOnly
     ? JSON.parse(await readFile(resolve(outputDir, "feed-snapshot.json"), "utf8")) as FeedSnapshot
     : undefined;
@@ -177,6 +177,7 @@ async function main() {
 
   if (previous) {
     snapshot = retainCampusSources(snapshot, previous, campusOnlySourceIds);
+    snapshot = retainAuthorizationSources(snapshot, previous, skippedIds);
     for (const sourceId of campusOnlySourceIds) {
       console.log(`[snapshot:campus] source=${sourceId} retainedFrom=${snapshot.sourceHealth[sourceId]?.lastSuccessAt}`);
     }

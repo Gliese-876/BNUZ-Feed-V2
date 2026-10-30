@@ -26,12 +26,16 @@ function assessSnapshotHealth(snapshot) {
       errors.push(`Live source ${sourceId} has no items.`);
     }
 
-    if (entry?.status === "snapshot" && campusOnlySourceIds.includes(sourceId)) {
+    const authorizationRetained = entry?.retentionReason === "authorization_required";
+    if (entry?.retentionReason !== undefined && (!authorizationRetained || entry.status !== "snapshot")) {
+      errors.push(`Source ${sourceId} has an invalid retention marker.`);
+    }
+    if (entry?.status === "snapshot" && (campusOnlySourceIds.includes(sourceId) || authorizationRetained)) {
       const hasItems = items.some((item) => item?.sourceId === sourceId || item?.sourceIds?.includes(sourceId));
       if (!entry.itemCount || !hasItems || typeof entry.lastSuccessAt !== "string" || !Number.isFinite(Date.parse(entry.lastSuccessAt))) {
         errors.push(`Campus source ${sourceId} has no valid retained data or success time.`);
       }
-      retainedSources.push({ sourceId, lastSuccessAt: entry.lastSuccessAt, itemCount: entry.itemCount });
+      retainedSources.push({ sourceId, lastSuccessAt: entry.lastSuccessAt, itemCount: entry.itemCount, retentionReason: entry.retentionReason });
     } else if (entry?.status !== "live") {
       const sources = entry?.status === "partial" ? partialSources : degradedSources;
       sources.push({

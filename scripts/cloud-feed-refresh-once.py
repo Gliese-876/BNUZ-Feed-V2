@@ -54,6 +54,13 @@ def run(args):
         env = helpers.refresh_environment("/usr/bin/chromium")
         env["npm_config_cache"] = str(ROOT / "npm-cache")
         env["VITE_BASE_PATH"] = "/BNUZ-Feed-V2/"
+        # Explicit source-scoped blocks are not global HALTED states. Never derive
+        # these IDs from a generic timeout, HTTP error, or untrusted source content.
+        blocked = helpers.read_json(ROOT / "source-authorization-blocks.json", [])
+        if not isinstance(blocked, list) or any(not isinstance(value, str) for value in blocked):
+            raise helpers.Failed("Source authorization blocks must be a JSON array of source IDs")
+        env["BNUZ_FEED_AUTHORIZATION_SKIP_IDS"] = json.dumps(blocked)
+        result["authorizationSkippedSourceIds"] = blocked
         with open(out / "refresh.log", "w", encoding="utf8") as log:
             command = helpers.Commands(env, log, time.monotonic() + args.timeout)
             changed = command.run(["git", "diff", "HEAD", "--name-only"], REPO).splitlines()

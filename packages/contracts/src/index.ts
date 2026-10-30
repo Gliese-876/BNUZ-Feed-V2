@@ -96,6 +96,8 @@ export interface SourceHealth {
   errorCode?: AggregationErrorCode;
   lastSuccessAt?: string;
   requestUrl?: string;
+  /** Public data retained without contacting a source awaiting authorization. */
+  retentionReason?: "authorization_required";
 }
 
 export interface FeedSnapshot {
